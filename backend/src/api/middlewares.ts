@@ -91,5 +91,10 @@ export default defineMiddlewares({
       matcher: "/admin/bundles/*",
       middlewares: [authenticate("admin", ["session", "bearer"])],
     },
+    {
+      method: ["POST"],
+      matcher: "/admin/products/digital",
+      middlewares: [authenticate("admin", ["session", "bearer"])],
+    },
   ],
 })

@@ -26,6 +26,7 @@ import { logout } from '../redux/authSlice';
 import { authService } from '../services/medusa/authService';
 import { subscriptionService } from '../services/medusa/subscriptionService';
 import useToast from '../hooks/useToast';
+import B2BSidebarCard from '../components/B2BSidebarCard';
 
 const Profile = () => {
   const { user } = useSelector(state => state.auth);
@@ -221,6 +222,9 @@ const Profile = () => {
                 </>
               )}
             </div>
+
+            {/* B2B Wholesale Card */}
+            <B2BSidebarCard navigate={navigate} />
 
             <div className="bg-bg-secondary p-6 rounded-[2rem] border border-stone-100 dark:border-slate-800">
               <div className="flex items-center gap-3 mb-4">

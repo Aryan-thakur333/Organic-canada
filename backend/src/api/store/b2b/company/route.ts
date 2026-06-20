@@ -2,6 +2,34 @@ import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { B2B_MODULE } from "../../../../modules/b2b"
 import { Modules, MedusaError } from "@medusajs/framework/utils"
 
+// ── Helper: resolve company for the authenticated customer ────────────────
+
+async function resolveCustomerCompany(req: MedusaRequest) {
+  const query = req.scope.resolve("query")
+  const authContext = (req as any).auth_context
+  const customerId: string | null = authContext?.actor_id ?? null
+
+  if (!customerId) {
+    return { customerId: null, company: null }
+  }
+
+  const { data: customers } = await query.graph({
+    entity: "customer",
+    fields: [
+      "company.id",
+      "company.company_name",
+      "company.tax_id",
+      "company.gstin",
+      "company.credit_limit",
+      "company.status",
+    ],
+    filters: { id: customerId },
+  })
+
+  const customer = customers?.[0]
+  return { customerId, company: customer?.company ?? null }
+}
+
 /**
  * GET /store/b2b/company
  *
@@ -10,33 +38,10 @@ import { Modules, MedusaError } from "@medusajs/framework/utils"
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   try {
-    const query = req.scope.resolve("query")
-    const authContext = (req as any).auth_context
-    const customerId: string | null = authContext?.actor_id ?? null
+    const { customerId, company } = await resolveCustomerCompany(req)
 
     if (!customerId) {
       return res.status(401).json({ message: "Authentication required" })
-    }
-
-    // Query the customer→company link graph.
-    // The defineLink(Company, Customer) creates a bidirectional relationship.
-    const { data: customers } = await query.graph({
-      entity: "customer",
-      fields: [
-        "company.id",
-        "company.company_name",
-        "company.tax_id",
-        "company.credit_limit",
-        "company.status",
-      ],
-      filters: { id: customerId },
-    })
-
-    const customer = customers?.[0]
-    const company = customer?.company ?? null
-
-    if (!company) {
-      return res.json({ company: null })
     }
 
     return res.json({ company })
@@ -148,5 +153,89 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     return res.status(500).json({
       message: error.message || "Failed to register B2B company",
     })
+  }
+}
+
+/**
+ * PATCH /store/b2b/company
+ *
+ * Updates the authenticated customer's B2B company details.
+ * The customer must have a linked, active company.
+ *
+ * Request body (all fields optional):
+ * {
+ *   "company_name": "Acme Corp (Updated)",
+ *   "tax_id": "DE987654321",
+ *   "credit_limit": 100000
+ * }
+ */
+export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
+  try {
+    const { customerId, company } = await resolveCustomerCompany(req)
+
+    if (!customerId) {
+      return res.status(401).json({ message: "Authentication required" })
+    }
+
+    if (!company) {
+      return res.status(404).json({ message: "No B2B company found for your account" })
+    }
+
+    const { company_name, tax_id, credit_limit } = req.body as {
+      company_name?: string
+      tax_id?: string | null
+      credit_limit?: number
+    }
+
+    const updatePayload: Record<string, any> = { id: company.id }
+
+    if (company_name !== undefined) {
+      if (!company_name.trim()) {
+        return res.status(400).json({ message: "company_name cannot be empty" })
+      }
+      updatePayload.company_name = company_name.trim()
+    }
+
+    if (tax_id !== undefined) {
+      updatePayload.tax_id = tax_id?.trim() || null
+    }
+
+    if (credit_limit !== undefined) {
+      if (typeof credit_limit !== "number" || credit_limit < 0) {
+        return res.status(400).json({ message: "credit_limit must be a non-negative number (cents)" })
+      }
+      updatePayload.credit_limit = credit_limit
+    }
+
+    if (Object.keys(updatePayload).length <= 1) {
+      return res.status(400).json({ message: "No fields to update" })
+    }
+
+    const b2bService: any = req.scope.resolve(B2B_MODULE)
+    const updated = await b2bService.updateCompanies(updatePayload)
+
+    console.log(
+      `[B2B Company] Updated ${company.id}: ${JSON.stringify(Object.keys(updatePayload).filter(k => k !== 'id'))}`
+    )
+
+    return res.json({
+      message: "Company updated successfully",
+      company: {
+        id: updated.id,
+        company_name: updated.company_name,
+        tax_id: updated.tax_id,
+        gstin: updated.gstin,
+        credit_limit: updated.credit_limit,
+        status: updated.status,
+      },
+    })
+  } catch (error: any) {
+    console.error("[B2B Company Update] Error:", error)
+
+    if (error instanceof MedusaError) {
+      return res.status(error.type === "not_found" ? 404 : 400).json({ message: error.message })
+    }
+
+    return res.status(500).json({ message: error.message || "Failed to update company" })
   }
 }

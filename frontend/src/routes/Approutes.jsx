@@ -22,6 +22,12 @@ const DeliveryTracking = lazy(() => import("../pages/DeliveryTracking"));
 const Coupons = lazy(() => import("../pages/Coupons"));
 const CustomerSubscriptions = lazy(() => import("../pages/CustomerSubscriptions"));
 const AdminSubscriptions = lazy(() => import("../pages/AdminSubscriptions"));
+const B2BQuoteRequest = lazy(() => import("../pages/B2BQuoteRequest"));
+const B2BQuoteHistory = lazy(() => import("../pages/B2BQuoteHistory"));
+const AdminB2BQuotes = lazy(() => import("../pages/AdminB2BQuotes"));
+const B2BCompanyRegistration = lazy(() => import("../pages/B2BCompanyRegistration"));
+const B2BManageCompany = lazy(() => import("../pages/B2BManageCompany"));
+const AdminB2BCompanies = lazy(() => import("../pages/AdminB2BCompanies"));
 
 // Vendor Pages
 const VendorLogin = lazy(() => import("../pages/vendor/Login"));
@@ -108,10 +114,58 @@ function AppRoutes() {
             }
           />
           <Route
+            path="/dashboard/b2b/quotes"
+            element={
+              <ProtectedRoute>
+                <B2BQuoteRequest />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/b2b/history"
+            element={
+              <ProtectedRoute>
+                <B2BQuoteHistory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/b2b/register"
+            element={
+              <ProtectedRoute>
+                <B2BCompanyRegistration />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/b2b/manage"
+            element={
+              <ProtectedRoute>
+                <B2BManageCompany />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/admin/subscriptions"
             element={
               <ProtectedRoute>
                 <AdminSubscriptions />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/b2b-quotes"
+            element={
+              <ProtectedRoute>
+                <AdminB2BQuotes />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/b2b/companies"
+            element={
+              <ProtectedRoute>
+                <AdminB2BCompanies />
               </ProtectedRoute>
             }
           />
