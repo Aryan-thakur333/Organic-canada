@@ -1,8 +1,18 @@
-import B2BModule from "../modules/b2b"
-import CustomerModule from "@medusajs/medusa/customer"
 import { defineLink } from "@medusajs/framework/utils"
 
 export default defineLink(
-  B2BModule.linkable.company,
-  CustomerModule.linkable.customer
+  {
+    serviceName: "b2b",
+    field: "company",
+    linkable: "company_id",
+    primaryKey: "id",
+    entity: "Company",
+  } as any,
+  {
+    serviceName: "customer",
+    field: "customer",
+    linkable: "customer_id",
+    primaryKey: "id",
+    entity: "Customer",
+  } as any
 )

@@ -36,46 +36,6 @@ export type SplitOrderWorkflowOutput = {
   vendor_count: number
 }
 
-// ── Transform helpers ──────────────────────────────────────────────────────
-
-/**
- * Groups annotated items by vendor_id.
- * Items without a vendor are returned separately as "unlinked".
- */
-const groupItemsByVendor = transform(
-  { items: getLineItemVendorsStep },
-  ({ items }) => {
-    const vendorMap = new Map<string, VendorBucket>()
-    const unlinked: LineItemWithVendor[] = []
-
-    for (const item of items) {
-      if (!item.vendor_id) {
-        unlinked.push(item)
-        continue
-      }
-
-      let bucket = vendorMap.get(item.vendor_id)
-      if (!bucket) {
-        bucket = {
-          vendor_id: item.vendor_id,
-          items: [],
-          item_count: 0,
-          total: 0,
-        }
-        vendorMap.set(item.vendor_id, bucket)
-      }
-
-      bucket.items.push(item)
-      bucket.item_count += item.quantity
-      bucket.total += item.unit_price * item.quantity
-    }
-
-    const buckets = Array.from(vendorMap.values())
-
-    return { buckets, unlinked }
-  }
-)
-
 // ── Workflow ───────────────────────────────────────────────────────────────
 
 /**
@@ -102,7 +62,39 @@ export const splitOrderWorkflow = createWorkflow(
     })
 
     // Step 2: Group items by vendor
-    const { buckets, unlinked } = groupItemsByVendor
+    const { buckets, unlinked } = transform(
+      { items: itemsWithVendors },
+      ({ items }) => {
+        const vendorMap = new Map<string, VendorBucket>()
+        const unlinked: LineItemWithVendor[] = []
+
+        for (const item of items) {
+          if (!item.vendor_id) {
+            unlinked.push(item)
+            continue
+          }
+
+          let bucket = vendorMap.get(item.vendor_id)
+          if (!bucket) {
+            bucket = {
+              vendor_id: item.vendor_id,
+              items: [],
+              item_count: 0,
+              total: 0,
+            }
+            vendorMap.set(item.vendor_id, bucket)
+          }
+
+          bucket.items.push(item)
+          bucket.item_count += item.quantity
+          bucket.total += item.unit_price * item.quantity
+        }
+
+        const buckets = Array.from(vendorMap.values())
+
+        return { buckets, unlinked }
+      }
+    )
 
     // Step 3: Assemble the output with currency_code enriched into buckets
     const output = transform(

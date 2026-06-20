@@ -34,8 +34,14 @@ export const POST = async (
     "emailpass",
     {
       url: req.url,
-      headers: req.headers,
-      query: req.query,
+      headers: Object.fromEntries(
+        Object.entries(req.headers)
+          .filter(([_, value]) => typeof value === "string")
+      ) as Record<string, string>,
+      query: Object.fromEntries(
+        Object.entries(req.query)
+          .filter(([_, value]) => typeof value === "string")
+      ) as Record<string, string>,
       body: { email, password },
       protocol: req.protocol,
     }

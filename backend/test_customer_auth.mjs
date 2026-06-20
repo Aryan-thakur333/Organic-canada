@@ -29,7 +29,7 @@ async function run() {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
-        'x-publishable-api-key': 'pk_0fe0acedabe024a5796f8d25743f7bee8c2dedbda4289ff73a294feec410db1b'
+        'x-publishable-api-key': 'pk_c4f9bb63d7dff65a18653dceb81a54a8f5d3c4355a3d49877461d4c0d6e8ddca'
       },
       body: JSON.stringify({
         email,

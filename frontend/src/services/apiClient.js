@@ -17,8 +17,13 @@ apiClient.interceptors.request.use(
   (config) => {
     const url = config.url || '';
 
-    // Never attach any auth token to public vendor endpoints
-    if (url.includes('/vendor/login') || url.includes('/vendor/register')) {
+    // Never attach any auth token to public auth/registration endpoints
+    const isPublicAuthRoute =
+      url.includes('/auth/customer/emailpass') ||
+      url.includes('/vendor/login') ||
+      url.includes('/vendor/register');
+
+    if (isPublicAuthRoute) {
       delete config.headers.Authorization;
       return config;
     }
@@ -61,7 +66,9 @@ apiClient.interceptors.response.use(
     // These are expected 401s for unauthenticated guests — do NOT log as errors
     const isSilentAuthCheck =
       status === 401 &&
-      (url.includes('/store/customers/me') || url.includes('/auth/session'));
+      (url.includes('/store/customers/me') ||
+       url.includes('/auth/session') ||
+       url.includes('/auth/customer/emailpass'));
 
     if (!isSilentAuthCheck) {
       console.error(`[API Error] ${error.config?.method?.toUpperCase()} ${url}:`, message);

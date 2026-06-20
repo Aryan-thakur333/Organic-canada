@@ -5,7 +5,7 @@ dotenv.config({ path: "./backend/.env" });
 
 const sdk = new Medusa({
   baseUrl: process.env.MEDUSA_BACKEND_URL || "http://localhost:9000",
-  publishableKey: "pk_f6e7283a1469dbd6b8a132839cdb54a154b20c2bf07fc5ef59cf0705e7ed2431",
+  publishableKey: "pk_c4f9bb63d7dff65a18653dceb81a54a8f5d3c4355a3d49877461d4c0d6e8ddca",
 });
 
 async function checkProviders(regionId) {

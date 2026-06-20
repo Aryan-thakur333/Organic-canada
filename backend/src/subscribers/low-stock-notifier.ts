@@ -27,11 +27,11 @@ export default async function lowStockNotifier({
         "id",
         "stocked_quantity",
         "inventory_item.id",
-        "inventory_item.variant.id",
-        "inventory_item.variant.title",
-        "inventory_item.variant.product.id",
-        "inventory_item.variant.product.title",
-        "inventory_item.variant.product.handle",
+        "inventory_item.variants.id",
+        "inventory_item.variants.title",
+        "inventory_item.variants.product.id",
+        "inventory_item.variants.product.title",
+        "inventory_item.variants.product.handle",
       ],
       filters: { id: inventoryLevelId },
     })
@@ -43,9 +43,10 @@ export default async function lowStockNotifier({
     }
 
     const stockedQty = level.stocked_quantity ?? 0
-    const variantTitle = level.inventory_item?.variant?.title ?? "Unknown Variant"
-    const productId = level.inventory_item?.variant?.product?.id
-    const productTitle = level.inventory_item?.variant?.product?.title ?? "Unknown Product"
+    const variant = level.inventory_item?.variants?.[0]
+    const variantTitle = variant?.title ?? "Unknown Variant"
+    const productId = variant?.product?.id
+    const productTitle = variant?.product?.title ?? "Unknown Product"
 
     // ── 2. Check threshold ───────────────────────────────────────────────
     const THRESHOLD = 5

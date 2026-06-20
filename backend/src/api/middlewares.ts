@@ -28,6 +28,15 @@ async function devToolsCspFix(
     });
   }
 
+  // Intercept root GET requests to return healthy status and prevent 404s
+  if (req.path === "/") {
+    return res.json({
+      status: "ok",
+      message: "Medusa Backend is running",
+      documentation: "https://docs.medusajs.com"
+    });
+  }
+
   next();
 }
 
@@ -45,7 +54,7 @@ async function corsPreflightFix(
     process.env.ADMIN_CORS,
     process.env.AUTH_CORS,
   ]
-    .filter(Boolean)
+    .filter((v): v is string => typeof v === "string")
     .flatMap((v) => v.split(","))
     .map((s) => s.trim())
     .filter(Boolean);
@@ -72,11 +81,46 @@ async function corsPreflightFix(
 import { authenticateVendor } from "./vendor/auth"
 import { authenticate } from "@medusajs/framework/http"
 
+/**
+ * Global authentication and cart assignment request logger.
+ */
+async function requestLoggingMiddleware(
+  req: MedusaRequest,
+  res: MedusaResponse,
+  next: MedusaNextFunction
+) {
+  const urlPath = req.originalUrl || req.url || req.path || "";
+
+  if (urlPath.includes("/auth/customer/emailpass") || urlPath.includes("/store/customers")) {
+    console.log(`[Backend Auth Log] Method: ${req.method} | URL: ${urlPath}`);
+    if (req.body) {
+      const { email, password, ...rest } = req.body as any;
+      console.log(`[Backend Auth Log] Payload details:`, { email, ...rest });
+    }
+  }
+
+  if (urlPath.includes("/store/carts")) {
+    console.log(`[Backend Cart Log] Method: ${req.method} | URL: ${urlPath}`);
+    if (req.body) {
+      console.log(`[Backend Cart Log] Payload details:`, req.body);
+    }
+  }
+
+  if (urlPath.includes("/store/orders")) {
+    console.log(`[Backend Order Log] Method: ${req.method} | URL: ${urlPath}`);
+    if (req.body) {
+      console.log(`[Backend Order Log] Payload details:`, req.body);
+    }
+  }
+
+  next();
+}
+
 export default defineMiddlewares({
   routes: [
     {
       matcher: "*",
-      middlewares: [corsPreflightFix, devToolsCspFix],
+      middlewares: [corsPreflightFix, devToolsCspFix, requestLoggingMiddleware],
     },
     {
       matcher: "/vendor/*",

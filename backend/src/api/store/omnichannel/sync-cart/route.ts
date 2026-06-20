@@ -181,11 +181,12 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
           customer_id: customerId,
           completed_at: null,
         },
-        pagination: { take: 1, skip: 0 },
-        order: { created_at: "DESC" },
       })
 
-      targetCartId = customerCarts?.[0]?.id
+      const sortedCarts = (customerCarts || []).sort(
+        (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )
+      targetCartId = sortedCarts?.[0]?.id
     }
 
     // ── Step 2: Retrieve the existing web cart (if any) ────────────────
@@ -278,7 +279,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
       // Update existing cart in-place:
       // 1. For items already in the cart → update quantity
       // 2. For new items → add as line items
-      const existingByVariant = new Map(
+      const existingByVariant = new Map<string, { id: string; quantity: number }>(
         (existingCart.items || []).map((i: any) => [
           i.variant_id || i.id,
           { id: i.id, quantity: i.quantity },

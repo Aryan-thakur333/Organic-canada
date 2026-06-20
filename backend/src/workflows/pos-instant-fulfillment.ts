@@ -120,6 +120,9 @@ export const capturePaymentStep = createStep(
 
     // Capture each payment
     for (const payment of payments) {
+      if (!payment || !payment.id) {
+        continue
+      }
       try {
         await paymentModuleService.capturePayment(payment.id, {
           amount: payment.amount ?? 0,
@@ -222,11 +225,11 @@ export const adjustInventoryStep = createStep(
       // Resolve inventory_item_id via query.graph (variant → inventory_items link)
       const { data: variants } = await query.graph({
         entity: "variant",
-        fields: ["id", "inventory_items.id"],
+        fields: ["id", "inventory_items.inventory_item_id"],
         filters: { id: item.variant_id },
       })
 
-      const inventoryItemId = variants?.[0]?.inventory_items?.[0]?.id
+      const inventoryItemId = variants?.[0]?.inventory_items?.[0]?.inventory_item_id
       if (!inventoryItemId) {
         console.warn(`[POS Fulfillment] No inventory item found for variant ${item.variant_id}`)
         continue
