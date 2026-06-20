@@ -1,0 +1,16 @@
+# Local PostgreSQL for Medusa. Not required if you already run Postgres elsewhere.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: medusa
+      POSTGRES_PASSWORD: medusa
+      POSTGRES_DB: medusa
+    volumes:
+      - medusa_pg_data:/var/lib/postgresql/data
+
+volumes:
+  medusa_pg_data:
