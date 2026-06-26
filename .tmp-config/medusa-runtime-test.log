@@ -1,0 +1,18 @@
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    Skipping instrumentation registration. No register function found.
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    No link to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\links. skipped.
+[33mwarn[39m:    Local Event Bus installed. This is not recommended for production.
+[32minfo[39m:    Locking module: Using "in-memory" as default.
+[32minfo[39m:    No workflow to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\workflows. skipped.
+[32minfo[39m:    No subscriber to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\subscribers. skipped.
+[32minfo[39m:    No job to load from D:\eatsie-project\backend\node_modules\@medusajs\medusa\dist\jobs. skipped.
+[32minfo[39m:    No job to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\jobs. skipped.
+{"level":"http","client_ip":"::1","request_id":"fb2f0ed5-36ed-4ddb-a124-dc48d5624dd7","http_version":"1.1","method":"POST","path":"/auth/user/emailpass","status":200,"response_size":"407","request_size":"70","duration":185.388,"referrer":"-","user_agent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8655","timestamp":"2026-06-21T04:27:48.026Z"}
+{"event":"http_request","method":"POST","path":"/auth/user/emailpass","status":200,"duration_ms":155}
+{"level":"http","client_ip":"::1","request_id":"27eaeae7-1333-46a9-a021-120e05031a32","http_version":"1.1","method":"GET","path":"/admin/b2b-quotes?limit=5","status":500,"response_size":"86","request_size":0,"duration":19.287,"referrer":"-","user_agent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8655","timestamp":"2026-06-21T04:27:48.054Z"}
+{"level":"http","client_ip":"::1","request_id":"0b0b5c3a-13b3-4e8e-b14b-1943a5230c81","http_version":"1.1","method":"GET","path":"/admin/subscriptions?limit=5","status":500,"response_size":"176","request_size":0,"duration":15.88,"referrer":"-","user_agent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8655","timestamp":"2026-06-21T04:27:48.091Z"}
+{"level":"http","client_ip":"::1","request_id":"0029d5f1-63aa-4b65-bce6-d1ce247915b9","http_version":"1.1","method":"GET","path":"/admin/vendors?limit=5","status":200,"response_size":"14","request_size":0,"duration":9.283,"referrer":"-","user_agent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8655","timestamp":"2026-06-21T04:27:48.103Z"}
+[32minfo[39m:    Publishable API key required in the request header: x-publishable-api-key. You can manage your keys in settings in the dashboard.
+{"level":"http","client_ip":"::1","request_id":"af6205f6-f372-4028-866a-0f8d0a304ac2","http_version":"1.1","method":"GET","path":"/store/subscriptions","status":400,"response_size":"164","request_size":0,"duration":3.191,"referrer":"-","user_agent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8655","timestamp":"2026-06-21T04:27:48.132Z"}

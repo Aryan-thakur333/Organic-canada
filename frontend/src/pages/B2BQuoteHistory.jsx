@@ -20,7 +20,10 @@ import {
   Calendar,
   Package,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { hydrateFromMedusa } from '../redux/cartSlice';
+import { buildCartHydrationPayload } from '../services/medusa/cartService';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/Footer';
 import MobileNav from '../components/MobileNav';
@@ -53,12 +56,16 @@ const getStatusStyle = (status) => {
     case 'draft':
       return 'bg-stone-100 text-stone-600 dark:bg-slate-700 dark:text-stone-300 border border-stone-200 dark:border-slate-600';
     case 'pending':
+    case 'pending_review':
       return 'bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800/25';
     case 'approved':
       return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/25';
     case 'rejected':
       return 'bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400 border border-red-200 dark:border-red-800/25';
+    case 'expired':
+      return 'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800/25';
     case 'converted':
+    case 'converted_to_order':
       return 'bg-purple-100 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400 border border-purple-200 dark:border-purple-800/25';
     default:
       return 'bg-stone-100 text-stone-600 dark:bg-slate-800 dark:text-slate-400 border border-stone-200 dark:border-slate-700';
@@ -71,12 +78,16 @@ const StatusIcon = ({ status }) => {
     case 'draft':
       return <FileText size={16} className="text-stone-500" />;
     case 'pending':
+    case 'pending_review':
       return <Clock size={16} className="text-blue-500" />;
     case 'approved':
       return <CheckCircle2 size={16} className="text-emerald-500" />;
     case 'rejected':
       return <XCircle size={16} className="text-red-500" />;
+    case 'expired':
+      return <XCircle size={16} className="text-amber-500" />;
     case 'converted':
+    case 'converted_to_order':
       return <Send size={16} className="text-purple-500" />;
     default:
       return <FileText size={16} className="text-stone-500" />;
@@ -85,17 +96,18 @@ const StatusIcon = ({ status }) => {
 
 const STATUS_OPTIONS = [
   { value: '', label: 'All Statuses' },
-  { value: 'draft', label: 'Draft' },
-  { value: 'pending', label: 'Pending' },
+  { value: 'pending_review', label: 'Pending Review' },
   { value: 'approved', label: 'Approved' },
   { value: 'rejected', label: 'Rejected' },
-  { value: 'converted', label: 'Converted' },
+  { value: 'expired', label: 'Expired' },
+  { value: 'converted_to_order', label: 'Converted' },
 ];
 
 // ── Component ──────────────────────────────────────────────────────────────
 
 const B2BQuoteHistory = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { showToast } = useToast();
 
   // ── State ─────────────────────────────────────────────────────────────
@@ -105,11 +117,14 @@ const B2BQuoteHistory = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [expandedId, setExpandedId] = useState(null);
   const [offset, setOffset] = useState(0);
+  const [actionLoading, setActionLoading] = useState(null);
   const limit = PAGE_SIZE;
 
   // ── Derived pagination ────────────────────────────────────────────────
   const totalPages = Math.max(1, Math.ceil(count / limit));
   const currentPage = Math.floor(offset / limit) + 1;
+
+  const { id } = useParams();
 
   // ── Fetch quotes ──────────────────────────────────────────────────────
   const fetchQuotes = useCallback(async () => {
@@ -118,8 +133,27 @@ const B2BQuoteHistory = () => {
       const params = { limit, offset };
       if (statusFilter) params.status = statusFilter;
       const res = await b2bApi.getQuotes(params);
-      setQuotes(res?.quotes || []);
-      setCount(res?.count || 0);
+      let list = res?.quotes || [];
+      let total = res?.count || 0;
+      
+      // If we have an id from route params, make sure it is in the list
+      if (id && !list.some(q => q.id === id)) {
+        try {
+          const singleQuoteRes = await b2bApi.getQuote(id);
+          if (singleQuoteRes?.quote) {
+            list = [singleQuoteRes.quote, ...list];
+            total += 1;
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+      
+      setQuotes(list);
+      setCount(total);
+      if (id) {
+        setExpandedId(id);
+      }
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to load quotes';
       showToast(msg, 'error');
@@ -127,7 +161,7 @@ const B2BQuoteHistory = () => {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, offset, limit, showToast]);
+  }, [statusFilter, offset, limit, showToast, id]);
 
   useEffect(() => {
     fetchQuotes();
@@ -150,9 +184,21 @@ const B2BQuoteHistory = () => {
   const atFirstPage = currentPage <= 1;
   const atLastPage = currentPage >= totalPages;
 
+  const acceptQuote = async (quote) => {
+    setActionLoading(quote.id);
+    try {
+      const result = await b2bApi.acceptQuote(quote.id);
+      dispatch(hydrateFromMedusa(buildCartHydrationPayload(result.cart)));
+      showToast('Quote accepted. Complete checkout to place your wholesale order.', 'success');
+      navigate('/checkout');
+    } catch (error) {
+      showToast(error?.message || 'Unable to accept quote', 'error');
+    } finally { setActionLoading(null); }
+  };
+
   // ── Derived ────────────────────────────────────────────────────────────
-  const activeQuotes = quotes.filter((q) => q.status === 'draft' || q.status === 'pending');
-  const resolvedQuotes = quotes.filter((q) => q.status === 'approved' || q.status === 'rejected' || q.status === 'converted');
+  const activeQuotes = quotes.filter((q) => q.status === 'draft' || q.status === 'pending' || q.status === 'pending_review');
+  const resolvedQuotes = quotes.filter((q) => q.status === 'approved' || q.status === 'rejected' || q.status === 'converted' || q.status === 'converted_to_order' || q.status === 'expired');
 
   return (
     <div className="min-h-screen bg-bg-primary">
@@ -177,7 +223,7 @@ const B2BQuoteHistory = () => {
           <Button
             size="md"
             className="gap-2 text-xs font-black uppercase tracking-wider"
-            onClick={() => navigate('/dashboard/b2b/quotes')}
+            onClick={() => navigate('/b2b/request-quote')}
           >
             <Plus size={16} /> New Quote
           </Button>
@@ -248,7 +294,7 @@ const B2BQuoteHistory = () => {
                   You haven't submitted any wholesale quote requests.
                   Submit your first bulk order quote and track its status here.
                 </p>
-                <Button size="lg" className="gap-2" onClick={() => navigate('/dashboard/b2b/quotes')}>
+                <Button size="lg" className="gap-2" onClick={() => navigate('/b2b/request-quote')}>
                   <Plus size={20} /> Submit a Wholesale Quote
                 </Button>
               </>
@@ -331,15 +377,33 @@ const B2BQuoteHistory = () => {
                             <div className="grid sm:grid-cols-3 gap-4 p-4 mt-4 bg-stone-50 dark:bg-slate-900/40 rounded-2xl text-xs">
                               <div>
                                 <p className="text-[10px] text-text-secondary font-black uppercase tracking-widest mb-1">
-                                  Submitted
+                                  Quote ID
+                                </p>
+                                <p className="font-mono font-bold text-text-primary">{quote.id}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-text-secondary font-black uppercase tracking-widest mb-1">
+                                  Company Name
+                                </p>
+                                <p className="font-bold text-text-primary">{quote.company_name || quote.company?.company_name || '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-text-secondary font-black uppercase tracking-widest mb-1">
+                                  Customer Email
+                                </p>
+                                <p className="font-bold text-text-primary">{quote.customer_email || '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-text-secondary font-black uppercase tracking-widest mb-1">
+                                  Created Date
                                 </p>
                                 <p className="font-bold text-text-primary">{fmtDate(quote.created_at)}</p>
                               </div>
                               <div>
                                 <p className="text-[10px] text-text-secondary font-black uppercase tracking-widest mb-1">
-                                  Last Updated
+                                  Expiry Date
                                 </p>
-                                <p className="font-bold text-text-primary">{fmtDate(quote.updated_at)}</p>
+                                <p className="font-bold text-text-primary">{fmtDate(quote.expires_at)}</p>
                               </div>
                               <div>
                                 <p className="text-[10px] text-text-secondary font-black uppercase tracking-widest mb-1">
@@ -415,6 +479,16 @@ const B2BQuoteHistory = () => {
                                     </p>
                                   )}
                                 </div>
+                              </div>
+                            )}
+                            {quote.status === 'approved' && (
+                              <div className="mt-4 flex flex-wrap gap-3">
+                                <Button disabled={actionLoading === quote.id} onClick={() => acceptQuote(quote)}>
+                                  {actionLoading === quote.id ? 'Creating checkout…' : 'Accept Quote & Checkout'}
+                                </Button>
+                                <Button variant="secondary" disabled={actionLoading === quote.id} onClick={async () => { await b2bApi.rejectQuote(quote.id); await fetchQuotes(); }}>
+                                  Decline Quote
+                                </Button>
                               </div>
                             )}
                           </div>

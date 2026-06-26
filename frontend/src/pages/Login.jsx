@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Leaf, ArrowLeft, Store, User } from "lucide-react";
+import { motion as Motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, Leaf, ArrowLeft, Store, User, AlertCircle } from "lucide-react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -20,6 +20,8 @@ import useToast from "../hooks/useToast";
 
 import { authService } from "../services/medusa/authService";
 import { firebaseAuthService } from "../services/firebaseAuthService";
+import { accountService } from "../services/accountService";
+import { mapCustomerToProfile } from "../utils/customerProfile";
 
 const Login = () => {
   const location = useLocation();
@@ -33,6 +35,8 @@ const Login = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [formError, setFormError] = useState("");
 
   const navigate = useNavigate();
 
@@ -63,11 +67,18 @@ const Login = () => {
     e.preventDefault();
 
     setIsLoading(true);
+    setFormError("");
 
     dispatch(authStart());
 
     try {
       if (mode === "login") {
+        const accountType = await accountService.getAccountType(formData.email);
+        if (accountType === "vendor") {
+          const error = new Error("This email belongs to a seller account. Use Login as Seller.");
+          error.code = "SELLER_ACCOUNT";
+          throw error;
+        }
         await authService.login(formData.email, formData.password);
 
         const profileData = await authService.getCurrentCustomer();
@@ -76,15 +87,7 @@ const Login = () => {
         dispatch(loginSuccess({ user: customer }));
 
         dispatch(
-          setUserProfile({
-            id: customer.id,
-            email: customer.email,
-            name:
-              `${customer.first_name || ""} ${
-                customer.last_name || ""
-              }`.trim() || customer.email,
-            phone: customer.phone || "",
-          })
+          setUserProfile(mapCustomerToProfile(customer))
         );
 
         dispatch(authResolved());
@@ -104,15 +107,7 @@ const Login = () => {
         dispatch(loginSuccess({ user: customer }));
 
         dispatch(
-          setUserProfile({
-            id: customer.id,
-            email: customer.email,
-            name:
-              `${customer.first_name || ""} ${
-                customer.last_name || ""
-              }`.trim() || customer.email,
-            phone: customer.phone || "",
-          })
+          setUserProfile(mapCustomerToProfile(customer))
         );
 
         dispatch(authResolved());
@@ -122,8 +117,9 @@ const Login = () => {
       }
 
       if (mode === "forgot") {
+        await authService.requestPasswordReset(formData.email);
         showToast(
-          "Password reset link sent to your email",
+          "If that account exists, a password reset link has been sent.",
           "info"
         );
       }
@@ -134,6 +130,7 @@ const Login = () => {
         "Authentication failed";
 
       dispatch(loginFailure(message));
+      setFormError(message);
 
       showToast(message, "error");
     } finally {
@@ -146,8 +143,10 @@ const Login = () => {
   /* -------------------------------------------------------------------------- */
 
   const handleGoogleSignIn = async () => {
+    if (isGoogleLoading) return;
     try {
-      setIsLoading(true);
+      setIsGoogleLoading(true);
+      setFormError("");
 
       dispatch(authStart());
 
@@ -156,36 +155,29 @@ const Login = () => {
 
       const medusaUser = result?.medusaUser;
 
-      dispatch(loginSuccess({ user: medusaUser }));
+      dispatch(loginSuccess({ user: medusaUser, token: result.token }));
 
       dispatch(
-        setUserProfile({
-          id: medusaUser.id,
-          email: medusaUser.email,
-          name:
-            `${medusaUser.first_name || ""} ${
-              medusaUser.last_name || ""
-            }`.trim() || medusaUser.email,
-          phone: medusaUser.phone || "",
-        })
+        setUserProfile(mapCustomerToProfile(medusaUser))
       );
 
       dispatch(authResolved());
 
       showToast("Google Login Success 🌿", "success");
 
-      navigate("/");
+      navigate(location.state?.from || "/");
     } catch (error) {
-      console.log(error);
+      console.error('[Login] Google sign-in failed:', error);
 
       dispatch(loginFailure(error.message));
+      setFormError(error?.message || "Google Sign-In failed");
 
       showToast(
         error?.message || "Google Sign-In failed",
         "error"
       );
     } finally {
-      setIsLoading(false);
+      setIsGoogleLoading(false);
     }
   };
 
@@ -197,7 +189,7 @@ const Login = () => {
         <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-accent-secondary/5 rounded-full blur-3xl" />
       </div>
 
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md relative z-10"
@@ -244,11 +236,18 @@ const Login = () => {
             </p>
           </div>
 
+          {formError && mode !== "select" && (
+            <div role="alert" className="mb-5 flex items-start gap-2 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
+              <AlertCircle size={18} className="mt-0.5 shrink-0" />
+              <span>{formError}</span>
+            </div>
+          )}
+
           {/* Form */}
           {mode === "select" ? (
             <div className="flex flex-col gap-4">
               <Button size="lg" className="w-full gap-3 justify-center" onClick={() => setMode("login")}>
-                 <User size={18} /> Continue as Customer
+                 <User size={18} /> Login as Customer
               </Button>
               <Button variant="outline" size="lg" className="w-full gap-3 justify-center border-accent-primary text-accent-primary hover:bg-accent-primary hover:text-white transition-all" onClick={() => navigate("/vendor/login")}>
                  <Store size={18} /> Login as Seller
@@ -276,7 +275,7 @@ const Login = () => {
             >
             <AnimatePresence mode="wait">
               {mode === "register" && (
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{
                     opacity: 1,
@@ -302,7 +301,7 @@ const Login = () => {
                     placeholder="Doe"
                     required
                   />
-                </motion.div>
+                </Motion.div>
               )}
             </AnimatePresence>
 
@@ -375,7 +374,8 @@ const Login = () => {
               size="lg"
               className="gap-3 border-stone-200"
               onClick={handleGoogleSignIn}
-              isLoading={isLoading}
+              isLoading={isGoogleLoading}
+              disabled={isGoogleLoading || isLoading}
             >
               <img
                 src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
@@ -383,7 +383,7 @@ const Login = () => {
                 className="w-5 h-5"
               />
 
-              Continue with Google
+              {isGoogleLoading ? "Connecting Google account…" : "Continue with Google"}
             </Button>
           </form>
           )}
@@ -424,7 +424,7 @@ const Login = () => {
             Back Home
           </Link>
         </div>
-      </motion.div>
+      </Motion.div>
     </div>
   );
 };

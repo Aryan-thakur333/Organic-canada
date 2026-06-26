@@ -222,7 +222,7 @@ const B2BQuoteRequest = () => {
             <Button
               size="lg"
               className="gap-2"
-              onClick={() => navigate('/dashboard/b2b/register')}
+              onClick={() => navigate('/b2b/register-company')}
             >
               <Building2 size={18} /> Register B2B Company
             </Button>

@@ -11,7 +11,9 @@ import {
   ShoppingBag,
   AlertCircle,
   Building2,
-  AlertTriangle
+  AlertTriangle,
+  Download,
+  Info
 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -37,13 +39,17 @@ import {
   extractStripeClientSecret,
   assignCustomerToCart
 } from '../services/medusa/checkoutService';
-import { subscriptionService } from '../services/medusa/subscriptionService';
 import { authService } from '../services/medusa/authService';
 import { retrieveCart } from '../services/medusa/cartService';
 import { clearCart } from '../redux/cartSlice';
 import { addOrder } from '../redux/orderSlice';
 
-const steps = [
+const DIGITAL_STEPS = [
+  { id: 'payment', title: 'Payment', icon: <CreditCard size={20} /> },
+  { id: 'confirm', title: 'Confirm', icon: <CheckCircle2 size={20} /> },
+];
+
+const PHYSICAL_STEPS = [
   { id: 'shipping', title: 'Shipping', icon: <MapPin size={20} /> },
   { id: 'payment', title: 'Payment', icon: <CreditCard size={20} /> },
   { id: 'confirm', title: 'Confirm', icon: <CheckCircle2 size={20} /> },
@@ -83,6 +89,37 @@ const Checkout = () => {
   const activeItems = useMemo(() => Array.isArray(rawItems) ? rawItems : [], [rawItems]);
   const displayGrandTotal = hookGrandTotal || 0;
 
+  // Detect digital items: check metadata on cart items, variant, and product
+  const isDigitalItem = (item) => {
+    const meta = item?.metadata || {};
+    const variantMeta = item?.variant?.metadata || {};
+    const productMeta = item?.variant?.product?.metadata || {};
+    const productType = item?.variant?.product?.type?.value || '';
+    
+    return (
+      meta?.is_digital === true ||
+      meta?.is_digital === 'true' ||
+      variantMeta?.is_digital === true ||
+      variantMeta?.is_digital === 'true' ||
+      productMeta?.is_digital === true ||
+      productMeta?.is_digital === 'true' ||
+      productType === 'Digital Product'
+    );
+  };
+
+  const isDigitalOnlyCart = useMemo(() => {
+    return activeItems.length > 0 && activeItems.every(isDigitalItem);
+  }, [activeItems]);
+
+  const isMixedCart = useMemo(() => {
+    return activeItems.some(isDigitalItem) && activeItems.some(item => !isDigitalItem(item));
+  }, [activeItems]);
+
+  // Use different steps based on cart type
+  const steps = isDigitalOnlyCart ? DIGITAL_STEPS : PHYSICAL_STEPS;
+  // For digital-only carts, start at step 0 (payment)
+  const initialStep = isDigitalOnlyCart ? 0 : 0;
+
   useEffect(() => {
     if (medusaCartId) {
       console.log("[Checkout] Refreshing cart on mount:", medusaCartId);
@@ -100,83 +137,126 @@ const Checkout = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleSetupCheckout = async (email_override) => {
+    // Common setup: attach customer, fetch providers, init payment
+    const cartId = medusaCartId || (await ensureCart());
+    
+    let customerId = null;
+    try {
+      const profileData = await authService.getCurrentCustomer();
+      customerId = profileData?.customer?.id;
+    } catch (e) {
+      console.warn("[Checkout] No authenticated customer found; proceeding as guest.");
+    }
+
+    if (customerId) {
+      await assignCustomerToCart(cartId, customerId);
+    }
+
+    // For digital-only carts, set minimal details
+    if (isDigitalOnlyCart && email_override) {
+      await setCartGuestDetails(cartId, {
+        email: email_override,
+        firstName: formData.first_name || 'Digital',
+        lastName: formData.last_name || 'Customer',
+        phone: formData.phone || '',
+        addressText: 'Digital Download, Online'
+      });
+    }
+
+    await refreshFromServer(cartId);
+    
+    const { cart } = await retrieveCart(cartId);
+    const providers = await listPaymentProvidersForRegion(cart.region_id, cart.id);
+    const providerIds = providers.map(p => typeof p === 'string' ? p : p.id);
+    setAvailableProviders(providerIds);
+    
+    if (pickStripePaymentProviderId(providers)) {
+      setPaymentMethod('stripe');
+    } else if (providerIds.some((id) => id === 'paypal' || id.includes('paypal'))) {
+      setPaymentMethod('paypal');
+    } else {
+      setPaymentMethod('cod');
+    }
+
+    return { cart, providers, providerIds, cartId };
+  };
+
   const nextStep = async () => {
     if (currentStep === 0) {
-      // Validate shipping
-      if (!formData.email || !formData.address || !formData.city) {
-        showToast("Please fill in all shipping details", "error");
-        return;
-      }
-      setIsProcessing(true);
-      try {
-        const cartId = medusaCartId || (await ensureCart());
-        
-        let customerId = null;
+      if (isDigitalOnlyCart) {
+        // Digital-only: validate email only, no shipping needed
+        if (!formData.email) {
+          showToast("Please provide your email address", "error");
+          return;
+        }
+        setIsProcessing(true);
         try {
-          const profileData = await authService.getCurrentCustomer();
-          customerId = profileData?.customer?.id;
-          console.log("[Checkout] Authenticated customer id:", customerId || "none");
-        } catch (e) {
-          console.warn("[Checkout] No authenticated customer found; proceeding as guest cart.");
+          const { providers, providerIds } = await handleSetupCheckout(formData.email);
+          setCurrentStep(1);
+        } catch (error) {
+          showToast(error.message || "Failed to setup checkout", "error");
+        } finally {
+          setIsProcessing(false);
         }
+      } else {
+        // Physical or Mixed: validate full shipping
+        if (!formData.email || !formData.address || !formData.city) {
+          showToast("Please fill in all shipping details", "error");
+          return;
+        }
+        setIsProcessing(true);
+        try {
+          const cartId = medusaCartId || (await ensureCart());
+          
+          let customerId = null;
+          try {
+            const profileData = await authService.getCurrentCustomer();
+            customerId = profileData?.customer?.id;
+          } catch (e) {
+            console.warn("[Checkout] No authenticated customer found; proceeding as guest.");
+          }
 
-        if (customerId) {
-          const assignResult = await assignCustomerToCart(cartId, customerId);
-          const assignedCart = assignResult?.cart;
-          console.log("[Checkout] Customer attached to cart:", {
-            customerId,
-            cartId: assignedCart?.id || cartId,
-            cartCustomerId: assignedCart?.customer_id,
-            salesChannelId: assignedCart?.sales_channel_id,
+          if (customerId) {
+            await assignCustomerToCart(cartId, customerId);
+          }
+
+          await setCartGuestDetails(cartId, {
+            email: formData.email,
+            firstName: formData.first_name,
+            lastName: formData.last_name,
+            phone: formData.phone,
+            addressText: `${formData.address}, ${formData.city}, ${formData.postal_code}`
           });
-        }
 
-        const guestDetailsResult = await setCartGuestDetails(cartId, {
-          email: formData.email,
-          firstName: formData.first_name,
-          lastName: formData.last_name,
-          phone: formData.phone,
-          addressText: `${formData.address}, ${formData.city}, ${formData.postal_code}`
-        });
-        console.log("[Checkout] Cart checkout details saved:", {
-          cartId: guestDetailsResult?.cart?.id || cartId,
-          customerId: guestDetailsResult?.cart?.customer_id || customerId,
-          salesChannelId: guestDetailsResult?.cart?.sales_channel_id,
-        });
+          const options = await listShippingOptionsForCart(cartId);
+          setShippingOptions(options);
+          if (options.length > 0) {
+            setSelectedShippingId(options[0].id);
+            await selectShippingOption(cartId, options[0].id);
+          }
+          
+          await refreshFromServer(cartId);
+          
+          const { cart } = await retrieveCart(cartId);
+          const providers = await listPaymentProvidersForRegion(cart.region_id, cart.id);
+          const providerIds = providers.map(p => typeof p === 'string' ? p : p.id);
+          setAvailableProviders(providerIds);
+          
+          if (pickStripePaymentProviderId(providers)) {
+            setPaymentMethod('stripe');
+          } else if (providerIds.some((id) => id === 'paypal' || id.includes('paypal'))) {
+            setPaymentMethod('paypal');
+          } else {
+            setPaymentMethod('cod');
+          }
 
-        const options = await listShippingOptionsForCart(cartId);
-        setShippingOptions(options);
-        if (options.length > 0) {
-          setSelectedShippingId(options[0].id);
-          await selectShippingOption(cartId, options[0].id);
+          setCurrentStep(1);
+        } catch (error) {
+          showToast(error.message || "Failed to save shipping details", "error");
+        } finally {
+          setIsProcessing(false);
         }
-        
-        await refreshFromServer(cartId);
-        
-        // Fetch available providers for the region
-        const { cart } = await retrieveCart(cartId);
-        console.log("[Checkout] Checkout cart context:", {
-          customerId: cart.customer_id,
-          cartId: cart.id,
-          salesChannelId: cart.sales_channel_id,
-        });
-        const providers = await listPaymentProvidersForRegion(cart.region_id);
-        setAvailableProviders(providers.map(p => typeof p === 'string' ? p : p.id));
-        
-        // Set default payment method based on availability
-        if (providers.some(p => (p.id || p) === 'stripe')) {
-          setPaymentMethod('stripe');
-        } else if (providers.some(p => (p.id || p) === 'paypal')) {
-          setPaymentMethod('paypal');
-        } else {
-          setPaymentMethod('cod');
-        }
-
-        setCurrentStep(1);
-      } catch (error) {
-        showToast(error.message || "Failed to save shipping details", "error");
-      } finally {
-        setIsProcessing(false);
       }
     } else if (currentStep === 1) {
       if (paymentMethod === 'stripe') {
@@ -184,7 +264,7 @@ const Checkout = () => {
         try {
           console.log("[Checkout] Initializing Stripe session for cart:", medusaCartId);
           const { cart } = await retrieveCart(medusaCartId);
-          const providers = await listPaymentProvidersForRegion(cart.region_id);
+          const providers = await listPaymentProvidersForRegion(cart.region_id, cart.id);
           const stripePid = pickStripePaymentProviderId(providers);
           if (!stripePid) throw new Error("Stripe not available");
           
@@ -208,8 +288,9 @@ const Checkout = () => {
         try {
           console.log("[Checkout] Initializing PayPal session for cart:", medusaCartId);
           const { cart } = await retrieveCart(medusaCartId);
-          
-          await initiatePaymentSessionForProvider(cart, 'paypal');
+          const paypalProviderId = availableProviders.find((id) => id === 'paypal' || id.includes('paypal'));
+          if (!paypalProviderId) throw new Error("PayPal not available");
+          await initiatePaymentSessionForProvider(cart, paypalProviderId);
           console.log("[Checkout] PayPal session initiated");
           
           setCurrentStep(2);
@@ -251,25 +332,12 @@ const Checkout = () => {
           salesChannelId: result.order?.sales_channel_id,
         });
 
-        // Create subscription records for any subscription items in the cart
-        const subscriptionItems = activeItems.filter(
-          item => item.metadata?.is_subscription === true || item.metadata?.is_subscription === 'true'
-        );
-        if (subscriptionItems.length > 0) {
-          for (const item of subscriptionItems) {
-            try {
-              await subscriptionService.create({
-                product_id: item.variant_id || item.id,
-                product_title: item.title,
-                plan: item.metadata?.subscription_plan || 'monthly',
-                amount: Math.round((item.price || 0) * 100),
-                currency: 'usd',
-                customer_email: formData.email,
-              });
-            } catch (subErr) {
-              console.error('[Checkout] Failed to create subscription record:', subErr);
-            }
-          }
+        if (!result.order?.customer_id && result.order?.id) {
+          const existing = JSON.parse(localStorage.getItem('organic_guest_order_ids') || '[]');
+          localStorage.setItem(
+            'organic_guest_order_ids',
+            JSON.stringify([...new Set([...existing, result.order.id])].slice(-20))
+          );
         }
 
         dispatch(clearCart());
@@ -297,8 +365,14 @@ const Checkout = () => {
           
           {/* Main Checkout Flow */}
           <div className="lg:col-span-2 flex flex-col gap-8">
-            {/* Step Progress */}
+            {/* Step Progress - adapts for digital-only */}
             <div className="flex items-center justify-between bg-white p-6 rounded-[2rem] shadow-sm border border-gray-200">
+              {isDigitalOnlyCart && (
+                <div className="flex items-center gap-3 px-3 py-2 bg-blue-50 rounded-2xl border border-blue-100 mr-auto">
+                  <Download size={16} className="text-blue-500" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">Digital Download</span>
+                </div>
+              )}
               {steps.map((step, i) => (
                 <div key={step.id} className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
@@ -317,27 +391,78 @@ const Checkout = () => {
             <AnimatePresence mode="wait">
               {currentStep === 0 && (
                 <motion.div
-                  key="shipping"
+                  key={isDigitalOnlyCart ? 'digital-info' : 'shipping'}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   className="bg-white p-8 rounded-[2.5rem] shadow-premium border border-gray-200 flex flex-col gap-6"
                 >
-                  <h2 className="text-2xl font-black mb-2 text-gray-900">Shipping Information</h2>
-                  <div className="grid sm:grid-cols-2 gap-5">
-                    <Input label="First Name" name="first_name" value={formData.first_name} onChange={handleChange} placeholder="John" />
-                    <Input label="Last Name" name="last_name" value={formData.last_name} onChange={handleChange} placeholder="Doe" />
-                  </div>
-                  <Input label="Email Address" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="john@example.com" />
-                  <Input label="Phone Number" name="phone" value={formData.phone} onChange={handleChange} placeholder="+1 (555) 000-0000" />
-                  <Input label="Street Address" name="address" value={formData.address} onChange={handleChange} placeholder="123 Farm Lane" />
-                  <div className="grid sm:grid-cols-2 gap-5">
-                    <Input label="City" name="city" value={formData.city} onChange={handleChange} placeholder="Eco City" />
-                    <Input label="Postal Code" name="postal_code" value={formData.postal_code} onChange={handleChange} placeholder="12345" />
-                  </div>
-                  <Button size="lg" className="mt-4 gap-2" onClick={nextStep} isLoading={isProcessing}>
-                    Continue to Payment <ChevronRight size={18} />
-                  </Button>
+                  {isDigitalOnlyCart ? (
+                    <>
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-16 h-16 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+                          <Download size={32} />
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-black mb-1 text-gray-900">Digital Download</h2>
+                          <p className="text-sm text-gray-500">
+                            This order contains only digital products — no shipping required.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="p-5 rounded-2xl bg-blue-50 border border-blue-100">
+                        <div className="flex items-start gap-3">
+                          <Info size={18} className="text-blue-500 shrink-0 mt-0.5" />
+                          <div className="text-sm text-blue-800">
+                            <p className="font-bold mb-1">What happens next?</p>
+                            <p className="text-blue-700">
+                              After payment, you'll receive immediate access to download your files.
+                              You can also find them anytime in your <strong>Orders</strong> or <strong>My Downloads</strong> page.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <Input label="Email Address" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="john@example.com" required />
+                      <div className="grid sm:grid-cols-2 gap-5">
+                        <Input label="First Name" name="first_name" value={formData.first_name} onChange={handleChange} placeholder="John" />
+                        <Input label="Last Name" name="last_name" value={formData.last_name} onChange={handleChange} placeholder="Doe" />
+                      </div>
+                      <Button size="lg" className="mt-2 gap-2" onClick={nextStep} isLoading={isProcessing}>
+                        Continue to Payment <ChevronRight size={18} />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <h2 className="text-2xl font-black mb-2 text-gray-900">
+                        Shipping Information
+                        {isMixedCart && <span className="text-xs font-bold text-blue-500 ml-3 normal-case">(Physical items only)</span>}
+                      </h2>
+                      <div className="grid sm:grid-cols-2 gap-5">
+                        <Input label="First Name" name="first_name" value={formData.first_name} onChange={handleChange} placeholder="John" />
+                        <Input label="Last Name" name="last_name" value={formData.last_name} onChange={handleChange} placeholder="Doe" />
+                      </div>
+                      <Input label="Email Address" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="john@example.com" />
+                      <Input label="Phone Number" name="phone" value={formData.phone} onChange={handleChange} placeholder="+1 (555) 000-0000" />
+                      <Input label="Street Address" name="address" value={formData.address} onChange={handleChange} placeholder="123 Farm Lane" />
+                      <div className="grid sm:grid-cols-2 gap-5">
+                        <Input label="City" name="city" value={formData.city} onChange={handleChange} placeholder="Eco City" />
+                        <Input label="Postal Code" name="postal_code" value={formData.postal_code} onChange={handleChange} placeholder="12345" />
+                      </div>
+                      {isMixedCart && (
+                        <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-start gap-3">
+                          <Info size={16} className="text-indigo-500 shrink-0 mt-0.5" />
+                          <p className="text-xs text-indigo-700 font-medium">
+                            Your cart contains both physical and digital items.
+                            Shipping address is only needed for physical products.
+                            Digital items will be available for download after payment.
+                          </p>
+                        </div>
+                      )}
+                      <Button size="lg" className="mt-4 gap-2" onClick={nextStep} isLoading={isProcessing}>
+                        Continue to Payment <ChevronRight size={18} />
+                      </Button>
+                    </>
+                  )}
                 </motion.div>
               )}
 
@@ -355,7 +480,8 @@ const Checkout = () => {
                   <h2 className="text-2xl font-black mb-2 text-gray-900">Payment Method</h2>
                   
                   <div className="flex flex-col gap-4">
-                    {/* 1. Stripe (Always Visible Fallback) */}
+                    {/* 1. Stripe */}
+                    {(availableProviders.includes('pp_stripe_stripe') || availableProviders.includes('stripe')) && (
                     <label className={`flex items-center gap-4 p-6 rounded-3xl border-2 transition-all cursor-pointer ${
                       paymentMethod === 'stripe' ? 'border-accent-primary bg-accent-primary/5' : 'border-gray-200 hover:border-gray-300'
                     }`}>
@@ -366,8 +492,10 @@ const Checkout = () => {
                       </div>
                       <CreditCard size={24} className={paymentMethod === 'stripe' ? 'text-accent-primary' : 'text-stone-300'} />
                     </label>
+                    )}
 
-                    {/* 2. PayPal (Always Visible Fallback) */}
+                    {/* 2. PayPal */}
+                    {availableProviders.some((id) => id === 'paypal' || id.includes('paypal')) && (
                     <label className={`flex items-center gap-4 p-6 rounded-3xl border-2 transition-all cursor-pointer ${
                       paymentMethod === 'paypal' ? 'border-accent-primary bg-accent-primary/5' : 'border-gray-200 hover:border-gray-300'
                     }`}>
@@ -378,8 +506,10 @@ const Checkout = () => {
                       </div>
                       <CreditCard size={24} className={paymentMethod === 'paypal' ? 'text-accent-primary' : 'text-stone-300'} />
                     </label>
+                    )}
 
-                    {/* 3. Cash on Delivery (Always Visible Fallback) */}
+                    {/* 3. Cash on Delivery — hidden for digital-only carts */}
+                    {!isDigitalOnlyCart && availableProviders.some((id) => id === 'pp_system_default' || id === 'manual' || id.includes('system')) && (
                     <label className={`flex items-center gap-4 p-6 rounded-3xl border-2 transition-all cursor-pointer ${
                       paymentMethod === 'cod' ? 'border-accent-primary bg-accent-primary/5' : 'border-gray-200 hover:border-gray-300'
                     }`}>
@@ -390,6 +520,7 @@ const Checkout = () => {
                       </div>
                       <ShoppingBag size={24} className={paymentMethod === 'cod' ? 'text-accent-primary' : 'text-stone-300'} />
                     </label>
+                    )}
 
                     {/* 4. B2B Corporate Credit (shown only if user has an active company) */}
                     {!b2bLoading && b2bCompany?.status === "active" && (

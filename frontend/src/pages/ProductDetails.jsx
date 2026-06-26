@@ -11,7 +11,10 @@ import {
   ShieldCheck, 
   RefreshCcw,
   Minus,
-  Plus
+  Plus,
+  Download,
+  FileText,
+  Monitor
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/Footer';
@@ -82,6 +85,17 @@ const ProductDetails = () => {
     fetchProduct();
   }, [id]);
 
+  const isDigitalProduct = useMemo(() => {
+    if (!product) return false;
+    const meta = product?.metadata || {};
+    const productType = product?.type?.value || '';
+    return (
+      meta?.is_digital === true || 
+      meta?.is_digital === 'true' ||
+      productType === 'Digital Product'
+    );
+  }, [product]);
+
   const isSubscriptionProduct = useMemo(() => {
     if (!product) return false;
     const title = product.title.toLowerCase();
@@ -125,6 +139,14 @@ const ProductDetails = () => {
       if (purchaseType === 'subscription' || isSubscriptionProduct) {
         metadata.is_subscription = true;
         metadata.subscription_plan = subscriptionPlan;
+      }
+      // Pass digital product metadata so it flows through to order line items
+      if (isDigitalProduct) {
+        metadata.is_digital = true;
+        if (product?.metadata?.version) metadata.version = product.metadata.version;
+        if (product?.metadata?.download_limit) metadata.download_limit = product.metadata.download_limit;
+        if (product?.metadata?.download_expiry_days) metadata.download_expiry_days = product.metadata.download_expiry_days;
+        if (product?.metadata?.license_required) metadata.license_required = product.metadata.license_required;
       }
       await addVariant({ 
         variantId: selectedVariantId, 
@@ -339,35 +361,97 @@ const ProductDetails = () => {
               </button>
             </div>
 
+            {/* Digital Product Badge */}
+            {isDigitalProduct && (
+              <div className="mb-10 p-5 rounded-2xl bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                    <Download size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-blue-800 dark:text-blue-300">Digital Download</p>
+                    <p className="text-[10px] font-bold text-blue-500/70">Instant access after purchase</p>
+                  </div>
+                </div>
+                {(product?.metadata?.file_size || product?.metadata?.version) && (
+                  <div className="flex flex-wrap gap-4 mt-3 text-xs text-blue-600 dark:text-blue-400 font-bold">
+                    {product.metadata?.version && (
+                      <span>Version: {product.metadata.version}</span>
+                    )}
+                    {product.metadata?.file_size && (
+                      <span>Size: {(Number(product.metadata.file_size) / 1024 / 1024).toFixed(1)} MB</span>
+                    )}
+                    {product.metadata?.file_type && (
+                      <span>Format: {product.metadata.file_type.toUpperCase()}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Features List */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-10 border-t border-stone-100 dark:border-slate-800">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-accent-primary/10 text-accent-primary">
-                  <Truck size={20} />
-                </div>
-                <div>
-                  <p className="text-xs font-black uppercase tracking-tighter">Fast Delivery</p>
-                  <p className="text-[10px] text-text-secondary">Free over $50</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-accent-primary/10 text-accent-primary">
-                  <ShieldCheck size={20} />
-                </div>
-                <div>
-                  <p className="text-xs font-black uppercase tracking-tighter">Pure Organic</p>
-                  <p className="text-[10px] text-text-secondary">Certified 100%</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-accent-primary/10 text-accent-primary">
-                  <RefreshCcw size={20} />
-                </div>
-                <div>
-                  <p className="text-xs font-black uppercase tracking-tighter">Easy Returns</p>
-                  <p className="text-[10px] text-text-secondary">30-day window</p>
-                </div>
-              </div>
+              {isDigitalProduct ? (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                      <Download size={20} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-tighter">Instant Download</p>
+                      <p className="text-[10px] text-text-secondary">After payment confirmed</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                      <ShieldCheck size={20} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-tighter">Secure Access</p>
+                      <p className="text-[10px] text-text-secondary">Signed &amp; verified</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                      <RefreshCcw size={20} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-tighter">Re-Download</p>
+                      <p className="text-[10px] text-text-secondary">Limited downloads allowed</p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-accent-primary/10 text-accent-primary">
+                      <Truck size={20} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-tighter">Fast Delivery</p>
+                      <p className="text-[10px] text-text-secondary">Free over $50</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-accent-primary/10 text-accent-primary">
+                      <ShieldCheck size={20} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-tighter">Pure Organic</p>
+                      <p className="text-[10px] text-text-secondary">Certified 100%</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-accent-primary/10 text-accent-primary">
+                      <RefreshCcw size={20} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-tighter">Easy Returns</p>
+                      <p className="text-[10px] text-text-secondary">30-day window</p>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

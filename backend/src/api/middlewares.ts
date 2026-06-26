@@ -3,21 +3,26 @@ import type {
   MedusaRequest,
   MedusaResponse,
   MedusaNextFunction,
-} from "@medusajs/framework/http";
+} from "@medusajs/framework/http"
+import { getClientIp, checkRateLimit, setRateLimitHeaders } from "./utils/rate-limit"
+import { setHstsHeader } from "./utils/security"
+import { shippingDiagnostics } from "./utils/shipping-diagnostics"
 
-/**
- * Fixes Chrome DevTools CSP noise and provides more relaxed headers for local development.
- */
-async function devToolsCspFix(
+async function securityHeaders(
   req: MedusaRequest,
   res: MedusaResponse,
   next: MedusaNextFunction
 ) {
-  // Relax CSP to allow DevTools connections and local storefront interaction
   res.setHeader(
     "Content-Security-Policy",
-    "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; frame-ancestors 'self';"
+    "default-src 'self'; frame-ancestors 'self'; object-src 'none'; base-uri 'self'"
   );
+  res.setHeader("X-Content-Type-Options", "nosniff")
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin")
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+
+  // HSTS — instruct browsers to always use HTTPS (1 year, include subdomains)
+  setHstsHeader(res, process.env.NODE_ENV)
 
   // Fake response for Chrome DevTools to stop 404 logs and satisfying CSP
   if (req.path === "/.well-known/appspecific/com.chrome.devtools.json") {
@@ -25,15 +30,6 @@ async function devToolsCspFix(
       devtools: {
         host: "localhost:9000",
       },
-    });
-  }
-
-  // Intercept root GET requests to return healthy status and prevent 404s
-  if (req.path === "/") {
-    return res.json({
-      status: "ok",
-      message: "Medusa Backend is running",
-      documentation: "https://docs.medusajs.com"
     });
   }
 
@@ -64,8 +60,6 @@ async function corsPreflightFix(
 
   if (isAllowed) {
     res.setHeader("Access-Control-Allow-Origin", origin);
-  } else if (allowedOrigins.length > 0) {
-    res.setHeader("Access-Control-Allow-Origin", allowedOrigins[0]);
   }
 
   res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS");
@@ -81,37 +75,110 @@ async function corsPreflightFix(
 import { authenticateVendor } from "./vendor/auth"
 import { authenticate } from "@medusajs/framework/http"
 
+// ── Rate limiting is now imported from ./utils/rate-limit ─────────────
+
+async function authRateLimit(
+  req: MedusaRequest,
+  res: MedusaResponse,
+  next: MedusaNextFunction
+) {
+  const windowMs = 15 * 60 * 1000
+  const maxRequests = 10
+  const ip = getClientIp(req)
+  const key = `auth:${ip}:${req.path}`
+  const { allowed, remaining, resetAt } = checkRateLimit(key, maxRequests, windowMs)
+
+  setRateLimitHeaders(res, maxRequests, remaining, resetAt)
+
+  if (!allowed) {
+    res.setHeader("Retry-After", String(Math.ceil((resetAt - Date.now()) / 1000)))
+    return res.status(429).json({ message: "Too many authentication attempts. Try again later." })
+  }
+  next()
+}
+
+// 60 requests/minute for general store and vendor non-auth endpoints
+async function generalRateLimit(
+  req: MedusaRequest,
+  res: MedusaResponse,
+  next: MedusaNextFunction
+) {
+  const windowMs = 60 * 1000 // 1 minute
+  const maxRequests = 60
+  const ip = getClientIp(req)
+  const key = `general:${ip}:${req.method}:${req.path?.split("?")[0] || ""}`
+  const { allowed, remaining, resetAt } = checkRateLimit(key, maxRequests, windowMs)
+
+  setRateLimitHeaders(res, maxRequests, remaining, resetAt)
+
+  if (!allowed) {
+    res.setHeader("Retry-After", String(Math.ceil((resetAt - Date.now()) / 1000)))
+    return res.status(429).json({ message: "Too many requests. Please slow down." })
+  }
+  next()
+}
+
 /**
- * Global authentication and cart assignment request logger.
+ * Generate a short unique request ID for tracing.
+ */
+function requestId(): string {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
+}
+
+/**
+ * Structured request logger — logs all HTTP requests with consistent JSON.
+ * Never logs request bodies, credentials, addresses, or customer data.
+ *
+ * Adds an X-Request-Id header to every response for tracing.
  */
 async function requestLoggingMiddleware(
   req: MedusaRequest,
   res: MedusaResponse,
   next: MedusaNextFunction
 ) {
-  const urlPath = req.originalUrl || req.url || req.path || "";
+  const urlPath = req.originalUrl || req.url || req.path || ""
+  const rid = requestId()
 
-  if (urlPath.includes("/auth/customer/emailpass") || urlPath.includes("/store/customers")) {
-    console.log(`[Backend Auth Log] Method: ${req.method} | URL: ${urlPath}`);
-    if (req.body) {
-      const { email, password, ...rest } = req.body as any;
-      console.log(`[Backend Auth Log] Payload details:`, { email, ...rest });
-    }
+  // Attach request ID for client-side tracing
+  res.setHeader("X-Request-Id", rid)
+
+  // Health check probes are too noisy to log
+  if (urlPath === "/health" || urlPath === "/health?probe=true") {
+    return next()
   }
 
-  if (urlPath.includes("/store/carts")) {
-    console.log(`[Backend Cart Log] Method: ${req.method} | URL: ${urlPath}`);
-    if (req.body) {
-      console.log(`[Backend Cart Log] Payload details:`, req.body);
+  const startedAt = Date.now()
+  res.on("finish", () => {
+    const duration = Date.now() - startedAt
+    const entry: Record<string, any> = {
+      event: "http_request",
+      request_id: rid,
+      method: req.method,
+      path: urlPath.split("?")[0],
+      status: res.statusCode,
+      duration_ms: duration,
     }
-  }
 
-  if (urlPath.includes("/store/orders")) {
-    console.log(`[Backend Order Log] Method: ${req.method} | URL: ${urlPath}`);
-    if (req.body) {
-      console.log(`[Backend Order Log] Payload details:`, req.body);
+    // Add rate limit headers when present
+    const rateLimit = res.getHeader("RateLimit-Remaining")
+    if (rateLimit !== undefined) {
+      entry.rate_limit_remaining = Number(rateLimit)
     }
-  }
+
+    // Slow requests (over 2s) get a warning flag
+    if (duration > 2000) {
+      entry.slow = true
+    }
+
+    // Error responses (4xx/5xx) get logged at a higher level
+    if (res.statusCode >= 500) {
+      console.error(JSON.stringify(entry))
+    } else if (res.statusCode >= 400) {
+      console.warn(JSON.stringify(entry))
+    } else {
+      console.log(JSON.stringify(entry))
+    }
+  })
 
   next();
 }
@@ -119,8 +186,50 @@ async function requestLoggingMiddleware(
 export default defineMiddlewares({
   routes: [
     {
+      method: ["GET"],
+      matcher: "/store/shipping-options",
+      middlewares: [shippingDiagnostics],
+    },
+    {
+      method: ["POST"],
+      matcher: "/store/carts/:id/complete",
+      middlewares: [shippingDiagnostics],
+    },
+    {
+      method: ["POST"],
+      matcher: "/auth/*",
+      middlewares: [authRateLimit],
+    },
+    {
+      method: ["POST"],
+      matcher: "/vendor/login",
+      middlewares: [authRateLimit],
+    },
+    {
+      method: ["POST"],
+      matcher: "/vendor/register",
+      middlewares: [authRateLimit],
+    },
+    {
+      method: ["POST"],
+      matcher: "/vendor/account-type",
+      middlewares: [authRateLimit],
+    },
+    {
+      matcher: "/store/*",
+      middlewares: [generalRateLimit],
+    },
+    {
+      matcher: "/vendor/*",
+      middlewares: [generalRateLimit],
+    },
+    {
       matcher: "*",
-      middlewares: [corsPreflightFix, devToolsCspFix, requestLoggingMiddleware],
+      middlewares: [corsPreflightFix, securityHeaders, requestLoggingMiddleware],
+    },
+    {
+      matcher: "/admin/*",
+      middlewares: [authenticate("user", ["session", "bearer"])],
     },
     {
       matcher: "/vendor/*",
@@ -138,7 +247,25 @@ export default defineMiddlewares({
     {
       method: ["POST"],
       matcher: "/admin/products/digital",
-      middlewares: [authenticate("admin", ["session", "bearer"])],
+      bodyParser: false,
+      middlewares: [authenticate("user", ["session", "bearer"])],
+    },
+    {
+      matcher: "/store/subscriptions*",
+      middlewares: [authenticate("customer", ["session", "bearer"])],
+    },
+    {
+      matcher: "/store/customers/me/subscriptions",
+      middlewares: [authenticate("customer", ["session", "bearer"])],
+    },
+    {
+      matcher: "/store/b2b*",
+      middlewares: [authenticate("customer", ["session", "bearer"])],
+    },
+    {
+      method: ["GET"],
+      matcher: "/store/downloads/*",
+      middlewares: [authenticate("customer", ["session", "bearer"])],
     },
   ],
 })

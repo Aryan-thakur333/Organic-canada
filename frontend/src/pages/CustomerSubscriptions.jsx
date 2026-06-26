@@ -36,6 +36,7 @@ const CustomerSubscriptions = () => {
   const { showToast } = useToast();
   
   const [subscriptions, setSubscriptions] = useState([]);
+  const [plans, setPlans] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
@@ -43,6 +44,40 @@ const CustomerSubscriptions = () => {
   const [actionLoading, setActionLoading] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [subsRes, plansRes, ordersRes] = await Promise.all([
+        subscriptionService.list(),
+        subscriptionService.listPlans(),
+        orderService.listOrders()
+      ]);
+      setSubscriptions(subsRes.subscriptions || []);
+      setPlans(plansRes.plans || []);
+      setOrders(ordersRes.orders || []);
+    } catch {
+      showToast("Failed to retrieve subscription data", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubscribe = async (planId) => {
+    setActionLoading(planId);
+    try {
+      const result = await subscriptionService.create({ plan_id: planId });
+      if (result?.url) window.location.assign(result.url);
+      else {
+        showToast('Subscription activated', 'success');
+        await fetchData();
+      }
+    } catch (error) {
+      showToast(error?.message || 'Unable to start subscription', 'error');
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   // ── Stripe session verification on redirect ──────────────────────────
   useEffect(() => {
@@ -97,22 +132,6 @@ const CustomerSubscriptions = () => {
   }, [])
 
   // ── Data fetching (skip if session verification already loaded data) ──
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [subsRes, ordersRes] = await Promise.all([
-        subscriptionService.list(),
-        orderService.listOrders()
-      ]);
-      setSubscriptions(subsRes.subscriptions || []);
-      setOrders(ordersRes.orders || []);
-    } catch (error) {
-      showToast("Failed to retrieve subscription data", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (!searchParams.get('session_id') && !searchParams.get('canceled')) {
       fetchData();
@@ -136,6 +155,10 @@ const CustomerSubscriptions = () => {
         const res = await subscriptionService.cancel(id);
         updatedSub = res.subscription;
         showToast("Subscription cancelled", "success");
+      } else if (action === 'retry') {
+        const res = await subscriptionService.retryPayment(id);
+        updatedSub = res.subscription;
+        showToast("Payment retried, subscription reactivated!", "success");
       }
 
       if (updatedSub) {
@@ -236,6 +259,28 @@ const CustomerSubscriptions = () => {
           </div>
         </div>
 
+        {!loading && plans.length > 0 && (
+          <section className="mb-12">
+            <h2 className="text-2xl font-black mb-6">Choose your delivery plan</h2>
+            <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-5">
+              {plans.map((plan) => {
+                const current = subscriptions.some((sub) => ['active', 'trialing'].includes(sub.status) && sub.metadata?.plan_id === plan.id);
+                return (
+                  <div key={plan.id} className="bg-white dark:bg-slate-800 rounded-[2rem] p-6 border border-stone-100 dark:border-slate-700 shadow-sm">
+                    <p className="text-xs font-black uppercase tracking-widest text-accent-primary">{plan.display}</p>
+                    <h3 className="text-xl font-black mt-2">{plan.name}</h3>
+                    <p className="text-sm text-text-secondary min-h-10 mt-2">{plan.description}</p>
+                    <p className="text-2xl font-black my-5">{new Intl.NumberFormat('en-CA', { style: 'currency', currency: plan.currency_code || 'CAD' }).format((plan.price || 0) / 100)}</p>
+                    <Button className="w-full" disabled={current || actionLoading === plan.id} onClick={() => handleSubscribe(plan.id)}>
+                      {current ? 'Current plan' : actionLoading === plan.id ? 'Starting…' : 'Choose plan'}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {loading ? (
           <div className="grid md:grid-cols-2 gap-8">
             {[...Array(2)].map((_, i) => (
@@ -249,8 +294,8 @@ const CustomerSubscriptions = () => {
             </div>
             <h2 className="text-3xl font-black mb-4">No active subscriptions</h2>
             <p className="text-text-secondary mb-10 leading-relaxed">Subscribe to a Weekly/Monthly Organic Box to get freshly harvested fruits & veggies delivered to your doorstep automatically.</p>
-            <Button size="lg" className="w-full sm:w-auto" onClick={() => navigate('/listing')}>
-              Explore Weekly Organic Boxes
+            <Button size="lg" className="w-full sm:w-auto" onClick={() => document.querySelector('main')?.scrollIntoView({ behavior: 'smooth' })}>
+              Choose a plan above
             </Button>
           </div>
         ) : (
@@ -343,6 +388,17 @@ const CustomerSubscriptions = () => {
                             <Play size={14} /> Resume
                           </Button>
                         ) : null}
+
+                        {sub.status === 'past_due' && (
+                          <Button
+                            variant="secondary"
+                            className="flex-1 gap-2 text-xs font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/25 border-transparent"
+                            onClick={() => setConfirmModal({ id: sub.id, action: 'retry' })}
+                            disabled={isUpdating}
+                          >
+                            <RefreshCw size={14} /> Retry Payment
+                          </Button>
+                        )}
 
                         <Button
                           variant="outline"

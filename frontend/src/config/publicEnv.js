@@ -37,8 +37,6 @@ export function getMedusaPublishableKey() {
       import.meta.env.VITE_PUBLISHABLE_KEY ?? ""
     ).trim()
 
-  console.log("MEDUSA KEY:", key)
-
   return key
 }
 
@@ -47,11 +45,7 @@ export function getMedusaPublishableKey() {
  * @returns {boolean}
  */
 export function isMedusaConfigured() {
-  const configured = Boolean(getMedusaPublishableKey())
-
-  console.log("MEDUSA CONFIGURED:", configured)
-
-  return configured
+  return Boolean(getMedusaPublishableKey())
 }
 
 /**

@@ -22,8 +22,9 @@ export default function CartBootstrap() {
         if (cancelled || !cart) return;
         dispatch(hydrateFromMedusa(buildCartHydrationPayload(cart)));
         lastSynced.current = medusaCartId;
-      } catch {
-        if (!cancelled) {
+      } catch (error) {
+        const stale = [404, 410].includes(error?.response?.status);
+        if (!cancelled && stale) {
           lastSynced.current = "";
           dispatch(setMedusaCartId(""));
           dispatch(clearCart());

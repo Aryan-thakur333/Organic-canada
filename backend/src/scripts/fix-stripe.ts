@@ -4,20 +4,37 @@ import { updateRegionsWorkflow } from "@medusajs/medusa/core-flows";
 
 export default async function fixStripe({ container }: ExecArgs) {
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER);
-  const regionModuleService = container.resolve(Modules.REGION);
-  
-  const regions = await regionModuleService.listRegions();
-  logger.info(`Found ${regions.length} regions.`);
+  const paymentService: any = container.resolve(Modules.PAYMENT);
+  const query = container.resolve(ContainerRegistrationKeys.QUERY);
+  const providers = await paymentService.listPaymentProviders();
+  const stripeProvider = providers.find((provider: any) => provider.id === "pp_stripe_stripe");
+  if (!stripeProvider) {
+    throw new Error("pp_stripe_stripe is not registered. Configure STRIPE_API_KEY and restart Medusa first.");
+  }
 
-  for (const region of regions) {
+  const { data: regions } = await query.graph({
+    entity: "region",
+    fields: ["id", "name", "countries.iso_2", "payment_providers.id"],
+  });
+  const canadaRegions = regions.filter((region: any) =>
+    region.countries?.some((country: any) => country.iso_2?.toLowerCase() === "ca")
+  );
+  logger.info(`Found ${canadaRegions.length} Canada region(s).`);
+
+  for (const region of canadaRegions) {
+    const currentProviders = region.payment_providers?.map((provider: any) => provider.id) || [];
+    if (currentProviders.includes(stripeProvider.id)) {
+      logger.info(`Stripe already linked to ${region.name} (${region.id})`);
+      continue;
+    }
     logger.info(`Adding stripe to region: ${region.name} (${region.id})`);
     try {
       await updateRegionsWorkflow(container).run({
         input: {
           selector: { id: region.id },
           update: {
-            // @ts-ignore
-            payment_providers: ["pp_system_default", "pp_stripe_stripe"]
+            // @ts-ignore Remote provider IDs are accepted by the region workflow.
+            payment_providers: [...currentProviders, stripeProvider.id]
           }
         }
       });

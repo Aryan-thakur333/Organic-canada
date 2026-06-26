@@ -3,15 +3,25 @@ import { motion } from 'framer-motion';
 import { ArrowRight, ShoppingBag, ShieldCheck, Truck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from './common/Button';
+import { homeBackgrounds } from '../config/homeBackgrounds';
 
 const Hero = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden bg-bg-primary">
+    <section
+      className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden bg-bg-primary"
+      style={{
+        backgroundImage: `url(${homeBackgrounds.hero})`,
+        backgroundPosition: 'center',
+        backgroundSize: 'cover',
+      }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-r from-bg-primary via-bg-primary/92 to-bg-primary/58 dark:from-slate-950 dark:via-slate-950/88 dark:to-slate-950/58" />
+      <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-transparent to-white/20 dark:from-slate-950 dark:to-slate-950/20" />
       {/* Decorative Elements */}
-      <div className="absolute top-20 right-[-10%] w-[500px] h-[500px] bg-accent-primary/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-accent-secondary/10 rounded-full blur-3xl" />
+      <div className="absolute top-20 right-[-10%] w-[500px] h-[500px] bg-accent-primary/15 rounded-full blur-3xl" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-accent-secondary/15 rounded-full blur-3xl" />
 
       <div className="container-custom relative z-10 grid lg:grid-cols-2 gap-12 items-center">
         {/* Text Content */}
@@ -71,8 +81,12 @@ const Hero = () => {
         >
           <div className="relative z-10 rounded-[2.5rem] overflow-hidden shadow-2xl">
             <img 
-              src="https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1000&auto=format&fit=crop" 
+              src={homeBackgrounds.heroProduct}
               alt="Organic Food"
+              loading="lazy"
+              onError={(event) => {
+                event.currentTarget.src = homeBackgrounds.fallback;
+              }}
               className="w-full h-auto object-cover"
             />
           </div>

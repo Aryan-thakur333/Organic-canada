@@ -1,9 +1,8 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Modules } from "@medusajs/framework/utils"
-import Stripe from "stripe"
 import { SUBSCRIPTION_MODULE } from "../../../../modules/subscription"
+import { getStripeClient } from "../../../../lib/stripe-client"
 
-const stripe = new Stripe(process.env.STRIPE_API_KEY || "", { apiVersion: "2025-05-28.basil" as any })
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || ""
 
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
@@ -12,15 +11,18 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
   try {
     const rawBody = (req as any).rawBody || JSON.stringify(req.body)
-    if (sig && webhookSecret && webhookSecret !== "whsec_test") {
-      event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret)
-    } else {
-      console.warn("[Stripe Webhook] Skipping signature verification in dev/test mode.")
+    if (!sig || !webhookSecret || webhookSecret === "whsec_test") {
+      if (process.env.NODE_ENV === "production") {
+        return res.status(400).json({ message: "A valid Stripe webhook signature is required" })
+      }
+      console.warn("[Stripe Webhook] Using an unverified event outside production.")
       event = typeof req.body === "string" ? JSON.parse(req.body) : req.body
+    } else {
+      event = getStripeClient().webhooks.constructEvent(rawBody, sig, webhookSecret)
     }
   } catch (err: any) {
     console.error("[Stripe Webhook] Signature verification failed:", err.message)
-    if (process.env.NODE_ENV === "development" || !sig || webhookSecret === "whsec_test") {
+    if (process.env.NODE_ENV !== "production") {
       console.log("[Stripe Webhook] Dev fallback to unverified payload")
       event = typeof req.body === "string" ? JSON.parse(req.body) : req.body
     } else {
@@ -132,7 +134,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
         const piId = typeof charge.payment_intent === "string" ? charge.payment_intent : null
         if (piId) {
           try {
-            const pi = await stripe.paymentIntents.retrieve(piId)
+            const pi = await getStripeClient().paymentIntents.retrieve(piId)
             if (pi.metadata?.subscription_id) {
               console.log(`[Stripe Webhook] Refunding subscription ${pi.metadata.subscription_id}, marking as cancelled...`)
               await subscriptionService.updateSubscriptions({

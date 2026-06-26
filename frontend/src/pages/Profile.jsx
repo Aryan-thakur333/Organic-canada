@@ -13,7 +13,8 @@ import {
   Phone,
   Repeat,
   Sparkles,
-  Loader2
+  Loader2,
+  Download
 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -23,13 +24,15 @@ import MobileNav from '../components/MobileNav';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { logout } from '../redux/authSlice';
+import { clearUserProfile, setUserProfile } from '../redux/userSlice';
+import { mapCustomerToProfile } from '../utils/customerProfile';
 import { authService } from '../services/medusa/authService';
 import { subscriptionService } from '../services/medusa/subscriptionService';
 import useToast from '../hooks/useToast';
 import B2BSidebarCard from '../components/B2BSidebarCard';
 
 const Profile = () => {
-  const { user } = useSelector(state => state.auth);
+  const user = useSelector(state => state.user.profile);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -39,14 +42,15 @@ const Profile = () => {
     last_name: user?.last_name || '',
     email: user?.email || '',
     phone: user?.phone || '',
+    company_name: user?.company_name || '',
   });
 
   // ── Subscription State ──
   const [activeSubscriptions, setActiveSubscriptions] = useState([]);
   const [subLoading, setSubLoading] = useState(true);
-  const [upgrading, setUpgrading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
 
-  const latestSub = activeSubscriptions[0] || null;
+  const latestSub = activeSubscriptions.find((item) => ['active', 'trialing'].includes(item.status)) || null;
   const isSubscribed = !!latestSub && ['active', 'trialing'].includes(latestSub.status);
 
   const fetchSubscriptions = useCallback(async () => {
@@ -65,33 +69,28 @@ const Profile = () => {
     fetchSubscriptions();
   }, [fetchSubscriptions]);
 
-  const handleUpgrade = async () => {
-    setUpgrading(true);
-    try {
-      const res = await subscriptionService.create({
-        plan: 'monthly',
-        amount: 2999,
-        currency: 'usd',
-        product_title: 'Premium Pro',
-        return_url: `${window.location.origin}/dashboard/subscriptions`,
-      });
-      if (res?.url) {
-        window.location.href = res.url;
-      } else if (res?.subscription) {
-        showToast('Subscription activated!', 'success');
-        await fetchSubscriptions();
-      }
-    } catch (error) {
-      showToast(error?.message || 'Upgrade failed', 'error');
-    } finally {
-      setUpgrading(false);
-    }
-  };
+  useEffect(() => {
+    let active = true;
+    authService.getCurrentCustomer().then(({ customer }) => {
+      if (!active) return;
+      const profile = mapCustomerToProfile(customer);
+      dispatch(setUserProfile(profile));
+      setFormData({ first_name: profile.first_name, last_name: profile.last_name, email: profile.email, phone: profile.phone, company_name: profile.company_name });
+    }).catch((error) => {
+      if (error?.status === 401 || error?.response?.status === 401) {
+        dispatch(logout());
+        dispatch(clearUserProfile());
+        navigate('/login');
+      } else showToast(error?.message || 'Unable to load profile', 'error');
+    }).finally(() => active && setProfileLoading(false));
+    return () => { active = false; };
+  }, [dispatch, navigate]);
 
   const handleLogout = async () => {
     try {
       await authService.logout();
       dispatch(logout());
+      dispatch(clearUserProfile());
       showToast("Logged out successfully", "success");
       navigate('/login');
     } catch (error) {
@@ -102,12 +101,17 @@ const Profile = () => {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
-      await authService.updateCustomer(formData);
+      const { customer } = await authService.updateCustomer(formData);
+      const profile = mapCustomerToProfile(customer);
+      dispatch(setUserProfile(profile));
+      setFormData({ first_name: profile.first_name, last_name: profile.last_name, email: profile.email, phone: profile.phone, company_name: profile.company_name });
       showToast("Profile updated", "success");
     } catch (error) {
       showToast("Update failed", "error");
     }
   };
+
+  const defaultAddress = user?.addresses?.find((address) => address.is_default_shipping) || user?.addresses?.[0];
 
   return (
     <div className="min-h-screen bg-bg-primary">
@@ -134,7 +138,17 @@ const Profile = () => {
                   <span className="flex items-center gap-3"><Settings size={18} /> Settings</span>
                   <ChevronRight size={16} />
                 </button>
-                <button className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-50 dark:hover:bg-slate-700 text-text-secondary text-sm font-bold transition-colors">
+                <button
+                  onClick={() => navigate('/my-downloads')}
+                  className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-50 dark:hover:bg-slate-700 text-text-secondary text-sm font-bold transition-colors"
+                >
+                  <span className="flex items-center gap-3"><Download size={18} /> My Downloads</span>
+                  <ChevronRight size={16} />
+                </button>
+                <button
+                  onClick={() => navigate('/addresses')}
+                  className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-50 dark:hover:bg-slate-700 text-text-secondary text-sm font-bold transition-colors"
+                >
                   <span className="flex items-center gap-3"><MapPin size={18} /> Addresses</span>
                   <ChevronRight size={16} />
                 </button>
@@ -210,14 +224,9 @@ const Profile = () => {
                   <Button
                     size="sm"
                     className="w-full gap-2 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-emerald-500 to-teal-400"
-                    onClick={handleUpgrade}
-                    disabled={upgrading}
+                    onClick={() => navigate('/dashboard/subscriptions')}
                   >
-                    {upgrading ? (
-                      <><Loader2 size={14} className="animate-spin" /> Processing…</>
-                    ) : (
-                      <><Sparkles size={14} /> Upgrade Now</>
-                    )}
+                    <><Sparkles size={14} /> View Plans</>
                   </Button>
                 </>
               )}
@@ -251,14 +260,14 @@ const Profile = () => {
                   name="first_name"
                   value={formData.first_name}
                   onChange={(e) => setFormData({...formData, first_name: e.target.value})}
-                  placeholder="John" 
+                  placeholder="First name" 
                 />
                 <Input 
                   label="Last Name" 
                   name="last_name"
                   value={formData.last_name}
                   onChange={(e) => setFormData({...formData, last_name: e.target.value})}
-                  placeholder="Doe" 
+                  placeholder="Last name" 
                 />
                 <div className="relative">
                   <Mail className="absolute right-4 top-[2.4rem] text-stone-300" size={18} />
@@ -268,7 +277,7 @@ const Profile = () => {
                     type="email"
                     value={formData.email}
                     readOnly
-                    placeholder="john@example.com" 
+                    placeholder="Email address" 
                     className="opacity-70"
                   />
                 </div>
@@ -279,13 +288,24 @@ const Profile = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    placeholder="+1 (555) 000-0000" 
+                    placeholder="Phone number" 
                   />
+                </div>
+                <Input
+                  label="Company (optional)"
+                  name="company_name"
+                  value={formData.company_name}
+                  onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
+                  placeholder="Company name"
+                />
+                <div className="flex flex-col justify-end pb-3">
+                  <span className="text-xs font-bold uppercase tracking-widest text-text-secondary">Member since</span>
+                  <span className="text-sm font-bold mt-2">{user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Not available'}</span>
                 </div>
                 
                 <div className="md:col-span-2 pt-4 flex justify-end">
-                  <Button type="submit" size="lg" className="px-12">
-                    Update Profile
+                  <Button type="submit" size="lg" className="px-12" disabled={profileLoading}>
+                    {profileLoading ? 'Loading…' : 'Update Profile'}
                   </Button>
                 </div>
               </form>
@@ -295,9 +315,9 @@ const Profile = () => {
               <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-8 shadow-sm border border-stone-100 dark:border-slate-700">
                 <h3 className="text-xl font-black mb-4">Saved Address</h3>
                 <p className="text-sm text-text-secondary mb-6 leading-relaxed">
-                  123 Organic Lane, Farm District<br />Eco City, EC 12345
+                  {defaultAddress ? <>{defaultAddress.address_1}{defaultAddress.address_2 ? `, ${defaultAddress.address_2}` : ''}<br />{[defaultAddress.city, defaultAddress.province, defaultAddress.postal_code, defaultAddress.country_code?.toUpperCase()].filter(Boolean).join(', ')}</> : 'No saved address.'}
                 </p>
-                <Button variant="secondary" size="sm">Manage Addresses</Button>
+                <Button variant="secondary" size="sm" onClick={() => navigate('/addresses')}>Manage Addresses</Button>
               </div>
               <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-8 shadow-sm border border-stone-100 dark:border-slate-700">
                 <h3 className="text-xl font-black mb-4">Payment Method</h3>
@@ -305,9 +325,9 @@ const Profile = () => {
                   <div className="w-10 h-10 rounded-lg bg-stone-100 dark:bg-slate-700 flex items-center justify-center">
                     <CreditCard size={20} />
                   </div>
-                  <p className="text-sm font-bold">•••• 4242 (Visa)</p>
+                  <p className="text-sm font-bold">No saved payment method</p>
                 </div>
-                <Button variant="secondary" size="sm">Manage Payments</Button>
+                <Button variant="secondary" size="sm" onClick={() => showToast('Saved payment methods are not enabled yet.', 'info')}>Manage Payments</Button>
               </div>
             </div>
           </div>

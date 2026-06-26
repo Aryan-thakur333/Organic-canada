@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Store, Mail, Lock, FileText, CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
+import { Store, Mail, Lock, FileText, CheckCircle2, ArrowRight, Loader2, Phone } from "lucide-react";
 import { vendorApi } from "../../services/vendorApi";
 import { vendorStart, vendorSuccess, vendorFailure } from "../../redux/vendorSlice";
 import toast from "react-hot-toast";
@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [description, setDescription] = useState("");
   const [password, setPassword] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
@@ -20,13 +21,25 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !email || !password) {
+    const storeName = name.trim();
+    const businessEmail = email.trim();
+    if (!storeName || !businessEmail || !password) {
       return toast.error("Please fill in all required fields");
+    }
+    if (password.length < 12) {
+      return toast.error("Password must be at least 12 characters long");
     }
 
     dispatch(vendorStart());
     try {
-      await vendorApi.register({ name, email, password, description });
+      await vendorApi.register({
+        name: storeName,
+        store_name: storeName,
+        email: businessEmail,
+        phone: phone.trim() || undefined,
+        password,
+        description,
+      });
       dispatch(vendorSuccess());
       setIsSuccess(true);
       toast.success("Application submitted successfully!");
@@ -116,6 +129,20 @@ export default function Register() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-stone-900 border border-stone-800 focus:border-emerald-500 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder-stone-600 outline-none transition-colors text-sm font-bold"
                 required
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Phone</label>
+            <div className="relative">
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500" size={16} />
+              <input
+                type="tel"
+                placeholder="9876543210"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full bg-stone-900 border border-stone-800 focus:border-emerald-500 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder-stone-600 outline-none transition-colors text-sm font-bold"
               />
             </div>
           </div>

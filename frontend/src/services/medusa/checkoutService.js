@@ -2,6 +2,22 @@ import apiClient from "../apiClient";
 import { getDefaultCountryCode } from "../../config/publicEnv";
 
 const CART_CHECKOUT_FIELDS = "id,email,customer_id,sales_channel_id,*items,*region,*items.variant,*shipping_methods,*payment_collection,payment_collection.payment_sessions.*";
+const paymentSessionRequests = new Map();
+
+const isStripeProviderId = (providerId = "") => {
+  const id = providerId.toLowerCase();
+  return id === "stripe" || id.startsWith("pp_stripe_") || id.includes("stripe");
+};
+
+const findReusablePaymentSession = (paymentCollection, providerId) => {
+  const sessions = paymentCollection?.payment_sessions;
+  if (!Array.isArray(sessions)) return null;
+  return sessions.find((session) => {
+    if (session.provider_id !== providerId) return false;
+    if (["canceled", "cancelled", "error"].includes(String(session.status).toLowerCase())) return false;
+    return !isStripeProviderId(providerId) || Boolean(session.data?.client_secret);
+  }) || null;
+};
 
 export const checkoutService = {
   listShippingOptions: (cartId) =>
@@ -12,10 +28,11 @@ export const checkoutService = {
       option_id: optionId 
     }, { params: { fields: CART_CHECKOUT_FIELDS } }),
 
-  listPaymentProviders: (regionId) =>
-    apiClient.get("/store/payment-providers", { 
-      params: { region_id: regionId, limit: 50 } 
-    }),
+  listPaymentProviders: (regionId, cartId) => cartId
+    ? apiClient.get(`/store/carts/${cartId}/payment-providers`)
+    : apiClient.get("/store/payment-providers", {
+        params: { region_id: regionId, limit: 50 },
+      }),
 
   createPaymentCollection: (cartId) =>
     apiClient.post("/store/payment-collections", { cart_id: cartId }),
@@ -65,8 +82,8 @@ export const assignCustomerToCart = async (cartId, customerId) => {
   if (!cartId || !customerId) return null;
   console.log("[checkoutService] Attaching authenticated customer to cart:", cartId);
   return apiClient.post(
-    `/store/carts/${cartId}`,
-    { customer_id: customerId },
+    `/store/carts/${cartId}/customer`,
+    {},
     { params: { fields: CART_CHECKOUT_FIELDS } }
   );
 };
@@ -84,9 +101,9 @@ export const setCartGuestDetails = async (cartId, { email, firstName, lastName, 
   return apiClient.post(`/store/carts/${cartId}`, payload, { params: { fields: CART_CHECKOUT_FIELDS } });
 };
 
-export const listPaymentProvidersForRegion = async (regionId) => {
+export const listPaymentProvidersForRegion = async (regionId, cartId) => {
   if (!regionId) return [];
-  const { payment_providers } = await checkoutService.listPaymentProviders(regionId);
+  const { payment_providers } = await checkoutService.listPaymentProviders(regionId, cartId);
   return payment_providers || [];
 };
 
@@ -103,70 +120,91 @@ export function pickSystemPaymentProviderId(providers) {
 
 export function pickStripePaymentProviderId(providers) {
   const list = Array.isArray(providers) ? providers : [];
-  return list.find(p => {
-    const id = p.id.toLowerCase();
-    return id === "stripe" || id.startsWith("pp_stripe_") || id.includes("stripe");
-  })?.id || null;
+  const exact = list.find((provider) => provider.id === "pp_stripe_stripe" || provider.id === "stripe");
+  return exact?.id || null;
 }
 
 export const initiatePaymentSessionForProvider = async (cart, providerId) => {
   const cartId = typeof cart === "object" ? cart.id : cart;
   const cartObj = typeof cart === "object" ? cart : null;
-  
-  // 1. Ensure we have a payment collection
+  if (!cartId) throw new Error("Cart id is required to initialize payment");
+  if (!providerId) throw new Error("Payment provider id is required");
+
   let paymentCollectionId = cartObj?.payment_collection?.id;
+  let paymentCollection = cartObj?.payment_collection;
   if (!paymentCollectionId) {
-    const { payment_collection } = await checkoutService.createPaymentCollection(cartId);
-    paymentCollectionId = payment_collection.id;
+    const created = await checkoutService.createPaymentCollection(cartId);
+    paymentCollection = created.payment_collection;
+    paymentCollectionId = paymentCollection.id;
   }
 
-  // 2. IMPORTANT BUGS BYPASS: Check if the session already exists!
-  // Medusa v2 has a bug where trying to re-initiate a session over an existing one
-  // throws "Could not delete all payment sessions" (500 Error).
-  // To bypass this, we simply reuse the existing session if it matches the provider.
-  const existingSessions = cartObj?.payment_collection?.payment_sessions || cartObj?.payment_sessions;
-  if (Array.isArray(existingSessions)) {
-    const existingSession = existingSessions.find(s => s.provider_id === providerId);
-    if (existingSession) {
-      console.log("[checkoutService] Reusing existing payment session for provider:", providerId);
-      // We still return a successful structure to mimic the initiate response
-      return { payment_collection: cartObj.payment_collection };
-    }
-  }
+  const context = {
+    provider_id: providerId,
+    payment_collection_id: paymentCollectionId,
+    cart_id: cartId,
+    region_id: cartObj?.region_id || cartObj?.region?.id,
+    amount: paymentCollection?.amount ?? cartObj?.total,
+    currency_code: paymentCollection?.currency_code || cartObj?.currency_code,
+  };
+  console.info("[checkoutService] Payment session context", context);
 
-  // 3. Initiate new session only if we don't have one
-  try {
-    return await checkoutService.initiatePaymentSession(paymentCollectionId, providerId, {
-      description: "Eatsie Store Order",
-      email: cartObj?.email,
-      customer: cartObj ? {
-        name: `${cartObj.shipping_address?.first_name || ""} ${cartObj.shipping_address?.last_name || ""}`.trim() || undefined,
-        email: cartObj.email || undefined,
-      } : undefined,
+  const existingSession = findReusablePaymentSession(paymentCollection, providerId);
+  if (existingSession) {
+    console.info("[checkoutService] Reusing valid payment session", {
+      ...context,
+      payment_session_id: existingSession.id,
     });
-  } catch (err) {
-    if (err?.response?.status === 500 || err?.message?.includes("delete all payment sessions")) {
-      console.warn("[checkoutService] Caught Medusa v2 session deletion bug. Fetching existing session...");
+    return { payment_collection: paymentCollection };
+  }
+
+  const requestKey = `${paymentCollectionId}:${providerId}`;
+  if (paymentSessionRequests.has(requestKey)) {
+    console.info("[checkoutService] Reusing in-flight payment session request", context);
+    return paymentSessionRequests.get(requestKey);
+  }
+
+  const request = (async () => {
+    try {
+      return await checkoutService.initiatePaymentSession(paymentCollectionId, providerId, {
+        payment_description: "Eatsie Store Order",
+        metadata: {
+          cart_id: cartId,
+          region_id: context.region_id,
+        },
+      });
+    } catch (error) {
+      let recoveryError;
       try {
-        const { data } = await apiClient.get(`/store/carts/${cartId}`);
-        const latestCart = data?.cart || data;
-        const existingSession = latestCart?.payment_collection?.payment_sessions?.find(s => s.provider_id === providerId);
-        if (existingSession) {
-          console.log("[checkoutService] Successfully recovered existing session from latest cart.");
+        const latest = await apiClient.get(`/store/carts/${cartId}`, {
+          params: { fields: CART_CHECKOUT_FIELDS },
+        });
+        const latestCart = latest?.cart;
+        const recoveredSession = findReusablePaymentSession(latestCart?.payment_collection, providerId);
+        if (recoveredSession) {
+          console.warn("[checkoutService] Session request failed but a valid session was recovered", {
+            ...context,
+            payment_session_id: recoveredSession.id,
+          });
           return { payment_collection: latestCart.payment_collection };
         }
-      } catch (recoverErr) {
-        console.error("Failed to recover session", recoverErr);
+      } catch (caughtRecoveryError) {
+        recoveryError = caughtRecoveryError;
       }
+
+      console.error("[checkoutService] Payment session creation failed", {
+        ...context,
+        status: error?.response?.status,
+        backend_error: error?.response?.data || error?.message,
+        recovery_error: recoveryError?.response?.data || recoveryError?.message,
+      });
+      throw error;
+    } finally {
+      paymentSessionRequests.delete(requestKey);
     }
-    
-    // Graceful PayPal Init Failure
-    if (providerId === "paypal" && err?.response?.status === 500) {
-      throw new Error("PayPal initialization failed. Please use Stripe or COD for testing.");
-    }
-    
-    throw err;
-  }
+  })();
+
+  paymentSessionRequests.set(requestKey, request);
+  return request;
 };
 
 export function extractStripeClientSecret(cart) {
@@ -190,3 +228,5 @@ export function extractStripeClientSecret(cart) {
   const secret = stripeSession?.data?.client_secret || stripeSession?.client_secret;
   return secret || null;
 }
+
+export { findReusablePaymentSession };

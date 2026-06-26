@@ -10,7 +10,7 @@ import { ProductCardSkeleton } from '../components/common/Skeleton';
 import { listStoreProducts } from '../services/medusa/productService';
 
 const CategoryDetail = () => {
-  const { id } = useParams(); // This will be the handle or ID
+  const { id } = useParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categoryName, setCategoryName] = useState('');
@@ -20,13 +20,16 @@ const CategoryDetail = () => {
     const fetchCategoryProducts = async () => {
       setLoading(true);
       try {
-        // In a real app, you'd fetch the category metadata first
-        // For now, we'll just filter by handle if possible, or just list all
-        const { products } = await listStoreProducts({ category_id: [id], limit: 100 });
+        const categoryHandle = String(id || '').toLowerCase();
+        const { products } = await listStoreProducts({
+          category_handle: categoryHandle,
+          limit: 100,
+        });
         setProducts(products);
-        setCategoryName(id.charAt(0).toUpperCase() + id.slice(1));
+        setCategoryName(categoryHandle.charAt(0).toUpperCase() + categoryHandle.slice(1));
       } catch (error) {
         console.error('Failed to fetch category products:', error);
+        setProducts([]);
       } finally {
         setLoading(false);
       }

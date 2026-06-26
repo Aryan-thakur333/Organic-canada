@@ -2,17 +2,11 @@ import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Modules, MedusaError } from "@medusajs/framework/utils"
 import Stripe from "stripe"
 import { SUBSCRIPTION_MODULE } from "../../../modules/subscription"
+import { addPlanPeriod, normalizeSubscriptionPlan } from "../../../modules/subscription/plan-utils"
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173"
-const PLAN_DAYS: Record<string, number> = {
-  weekly: 7,
-  monthly: 30,
-  quarterly: 90,
-  yearly: 365,
-}
-
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function getStripe() {
@@ -60,12 +54,15 @@ async function setCustomerPremiumStatus(
 // ────────────────────────────────────────────────────────────────────────────
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const sessionId = req.query.session_id as string | undefined
+  const authenticatedCustomerId = (req as any).auth_context?.actor_id as string | undefined
 
   if (!sessionId) {
-    return res.status(400).json({
-      success: false,
-      message: "Missing session_id query parameter",
-    })
+    const subscriptionService: any = req.scope.resolve(SUBSCRIPTION_MODULE)
+    const subscriptions = await subscriptionService.listSubscriptions(
+      { customer_id: authenticatedCustomerId },
+      { order: { created_at: "DESC" } }
+    )
+    return res.json({ subscriptions, count: subscriptions.length })
   }
 
   try {
@@ -93,6 +90,10 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       })
     }
 
+    if (customerId !== authenticatedCustomerId) {
+      return res.status(403).json({ success: false, message: "This checkout session belongs to another customer" })
+    }
+
     // 3. Load and activate the local subscription record
     const subscriptionService: any = req.scope.resolve(SUBSCRIPTION_MODULE)
 
@@ -105,8 +106,11 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     }
 
     // Calculate next billing date based on plan
-    const nextBillingDate = new Date()
-    nextBillingDate.setDate(nextBillingDate.getDate() + (PLAN_DAYS[subscription.plan] || 30))
+    const nextBillingDate = addPlanPeriod(
+      new Date(),
+      subscription.metadata?.interval || (subscription.plan === "weekly" ? "week" : subscription.plan === "yearly" ? "year" : "month"),
+      Number(subscription.metadata?.period || 1)
+    )
 
     // Update local subscription to active with billing dates
     await subscriptionService.updateSubscriptions({
@@ -122,6 +126,8 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     await setCustomerPremiumStatus(req.scope, customerId, true, {
       subscription_id: subscriptionId,
       subscription_plan: subscription.plan,
+      subscription_plan_id: subscription.metadata?.plan_id,
+      fast_delivery: subscription.metadata?.fast_delivery === true,
       premium_activated_at: new Date().toISOString(),
       premium_session_id: sessionId,
     })
@@ -177,57 +183,81 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 // ────────────────────────────────────────────────────────────────────────────
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const customer_id = (req as any).auth_context?.actor_id
-  const { product_id, product_title, plan, amount, currency, customer_email } = req.body as any
+  const { product_id, plan_id, plan } = req.body as any
 
   if (!customer_id) {
     return res.status(401).json({ message: "Authentication required" })
   }
-  if (!plan || !amount) {
-    return res.status(400).json({ message: "Plan and amount are required" })
+  if (!plan_id && !plan) {
+    return res.status(400).json({ message: "plan_id is required" })
   }
-
-  const nextBillingDate = new Date()
-  nextBillingDate.setDate(nextBillingDate.getDate() + (PLAN_DAYS[plan] || 30))
 
   try {
     const subscriptionService: any = req.scope.resolve(SUBSCRIPTION_MODULE)
+    const customerService: any = req.scope.resolve(Modules.CUSTOMER)
+    const availablePlans = await subscriptionService.listSubscriptionPlans(
+      plan_id ? { id: plan_id, is_active: true } : { plan, is_active: true },
+      { order: { sort_order: "ASC" }, take: 1 }
+    )
+    const selectedPlan = availablePlans[0]
+    if (!selectedPlan) return res.status(404).json({ message: "Active subscription plan not found" })
+    const normalizedPlan = normalizeSubscriptionPlan(selectedPlan)
+    const customer = await customerService.retrieveCustomer(customer_id)
+    const nextBillingDate = addPlanPeriod(new Date(), normalizedPlan.interval, normalizedPlan.period)
+    const customerSubscriptions = await subscriptionService.listSubscriptions({ customer_id })
+    const existingActive = customerSubscriptions.find((item: any) =>
+      ["active", "trialing"].includes(item.status) && item.metadata?.plan_id === selectedPlan.id
+    )
+    if (existingActive) return res.status(200).json({ subscription: existingActive, reused: true })
+
+    const stripeKey = process.env.STRIPE_API_KEY
+    if (!stripeKey || stripeKey === "sk_test_placeholder") {
+      return res.status(503).json({ message: "Subscription checkout is unavailable because Stripe is not configured" })
+    }
 
     // 1. Create local subscription record (pending until Stripe confirms)
     const subscription = await subscriptionService.createSubscriptions({
       customer_id,
-      customer_email: customer_email || "",
+      customer_email: customer.email,
       product_id: product_id || null,
-      product_title: product_title || "Organic Subscription",
-      plan,
-      amount,
-      currency: currency || "usd",
+      product_title: normalizedPlan.name,
+      plan: selectedPlan.plan,
+      amount: selectedPlan.amount,
+      currency: selectedPlan.currency,
       status: "trialing",
       next_billing_date: nextBillingDate,
       failed_payment_count: 0,
+      metadata: {
+        plan_id: selectedPlan.id,
+        plan_name: normalizedPlan.name,
+        interval: normalizedPlan.interval,
+        period: normalizedPlan.period,
+        display: normalizedPlan.display,
+        fast_delivery: normalizedPlan.metadata?.fast_delivery === true,
+      },
     })
 
     // 2. Create Stripe Checkout Session with frontend return URLs
-    const stripeKey = process.env.STRIPE_API_KEY
-    if (stripeKey && stripeKey !== "sk_test_placeholder") {
+    if (stripeKey) {
       const stripe = getStripe()
 
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",
         payment_method_types: ["card"],
-        customer_email: customer_email || undefined,
+        customer_email: customer.email || undefined,
         line_items: [
           {
             price_data: {
-              currency: currency || "usd",
+              currency: selectedPlan.currency,
               product_data: {
-                name: product_title || "Organic Subscription",
+                name: normalizedPlan.name,
                 metadata: { subscription_id: subscription.id },
               },
               recurring: {
-                interval: plan === "weekly" ? "week" : "month",
-                interval_count: plan === "quarterly" ? 3 : plan === "yearly" ? 12 : 1,
+                interval: normalizedPlan.interval,
+                interval_count: normalizedPlan.period,
               },
-              unit_amount: amount,
+              unit_amount: selectedPlan.amount,
             },
             quantity: 1,
           },
@@ -256,20 +286,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
     // 3. No Stripe key configured — mock mode for development
     //    Directly activate the subscription and set premium status.
-    await subscriptionService.updateSubscriptions({
-      id: subscription.id,
-      status: "active",
-    })
-
-    await setCustomerPremiumStatus(req.scope, customer_id, true, {
-      subscription_id: subscription.id,
-      subscription_plan: plan,
-      premium_activated_at: new Date().toISOString(),
-    })
-
-    return res.status(201).json({
-      subscription: { ...subscription, status: "active" },
-    })
+    return res.status(503).json({ message: "Subscription checkout is unavailable" })
   } catch (error: any) {
     console.error("[Subscriptions] Create subscription error:", error)
 

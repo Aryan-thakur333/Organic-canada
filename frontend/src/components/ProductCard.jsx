@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Heart, Eye, Star } from 'lucide-react';
+import { ShoppingCart, Heart, Eye, Star, Download } from 'lucide-react';
 import { addToCart } from '../redux/cartSlice';
 import { toggleWishlist, removeFromWishlist } from '../redux/wishlistSlice';
 import useToast from '../hooks/useToast';
+import useMedusaCart from '../hooks/useMedusaCart';
+import { isMedusaConfigured } from '../config/publicEnv';
 import { resolveMedusaImageUrl, PRODUCT_IMAGE_FALLBACK } from '../utils/medusaImage';
 import Button from './common/Button';
 
@@ -13,16 +15,32 @@ const ProductCard = ({ item }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { addVariant } = useMedusaCart();
   const [isHovered, setIsHovered] = useState(false);
 
   const price = item.variants?.[0]?.prices?.[0]?.amount 
     ? item.variants[0].prices[0].amount / 100 
     : 0;
 
-  const handleAddToCart = (e) => {
+  const handleAddToCart = async (e) => {
     e.stopPropagation();
+    const variantId = item.variants?.[0]?.id;
+
+    if (isMedusaConfigured() && variantId) {
+      try {
+        await addVariant({ variantId, quantity: 1 });
+        showToast(`${item.title} added to cart`, "success");
+        return;
+      } catch (error) {
+        console.error('Failed to add Medusa product to cart:', error);
+        showToast(error?.message || "Failed to add to cart", "error");
+        return;
+      }
+    }
+
     dispatch(addToCart({
       id: item.id,
+      variantId,
       title: item.title,
       price,
       image: resolveMedusaImageUrl(item.thumbnail),
@@ -57,6 +75,11 @@ const ProductCard = ({ item }) => {
           <span className="px-3 py-1 rounded-full bg-accent-primary text-white text-[10px] font-black uppercase tracking-wider">
             Organic
           </span>
+          {(item.metadata?.is_digital === true || item.metadata?.is_digital === 'true' || item.type?.value === 'Digital Product') && (
+            <span className="px-3 py-1 rounded-full bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+              <Download size={10} /> Digital
+            </span>
+          )}
         </div>
 
         {/* Action Overlay */}

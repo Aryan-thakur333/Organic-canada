@@ -175,7 +175,8 @@ export const fetchOrders = async () => {
   }
 
   try {
-    const token = await medusa.client.getToken();
+    const medusa = getMedusaSdk();
+    const token = localStorage.getItem('medusa_customer_token');
 
     if (!token) {
       return fallbackOrders;

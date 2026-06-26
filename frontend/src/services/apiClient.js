@@ -1,10 +1,83 @@
 import axios from 'axios';
+import {
+  clearCustomerToken,
+  getCustomerToken,
+  setCustomerToken,
+  VENDOR_TOKEN_KEY,
+} from './medusa/tokenStorage';
 
-const API_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL || 'http://localhost:9000';
+const ENV_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL || 'http://localhost:9000';
 const PUBLISHABLE_KEY = import.meta.env.VITE_MEDUSA_PUBLISHABLE_KEY;
+
+/**
+ * Discover the backend URL at runtime.
+ *
+ * 1. Uses VITE_MEDUSA_BACKEND_URL if set (production).
+ * 2. Checks localStorage for a previously detected URL (runtime port discovery).
+ * 3. Defaults to http://localhost:9000.
+ */
+const API_URL = ENV_URL.replace(/\/$/, '');
+let backendOfflineUntil = 0;
+const orderDetailsCache = new Map();
+const orderDetailsInFlight = new Map();
+const ORDER_DETAILS_CACHE_TTL_MS = 30_000;
+const ORDER_DETAIL_FIELDS = [
+  'id',
+  'status',
+  'display_id',
+  'created_at',
+  'fulfillment_status',
+  'metadata',
+  '*items',
+  '*shipping_address',
+  'fulfillments.id',
+  'fulfillments.status',
+  'fulfillments.created_at',
+  'fulfillments.updated_at',
+  'fulfillments.shipped_at',
+  'fulfillments.delivered_at',
+  'fulfillments.metadata',
+  'fulfillments.provider_id',
+  'fulfillments.location_id',
+].join(',');
+
+function parseRetryAfter(value) {
+  if (!value) return null;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  const retryAt = Date.parse(value);
+  return Number.isNaN(retryAt) ? null : Math.max(0, retryAt - Date.now());
+}
+
+function waitForRequest(request, signal) {
+  if (!signal) return request;
+  if (signal.aborted) return Promise.reject(new DOMException('Request aborted', 'AbortError'));
+
+  return new Promise((resolve, reject) => {
+    const onAbort = () => reject(new DOMException('Request aborted', 'AbortError'));
+    signal.addEventListener('abort', onAbort, { once: true });
+    request.then(resolve, reject).finally(() => {
+      signal.removeEventListener('abort', onAbort);
+    });
+  });
+}
+
+function publishBackendStatus(online) {
+  if (online) backendOfflineUntil = 0;
+  window.dispatchEvent(new CustomEvent('organic-backend-status', {
+    detail: { online },
+  }));
+}
+
+function backendOfflineError() {
+  const error = new Error('Backend offline');
+  error.code = 'BACKEND_OFFLINE';
+  return error;
+}
 
 const apiClient = axios.create({
   baseURL: API_URL,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
     'x-publishable-api-key': PUBLISHABLE_KEY,
@@ -17,11 +90,17 @@ apiClient.interceptors.request.use(
   (config) => {
     const url = config.url || '';
 
+    if (Date.now() < backendOfflineUntil) {
+      return Promise.reject(backendOfflineError());
+    }
+
     // Never attach any auth token to public auth/registration endpoints
     const isPublicAuthRoute =
       url.includes('/auth/customer/emailpass') ||
+      url.includes('/auth/customer/firebase') ||
       url.includes('/vendor/login') ||
-      url.includes('/vendor/register');
+      url.includes('/vendor/register') ||
+      url.includes('/vendor/account-type');
 
     if (isPublicAuthRoute) {
       delete config.headers.Authorization;
@@ -31,8 +110,8 @@ apiClient.interceptors.request.use(
     // Determine which token to use based on the URL
     const isVendorRoute = url.includes('/vendor') || url.includes('/admin/vendors') || url.includes('/admin/coupons');
     const token = isVendorRoute
-      ? localStorage.getItem('vendor_token')
-      : localStorage.getItem('medusa_jwt') || localStorage.getItem('medusa_token');
+      ? localStorage.getItem(VENDOR_TOKEN_KEY)
+      : getCustomerToken();
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -45,23 +124,52 @@ apiClient.interceptors.request.use(
 // Response interceptor: Unwrap data, store new tokens, handle errors gracefully
 apiClient.interceptors.response.use(
   (response) => {
+    publishBackendStatus(true);
     const data = response.data;
     // Store token if backend returns one (e.g. after login or registration)
     if (data?.token) {
       const url = response.config?.url || '';
       if (url.includes('/vendor/')) {
-        localStorage.setItem('vendor_token', data.token);
+        localStorage.setItem(VENDOR_TOKEN_KEY, data.token);
       } else {
-        localStorage.setItem('medusa_token', data.token);
-        localStorage.setItem('medusa_jwt', data.token);
+        setCustomerToken(data.token);
       }
     }
     return data;
   },
-  (error) => {
+  async (error) => {
+    if (error.code === 'BACKEND_OFFLINE') {
+      return Promise.reject(error);
+    }
     const status = error.response?.status;
     const url = error.config?.url || '';
-    const message = error.response?.data?.message || error.message;
+    let message = error.response?.data?.message || error.message;
+
+    // ── Runtime port discovery: if backend is unreachable, probe alternatives ─
+    if (!error.response && ['ERR_NETWORK', 'ECONNREFUSED', 'ECONNABORTED'].includes(error.code)) {
+      backendOfflineUntil = Date.now() + 5000;
+      publishBackendStatus(false);
+      error.code = 'BACKEND_OFFLINE';
+      error.message = 'Backend offline';
+      return Promise.reject(error);
+    }
+
+    const config = error.config;
+    // A 429 is an explicit instruction to slow down. Retrying it here caused
+    // request loops in polling views, so callers receive the error unchanged.
+    if (status === 429) {
+      const retryAfterMs = parseRetryAfter(error.response?.headers?.['retry-after']);
+      error.retryAfterMs = retryAfterMs;
+      error.retryAt = retryAfterMs === null ? null : Date.now() + retryAfterMs;
+      message = 'Too many requests, please wait';
+    }
+
+    const transient = Boolean(error.response) && (status === 408 || status >= 500);
+    if (config?.method?.toLowerCase() === 'get' && transient && !config.__retried) {
+      config.__retried = true;
+      await new Promise((resolve) => setTimeout(resolve, 300 + Math.random() * 400));
+      return apiClient.request(config);
+    }
 
     // These are expected 401s for unauthenticated guests — do NOT log as errors
     const isSilentAuthCheck =
@@ -74,13 +182,19 @@ apiClient.interceptors.response.use(
       console.error(`[API Error] ${error.config?.method?.toUpperCase()} ${url}:`, message);
     }
 
-    // Clear stale token on any unexpected 401 that isn't a session probe
-    if (status === 401 && !isSilentAuthCheck) {
-      localStorage.removeItem('medusa_token');
-      localStorage.removeItem('medusa_jwt');
+    if (status === 401) {
+      if (url.startsWith('/vendor/')) {
+        localStorage.removeItem(VENDOR_TOKEN_KEY);
+      } else if (url.startsWith('/store/')) {
+        clearCustomerToken();
+      }
     }
 
-    return Promise.reject({ ...error, message });
+    // Keep the Axios error instance intact. Spreading Error drops `response`,
+    // which made callers unable to distinguish invalid credentials from an
+    // offline server and caused Firebase sync to create duplicate customers.
+    error.message = message;
+    return Promise.reject(error);
   }
 );
 
@@ -95,11 +209,14 @@ export default apiClient;
  */
 export async function checkBackendHealth() {
   try {
-    await axios.get(API_URL, { timeout: 3000 });
+    await axios.get(`${API_URL}/health`, { timeout: 3000 });
+    publishBackendStatus(true);
     return true;
   } catch (error) {
     if (!error.response || error.code === 'ERR_NETWORK') {
-      throw new Error('Backend server is offline. Please start Medusa.');
+      backendOfflineUntil = Date.now() + 5000;
+      publishBackendStatus(false);
+      throw backendOfflineError();
     }
     // Server responded — alive enough
     return true;
@@ -111,15 +228,18 @@ export async function checkBackendHealth() {
 /* -------------------------------------------------------------------------- */
 
 export const fetchCustomerOrders = async () => {
-  try {
-    const claimResult = await apiClient.post('/store/orders/claim');
-    console.log('[Orders] Claimed unlinked customer orders before listing:', claimResult);
-  } catch (error) {
-    console.warn('[Orders] Order claim repair skipped or failed:', error.response?.data || error.message);
+  const guestOrderIds = JSON.parse(localStorage.getItem('organic_guest_order_ids') || '[]');
+  if (guestOrderIds.length) {
+    try {
+      await apiClient.post('/store/orders/claim', { order_ids: guestOrderIds });
+      localStorage.removeItem('organic_guest_order_ids');
+    } catch (error) {
+      console.warn('[Orders] Guest order claim failed:', error.response?.data || error.message);
+    }
   }
 
   const response = await apiClient.get(
-    '/store/orders?limit=20&fields=id,status,display_id,total,created_at,email,customer_id,cart_id,sales_channel_id,payment_status,fulfillment_status,*items,*fulfillments'
+    '/store/orders?limit=20&fields=id,status,display_id,total,created_at,email,customer_id,cart_id,sales_channel_id,payment_status,fulfillment_status,metadata,*items,fulfillments.id,fulfillments.status,fulfillments.created_at,fulfillments.updated_at,fulfillments.shipped_at,fulfillments.delivered_at,fulfillments.metadata,fulfillments.provider_id,fulfillments.location_id'
   );
 
   console.log('[Orders] Customer order list response:', {
@@ -130,6 +250,35 @@ export const fetchCustomerOrders = async () => {
   return response;
 };
 
-export const fetchCustomerOrderById = async (id) => {
-  return apiClient.get(`/store/orders/${id}?fields=*items,*fulfillments,*shipping_address`);
+export const fetchCustomerOrderById = async (id, { signal, forceRefresh = false } = {}) => {
+  if (!id) throw new Error('Order id is required');
+
+  const cached = orderDetailsCache.get(id);
+  if (!forceRefresh && cached && cached.expiresAt > Date.now()) {
+    return cached.data;
+  }
+
+  let request = orderDetailsInFlight.get(id);
+  if (!request) {
+    request = apiClient
+      .get(`/store/orders/${id}?fields=${ORDER_DETAIL_FIELDS}`)
+      .then((data) => {
+        orderDetailsCache.set(id, {
+          data,
+          expiresAt: Date.now() + ORDER_DETAILS_CACHE_TTL_MS,
+        });
+        return data;
+      })
+      .finally(() => {
+        orderDetailsInFlight.delete(id);
+      });
+    orderDetailsInFlight.set(id, request);
+  }
+
+  return waitForRequest(request, signal);
+};
+
+export const getCachedCustomerOrderById = (id) => {
+  const cached = orderDetailsCache.get(id);
+  return cached?.data || null;
 };

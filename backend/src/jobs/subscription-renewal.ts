@@ -1,11 +1,7 @@
 import { MedusaContainer } from "@medusajs/framework/types"
 import { Modules } from "@medusajs/framework/utils"
-import Stripe from "stripe"
 import { SUBSCRIPTION_MODULE } from "../modules/subscription"
-
-const stripe = new Stripe(process.env.STRIPE_API_KEY || "", {
-  apiVersion: "2025-05-28.basil" as any,
-})
+import { getStripeClient } from "../lib/stripe-client"
 
 export default async function subscriptionRenewalJob(container: MedusaContainer) {
   const subscriptionService: any = container.resolve(SUBSCRIPTION_MODULE)
@@ -42,7 +38,7 @@ export default async function subscriptionRenewalJob(container: MedusaContainer)
         console.log(`[Subscription Renewal Job] Charging Stripe customer ${sub.stripe_customer_id} off-session...`)
 
         // Charge Stripe off-session
-        const pi = await stripe.paymentIntents.create({
+        const pi = await getStripeClient().paymentIntents.create({
           amount: sub.amount, // sub.amount is in cents
           currency: sub.currency || "usd",
           customer: sub.stripe_customer_id,

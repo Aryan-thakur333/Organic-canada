@@ -15,7 +15,8 @@ import {
   CheckCircle2,
   Clock,
   Store,
-  Repeat
+  Repeat,
+  Building2
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/Footer';
@@ -30,6 +31,7 @@ const AdminDashboard = () => {
   const tabs = [
     { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
     { id: 'vendors', label: 'Vendors', icon: <Store size={20} /> },
+    { id: 'b2b-quotes', label: 'B2B Quotes', icon: <Building2 size={20} /> },
     { id: 'orders', label: 'Orders', icon: <ShoppingBag size={20} /> },
     { id: 'products', label: 'Products', icon: <Package size={20} /> },
     { id: 'customers', label: 'Customers', icon: <Users size={20} /> },
@@ -65,6 +67,8 @@ const AdminDashboard = () => {
               onClick={() => {
                 if (tab.id === 'subscriptions') {
                   navigate('/admin/subscriptions');
+                } else if (tab.id === 'b2b-quotes') {
+                  navigate('/admin/b2b-quotes');
                 } else {
                   setActiveTab(tab.id);
                 }

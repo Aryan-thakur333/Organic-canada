@@ -51,6 +51,7 @@ export const getLineItemVendorsStep = createStep(
       entity: "product",
       fields: [
         "id",
+        "metadata",
         "vendor.id",
         "vendor.store_name",
         "vendor.email",
@@ -61,7 +62,7 @@ export const getLineItemVendorsStep = createStep(
     // Build product_id → vendor_id lookup
     const vendorMap = new Map<string, string | null>()
     for (const product of products) {
-      vendorMap.set(product.id, product.vendor?.id ?? null)
+      vendorMap.set(product.id, product.vendor?.id ?? (product.metadata?.vendor_id ? String(product.metadata.vendor_id) : null))
     }
 
     // Annotate each line item with its resolved vendor

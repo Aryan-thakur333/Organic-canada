@@ -1,6 +1,10 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { SUBSCRIPTION_MODULE } from "../../../../modules/subscription"
 
+/**
+ * GET /store/subscriptions/:id
+ * Retrieve a specific subscription for the current customer.
+ */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const { id } = req.params
   const customer_id = (req as any).auth_context?.actor_id

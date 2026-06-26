@@ -8,8 +8,14 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     return res.status(401).json({ message: "Not authenticated" })
   }
 
-  const { password_hash: _, ...safeVendor } = vendor
   return res.json({
-    vendor: safeVendor,
+    vendor: {
+      id: vendor.id,
+      store_name: vendor.store_name,
+      name: vendor.name,
+      email: vendor.email,
+      phone: vendor.phone || null,
+      status: vendor.status,
+    },
   })
 }

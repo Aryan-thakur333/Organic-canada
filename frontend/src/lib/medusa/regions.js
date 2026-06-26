@@ -1,22 +1,32 @@
-import { getMedusaSdk } from "./client";
 import { getDefaultRegionIdFromEnv } from "../../config/publicEnv";
+import apiClient from "../../services/apiClient";
 
 const REGION_STORAGE_KEY = "eatsie_region_id";
 
 /** @type {string | null | undefined} */
 let cachedRegionId;
+let pendingRegionRequest;
 
 /**
  * Resolve the storefront region used for prices, tax, shipping, and cart creation.
  * @returns {Promise<string | null>}
  */
 export async function resolveDefaultRegionId() {
-  try {
-    if (cachedRegionId) return cachedRegionId;
+  if (cachedRegionId) return cachedRegionId;
+  if (pendingRegionRequest) return pendingRegionRequest;
 
-    const storedRegion = localStorage.getItem(REGION_STORAGE_KEY);
-    const sdk = getMedusaSdk();
-    const { regions } = await sdk.store.region.list({ limit: 50 });
+  pendingRegionRequest = resolveRegion().finally(() => {
+    pendingRegionRequest = undefined;
+  });
+  return pendingRegionRequest;
+}
+
+async function resolveRegion() {
+  const storedRegion = localStorage.getItem(REGION_STORAGE_KEY);
+  try {
+    const { regions } = await apiClient.get('/store/regions', {
+      params: { limit: 50 },
+    });
     
     if (!regions || regions.length === 0) {
       console.warn("No active regions found from Medusa API.");
@@ -42,12 +52,18 @@ export async function resolveDefaultRegionId() {
     
     return resolvedRegionId;
   } catch (err) {
-    console.error("[resolveDefaultRegionId] failed:", err);
+    if (storedRegion && (err?.code === "BACKEND_OFFLINE" || err?.response?.status >= 500)) {
+      cachedRegionId = storedRegion;
+      return storedRegion;
+    }
+    if (err?.code === "BACKEND_OFFLINE") throw err;
+    console.warn("Unable to resolve the storefront region:", err?.message || err);
     return null;
   }
 }
 
 export function clearRegionCache() {
   cachedRegionId = undefined;
+  pendingRegionRequest = undefined;
   localStorage.removeItem(REGION_STORAGE_KEY);
 }

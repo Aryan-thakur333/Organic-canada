@@ -74,7 +74,7 @@ describe('withRetry', () => {
     expect(fn).toHaveBeenCalledTimes(2);
   });
 
-  it('does not retry on a non-retryable 500 error', async () => {
+  it('retries transient 500 errors', async () => {
     const fn = vi.fn().mockRejectedValue(httpError(500, 'Internal Server Error'));
 
     const promise = withRetry(fn, { maxAttempts: 3, baseDelay: 100, maxDelay: 500 });
@@ -83,7 +83,7 @@ describe('withRetry', () => {
 
     const error = await rejection;
     expect(error.message).toBe('Internal Server Error');
-    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn).toHaveBeenCalledTimes(3);
   });
 
   it('does not retry on a non-retryable 400 error', async () => {
@@ -98,18 +98,18 @@ describe('withRetry', () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it('retries on 401 (retryable)', async () => {
+  it('does not retry invalid credentials (401)', async () => {
     const fn = vi.fn()
       .mockRejectedValueOnce(httpError(401, 'Unauthorized'))
       .mockRejectedValueOnce(httpError(401, 'Unauthorized'))
       .mockResolvedValueOnce('authenticated');
 
     const promise = withRetry(fn, { maxAttempts: 3, baseDelay: 100, maxDelay: 500 });
+    const rejection = promise.catch(e => e);
     await vi.advanceTimersByTimeAsync(5000);
-
-    const result = await promise;
-    expect(result).toBe('authenticated');
-    expect(fn).toHaveBeenCalledTimes(3);
+    const error = await rejection;
+    expect(error.message).toBe('Unauthorized');
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 
   it('retries on error with no response object (connection refused)', async () => {

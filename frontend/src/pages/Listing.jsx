@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Filter, SlidersHorizontal, Search, Grid, List, ArrowUpDown } from 'lucide-react';
+import { Filter, SlidersHorizontal, Search, Grid, List, ArrowUpDown, Download } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
 import ProductCard from '../components/ProductCard';
 import { ProductCardSkeleton } from '../components/common/Skeleton';
@@ -16,6 +16,7 @@ const Listing = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [viewMode, setViewMode] = useState('grid'); // grid or list
+  const [productTypeFilter, setProductTypeFilter] = useState('all'); // all, digital, physical
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -32,11 +33,29 @@ const Listing = () => {
     fetchProducts();
   }, []);
 
-  const filteredAndSortedProducts = useMemo(() => {
-    let result = products.filter(p => 
-      p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  const isDigitalProduct = (product) => {
+    const meta = product?.metadata || {};
+    const productType = product?.type?.value || '';
+    return (
+      meta?.is_digital === true || 
+      meta?.is_digital === 'true' ||
+      productType === 'Digital Product'
     );
+  };
+
+  const filteredAndSortedProducts = useMemo(() => {
+    let result = products.filter(p => {
+      // Search filter
+      const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      if (!matchesSearch) return false;
+
+      // Product type filter
+      if (productTypeFilter === 'digital' && !isDigitalProduct(p)) return false;
+      if (productTypeFilter === 'physical' && isDigitalProduct(p)) return false;
+
+      return true;
+    });
 
     if (sortBy === 'price-low') {
       result.sort((a, b) => (a.variants?.[0]?.prices?.[0]?.amount || 0) - (b.variants?.[0]?.prices?.[0]?.amount || 0));
@@ -47,7 +66,7 @@ const Listing = () => {
     }
 
     return result;
-  }, [products, searchQuery, sortBy]);
+  }, [products, searchQuery, sortBy, productTypeFilter]);
 
   return (
     <div className="min-h-screen bg-bg-primary">
@@ -96,6 +115,19 @@ const Listing = () => {
             </div>
             
             <div className="flex w-full lg:w-auto gap-4">
+              {/* Product Type Filter */}
+              <div className="relative flex-1 lg:min-w-[160px]">
+                <Download className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={16} />
+                <select 
+                  value={productTypeFilter}
+                  onChange={(e) => setProductTypeFilter(e.target.value)}
+                  className="w-full appearance-none bg-white dark:bg-slate-800 border-2 border-stone-100 dark:border-slate-700 rounded-[2rem] py-4 pl-12 pr-10 outline-none focus:border-accent-primary transition-all text-sm font-bold"
+                >
+                  <option value="all">All Products</option>
+                  <option value="digital">Digital Products</option>
+                  <option value="physical">Physical Products</option>
+                </select>
+              </div>
               <div className="relative flex-1 lg:min-w-[200px]">
                 <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
                 <select 
@@ -109,10 +141,6 @@ const Listing = () => {
                   <option value="title">Name: A-Z</option>
                 </select>
               </div>
-              
-              <button className="flex items-center gap-2 bg-white dark:bg-slate-800 border-2 border-stone-100 dark:border-slate-700 rounded-[2rem] px-8 py-4 text-sm font-bold hover:border-accent-primary transition-all">
-                <Filter size={18} /> Filters
-              </button>
             </div>
           </div>
         </div>

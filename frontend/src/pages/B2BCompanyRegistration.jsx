@@ -182,7 +182,7 @@ const B2BCompanyRegistration = () => {
               <Button
                 size="lg"
                 className="gap-2"
-                onClick={() => navigate('/dashboard/b2b/quotes')}
+                onClick={() => navigate('/b2b/request-quote')}
               >
                 <Send size={18} /> New Quote
               </Button>
@@ -190,7 +190,7 @@ const B2BCompanyRegistration = () => {
                 variant="secondary"
                 size="lg"
                 className="gap-2"
-                onClick={() => navigate('/dashboard/b2b/history')}
+                onClick={() => navigate('/account/b2b-quotes')}
               >
                 <FileText size={18} /> Quote History
               </Button>
@@ -252,7 +252,7 @@ const B2BCompanyRegistration = () => {
               <Button
                 size="lg"
                 className="gap-2"
-                onClick={() => navigate('/dashboard/b2b/history')}
+                onClick={() => navigate('/account/b2b-quotes')}
               >
                 <ArrowRight size={18} /> Go to Dashboard
               </Button>

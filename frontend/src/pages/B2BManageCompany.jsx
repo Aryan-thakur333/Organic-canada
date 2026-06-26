@@ -213,7 +213,7 @@ const B2BManageCompany = () => {
             <Button
               size="lg"
               className="gap-2"
-              onClick={() => navigate('/dashboard/b2b/register')}
+              onClick={() => navigate('/b2b/register-company')}
             >
               <Building2 size={18} /> Register Company
             </Button>
@@ -250,7 +250,7 @@ const B2BManageCompany = () => {
               variant="secondary"
               size="sm"
               className="gap-2 text-xs font-black uppercase tracking-wider"
-              onClick={() => navigate('/dashboard/b2b/quotes')}
+              onClick={() => navigate('/b2b/request-quote')}
             >
               <Building2 size={14} /> New Quote
             </Button>
@@ -596,7 +596,7 @@ const B2BManageCompany = () => {
                 <Button
                   size="sm"
                   className="w-full gap-2 text-xs font-black uppercase tracking-wider"
-                  onClick={() => navigate('/dashboard/b2b/quotes')}
+                  onClick={() => navigate('/b2b/request-quote')}
                 >
                   <Building2 size={14} /> New Quote Request
                 </Button>
@@ -604,7 +604,7 @@ const B2BManageCompany = () => {
                   variant="secondary"
                   size="sm"
                   className="w-full gap-2 text-xs font-black uppercase tracking-wider"
-                  onClick={() => navigate('/dashboard/b2b/history')}
+                  onClick={() => navigate('/account/b2b-quotes')}
                 >
                   View Quote History
                 </Button>

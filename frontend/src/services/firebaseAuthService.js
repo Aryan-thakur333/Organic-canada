@@ -6,6 +6,7 @@ import {
 import { auth, googleProvider } from '../firebase/firebase';
 import { authService } from './medusa/authService';
 import { checkBackendHealth } from './apiClient';
+import { clearCustomerToken, getCustomerToken } from './medusa/tokenStorage';
 
 /* -------------------------------------------------------------------------- */
 /*                         RETRY UTILITY (3 attempts + jitter)                */
@@ -17,9 +18,13 @@ const RETRY_CONFIG = {
   maxDelay: 5000,
 };
 
+const syncRequests = new Map();
+let googleSignInRequest;
+
 /**
  * Retry an async function with exponential backoff + random jitter.
- * Only retries on network errors and 401s.
+ * Only retries transient transport/server failures. Authentication failures
+ * are deterministic and must never be replayed.
  */
 export async function withRetry(fn, config = RETRY_CONFIG) {
   let lastError;
@@ -28,10 +33,13 @@ export async function withRetry(fn, config = RETRY_CONFIG) {
       return await fn();
     } catch (error) {
       lastError = error;
+      const status = error.response?.status;
       const isRetryable =
         !error.response ||
         error.code === 'ERR_NETWORK' ||
-        error.response?.status === 401;
+        status === 408 ||
+        status === 429 ||
+        status >= 500;
 
       if (attempt === config.maxAttempts || !isRetryable) break;
 
@@ -58,7 +66,10 @@ export const firebaseAuthService = {
    * Google Sign-In via Firebase → sync user with Medusa.
    */
   async signInWithGoogle() {
-    try {
+    if (googleSignInRequest) return googleSignInRequest;
+
+    googleSignInRequest = (async () => {
+      try {
       // Firebase popup login
       const result = await signInWithPopup(auth, googleProvider);
       const firebaseUser = result.user;
@@ -73,31 +84,29 @@ export const firebaseAuthService = {
       return {
         firebaseUser,
         medusaUser,
-        token: localStorage.getItem('medusa_token'),
+        token: getCustomerToken(),
       };
-    } catch (error) {
-      console.error('[FirebaseAuthService] Google Sign-In Error:', error);
-      throw new Error(error?.message || 'Google authentication failed');
-    }
+      } catch (error) {
+        console.error('[FirebaseAuthService] Google Sign-In Error:', error);
+        throw new Error(error?.response?.data?.message || error?.message || 'Google authentication failed');
+      } finally {
+        googleSignInRequest = undefined;
+      }
+    })();
+    return googleSignInRequest;
   },
 
   /**
    * Logout from both Firebase and Medusa.
    */
   async logout() {
-    try {
-      // 1. Sign out from Firebase
-      await firebaseSignOut(auth);
-
-      // 2. Clear Medusa session
-      await authService.logout();
-
-      console.log('[FirebaseAuthService] Logged out successfully.');
-      return true;
-    } catch (error) {
-      console.error('[FirebaseAuthService] Logout Error:', error);
-      return false;
-    }
+    const results = await Promise.allSettled([
+      firebaseSignOut(auth),
+      authService.logout(),
+    ]);
+    const failed = results.find((result) => result.status === 'rejected');
+    if (failed) console.error('[FirebaseAuthService] Logout Error:', failed.reason);
+    return !failed;
   },
 };
 
@@ -116,6 +125,21 @@ export const firebaseAuthService = {
  *   5. Return the Medusa customer object
  */
 export async function syncWithMedusa(firebaseUser) {
+  if (!firebaseUser?.uid || !firebaseUser?.email) {
+    throw new Error('Firebase user is missing a verified email or identifier.');
+  }
+
+  const key = `${firebaseUser.uid}:${firebaseUser.email.toLowerCase()}`;
+  if (syncRequests.has(key)) return syncRequests.get(key);
+
+  const request = syncWithMedusaOnce(firebaseUser).finally(() => {
+    syncRequests.delete(key);
+  });
+  syncRequests.set(key, request);
+  return request;
+}
+
+async function syncWithMedusaOnce(firebaseUser) {
   // 0. Pre-flight health check
   try {
     await checkBackendHealth();
@@ -123,36 +147,41 @@ export async function syncWithMedusa(firebaseUser) {
     throw new Error('Backend server is offline. Please start Medusa.');
   }
 
-  const email = firebaseUser.email;
-  const password = firebaseUser.uid; // Bridge: Firebase UID as password
+  const email = firebaseUser.email.trim().toLowerCase();
+  const bridgePassword = firebaseUser.uid;
+  const displayName = firebaseUser.displayName || '';
+  const names = displayName.trim().split(/\s+/).filter(Boolean);
+  const firstName = names[0] || 'Google';
+  const lastName = names.slice(1).join(' ') || 'User';
+
+  let loginResponse;
+  try {
+    loginResponse = await authService.login(email, bridgePassword);
+  } catch (error) {
+    if (![400, 401].includes(error.response?.status)) throw error;
+
+    await authService.register({
+      email,
+      password: bridgePassword,
+      first_name: firstName,
+      last_name: lastName,
+      phone: firebaseUser.phoneNumber || '',
+    });
+  }
+
+  if (loginResponse && !getCustomerToken()) {
+    throw new Error('Medusa login succeeded without returning a customer token.');
+  }
 
   try {
-    // ---- LOGIN FLOW ----
-    await withRetry(() => authService.login(email, password));
     const { customer } = await authService.getCurrentCustomer();
+    if (!customer) throw new Error('Medusa customer profile is missing.');
     return customer;
-  } catch {
-    // ---- REGISTER FLOW (user doesn't exist yet) ----
-    console.log('[FirebaseAuthService] User not found. Creating account...');
-
-    const displayName = firebaseUser.displayName || '';
-    const names = displayName.split(' ');
-    const firstName = names[0] || 'Google';
-    const lastName = names.slice(1).join(' ') || 'User';
-
-    await withRetry(() =>
-      authService.register({
-        email,
-        password,
-        first_name: firstName,
-        last_name: lastName,
-        phone: firebaseUser.phoneNumber || '',
-      })
-    );
-
-    // Login again to get a fresh session after registration
-    await withRetry(() => authService.login(email, password));
-    const { customer } = await authService.getCurrentCustomer();
-    return customer;
+  } catch (error) {
+    if (error.response?.status === 401 || error.code === 'AUTH_REQUIRED') {
+      clearCustomerToken();
+      throw new Error('Medusa customer session was rejected. Please sign in again.');
+    }
+    throw error;
   }
 }

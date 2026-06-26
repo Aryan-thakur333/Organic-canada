@@ -1,32 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useSelector } from 'react-redux';
 import Navbar from '../components/layout/Navbar';
 import Hero from '../components/Hero';
 import CategoryList from '../components/home/CategoryList';
 import FeaturedProducts from '../components/home/FeaturedProducts';
 import Footer from '../components/Footer';
 import MobileNav from '../components/MobileNav';
-import { authService } from '../services/medusa/authService';
+import { homeBackgrounds } from '../config/homeBackgrounds';
 
 const Home = () => {
-  const [userName, setUserName] = useState('');
-
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const token = localStorage.getItem('medusa_jwt') || localStorage.getItem('medusa_token');
-        if (token) {
-          const profileData = await authService.getCurrentCustomer();
-          if (profileData && profileData.customer && profileData.customer.first_name) {
-            setUserName(profileData.customer.first_name);
-          }
-        }
-      } catch (error) {
-        // Silently ignore or log error if user is not authenticated
-        console.error('Failed to load profile:', error);
-      }
-    };
-    loadProfile();
-  }, []);
+  const profileName = useSelector((state) => state.user.profile?.name || '');
+  const userName = profileName.split(' ')[0];
 
   return (
     <div className="min-h-screen bg-bg-primary overflow-x-hidden">
@@ -42,24 +26,33 @@ const Home = () => {
         <FeaturedProducts />
         
         {/* Why Choose Us Section */}
-        <section className="py-20 bg-bg-secondary border-t border-stone-100 dark:border-slate-800">
-          <div className="container-custom">
+        <section
+          className="relative overflow-hidden py-20 bg-bg-secondary border-t border-stone-100 dark:border-slate-800"
+          style={{
+            backgroundImage: `url(${homeBackgrounds.features})`,
+            backgroundPosition: 'center',
+            backgroundSize: 'cover',
+          }}
+        >
+          <div className="absolute inset-0 bg-white/86 dark:bg-slate-950/86" />
+          <div className="absolute inset-0 bg-gradient-to-b from-bg-secondary/95 via-bg-secondary/88 to-bg-secondary dark:from-slate-950 dark:via-slate-950/88 dark:to-slate-950" />
+          <div className="container-custom relative z-10">
             <div className="grid md:grid-cols-3 gap-12">
-              <div className="flex flex-col items-center text-center gap-4">
+              <div className="flex flex-col items-center text-center gap-4 rounded-[2rem] bg-white/78 dark:bg-slate-900/78 p-8 shadow-sm backdrop-blur">
                 <div className="w-16 h-16 rounded-2xl bg-green-100 dark:bg-green-900/20 flex items-center justify-center text-green-600">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
                 <h3 className="text-xl font-bold">100% Organic</h3>
                 <p className="text-sm text-text-secondary">Certified organic products sourced from the best local farms in Canada.</p>
               </div>
-              <div className="flex flex-col items-center text-center gap-4">
+              <div className="flex flex-col items-center text-center gap-4 rounded-[2rem] bg-white/78 dark:bg-slate-900/78 p-8 shadow-sm backdrop-blur">
                 <div className="w-16 h-16 rounded-2xl bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center text-orange-600">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
                 <h3 className="text-xl font-bold">Fast Delivery</h3>
                 <p className="text-sm text-text-secondary">We deliver within 24 hours of harvest to ensure maximum freshness for you.</p>
               </div>
-              <div className="flex flex-col items-center text-center gap-4">
+              <div className="flex flex-col items-center text-center gap-4 rounded-[2rem] bg-white/78 dark:bg-slate-900/78 p-8 shadow-sm backdrop-blur">
                 <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center text-blue-600">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
                 </div>

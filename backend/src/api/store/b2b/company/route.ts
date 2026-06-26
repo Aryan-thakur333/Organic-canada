@@ -22,6 +22,10 @@ async function resolveCustomerCompany(req: MedusaRequest) {
       "company.gstin",
       "company.credit_limit",
       "company.status",
+      "company.contact_name",
+      "company.email",
+      "company.phone",
+      "company.address",
     ],
     filters: { id: customerId },
   })
@@ -66,11 +70,8 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
  * }
  */
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
-  const { company_name, tax_id, credit_limit } = req.body as {
-    company_name?: string
-    tax_id?: string
-    credit_limit?: number
-  }
+  const { company_name, tax_id, contact_name, email, phone, address } = req.body as any
+  const credit_limit = 0
 
   if (!company_name) {
     return res.status(400).json({
@@ -92,11 +93,6 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       customerId = authContext.actor_id
     }
 
-    // Fallback: if auth_context is not populated, check for a customer_id in the body
-    if (!customerId && (req.body as any).customer_id) {
-      customerId = (req.body as any).customer_id
-    }
-
     if (!customerId) {
       return res.status(401).json({
         message:
@@ -114,6 +110,10 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     const company = await b2bService.createCompanies({
       company_name,
       tax_id: tax_id || null,
+      contact_name: contact_name || [customer.first_name, customer.last_name].filter(Boolean).join(" ") || null,
+      email: email || customer.email,
+      phone: phone || customer.phone || null,
+      address: address || null,
       credit_limit: credit_limit ?? 0,
       status: "active",
     })
@@ -124,6 +124,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       [B2B_MODULE]: { company_id: company.id },
       [Modules.CUSTOMER]: { customer_id: customer.id },
     })
+    await b2bService.createCompanyMembers({ company_id: company.id, customer_id: customer.id, role: "admin", status: "active" })
 
     // ── 4. Response ─────────────────────────────────────────────────────
     res.status(201).json({
@@ -181,11 +182,7 @@ export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
       return res.status(404).json({ message: "No B2B company found for your account" })
     }
 
-    const { company_name, tax_id, credit_limit } = req.body as {
-      company_name?: string
-      tax_id?: string | null
-      credit_limit?: number
-    }
+    const { company_name, tax_id, contact_name, email, phone, address } = req.body as any
 
     const updatePayload: Record<string, any> = { id: company.id }
 
@@ -199,13 +196,10 @@ export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
     if (tax_id !== undefined) {
       updatePayload.tax_id = tax_id?.trim() || null
     }
-
-    if (credit_limit !== undefined) {
-      if (typeof credit_limit !== "number" || credit_limit < 0) {
-        return res.status(400).json({ message: "credit_limit must be a non-negative number (cents)" })
-      }
-      updatePayload.credit_limit = credit_limit
-    }
+    if (contact_name !== undefined) updatePayload.contact_name = contact_name?.trim() || null
+    if (email !== undefined) updatePayload.email = email?.trim() || null
+    if (phone !== undefined) updatePayload.phone = phone?.trim() || null
+    if (address !== undefined) updatePayload.address = address || null
 
     if (Object.keys(updatePayload).length <= 1) {
       return res.status(400).json({ message: "No fields to update" })

@@ -3,11 +3,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { authService } from '../../services/medusa/authService';
 import { loginSuccess, authResolved } from '../../redux/authSlice';
 import { setUserProfile } from '../../redux/userSlice';
+import { clearCustomerToken, getCustomerToken } from '../../services/medusa/tokenStorage';
+import { mapCustomerToProfile } from '../../utils/customerProfile';
 
 /**
  * AuthSync — Restores Medusa session on app mount.
  *
- * Checks localStorage for a stored JWT and fetches /store/customers/me.
+ * Checks medusa_customer_token and fetches /store/customers/me.
  * If valid → updates Redux state. If stale → clears the token.
  *
  * No Firebase listener needed — Firebase popup login handles its own sync
@@ -28,7 +30,7 @@ const AuthSync = () => {
       if (syncLock.current) return;
       syncLock.current = true;
 
-      const hasToken = localStorage.getItem('medusa_token');
+      const hasToken = getCustomerToken();
       if (!hasToken) {
         dispatch(authResolved());
         return;
@@ -39,20 +41,12 @@ const AuthSync = () => {
         if (customer) {
           dispatch(loginSuccess({ user: customer }));
           dispatch(
-            setUserProfile({
-              id: customer.id,
-              name:
-                `${customer.first_name || ''} ${customer.last_name || ''}`.trim() ||
-                customer.email,
-              email: customer.email,
-              phone: customer.phone || '',
-            })
+            setUserProfile(mapCustomerToProfile(customer))
           );
         }
       } catch {
         // Token is stale or invalid — clean up silently
-        localStorage.removeItem('medusa_token');
-        localStorage.removeItem('medusa_jwt');
+        clearCustomerToken();
       } finally {
         syncLock.current = false;
         dispatch(authResolved());

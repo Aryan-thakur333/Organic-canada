@@ -7,6 +7,8 @@ import {
   LayoutDashboard, 
   ShoppingBag, 
   Package, 
+  Boxes,
+  WalletCards,
   LogOut, 
   Menu, 
   X, 
@@ -16,14 +18,16 @@ import toast from "react-hot-toast";
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.vendor.profile);
 
   const handleLogout = () => {
+    setProfileDropdownOpen(false);
     dispatch(logout());
-    toast.success("Logged out successfully");
+    toast.success("Signed out successfully");
     navigate("/vendor/login");
   };
 
@@ -31,6 +35,8 @@ export default function DashboardLayout({ children }) {
     { label: "Overview", path: "/vendor/dashboard", icon: <LayoutDashboard size={20} /> },
     { label: "Products", path: "/vendor/products", icon: <Package size={20} /> },
     { label: "Orders", path: "/vendor/orders", icon: <ShoppingBag size={20} /> },
+    { label: "Inventory", path: "/vendor/inventory", icon: <Boxes size={20} /> },
+    { label: "Earnings", path: "/vendor/earnings", icon: <WalletCards size={20} /> },
   ];
 
   return (
@@ -151,14 +157,42 @@ export default function DashboardLayout({ children }) {
             </h1>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex flex-col items-end hidden sm:flex">
-              <span className="text-sm font-bold text-white">{profile?.name}</span>
-              <span className="text-[10px] text-stone-500 font-semibold">{profile?.email}</span>
-            </div>
-            <div className="w-10 h-10 rounded-full bg-stone-800 border border-stone-700 flex items-center justify-center text-emerald-400">
-              <UserCircle size={24} />
-            </div>
+          <div className="flex items-center gap-3 relative">
+            <button
+              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+              onBlur={() => setTimeout(() => setProfileDropdownOpen(false), 150)}
+              className="flex items-center gap-3 group"
+            >
+              <div className="flex flex-col items-end hidden sm:flex">
+                <span className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">{profile?.name}</span>
+                <span className="text-[10px] text-stone-500 font-semibold">{profile?.email}</span>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-stone-800 border border-stone-700 flex items-center justify-center text-emerald-400 group-hover:border-emerald-500/50 transition-all">
+                <UserCircle size={24} />
+              </div>
+            </button>
+
+            {/* Profile Dropdown */}
+            {profileDropdownOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setProfileDropdownOpen(false)}
+                />
+                <div className="absolute right-0 top-full mt-2 w-48 bg-stone-900 border border-stone-800 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-stone-800">
+                    <p className="text-xs font-bold text-white truncate">{profile?.name || 'Vendor'}</p>
+                    <p className="text-[10px] text-stone-500 truncate">{profile?.email}</p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-black text-red-400 hover:bg-red-500/10 transition-colors"
+                  >
+                    <LogOut size={16} /> Sign Out
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </header>
 

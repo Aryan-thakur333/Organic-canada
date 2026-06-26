@@ -119,6 +119,9 @@ export default function Login() {
               Register Here
             </Link>
           </p>
+          <Link to="/login" className="mt-4 inline-block text-xs font-bold text-stone-300 hover:text-white hover:underline">
+            Login as Customer
+          </Link>
         </div>
       </motion.div>
     </div>

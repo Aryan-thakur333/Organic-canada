@@ -18,6 +18,13 @@ import {
   updateLineItem,
 } from "../services/medusa/cartService";
 
+function isStaleCartError(error) {
+  const status = error?.response?.status;
+  const message = String(error?.response?.data?.message || error?.message || "").toLowerCase();
+  return status === 404 || status === 409 ||
+    (status === 400 && ["cart not found", "cart does not exist", "cart is completed"].some((text) => message.includes(text)));
+}
+
 export default function useMedusaCart() {
   const dispatch = useDispatch();
   const medusaCartId = useSelector((s) => s.cart.medusaCartId);
@@ -43,10 +50,13 @@ export default function useMedusaCart() {
         });
         applyHydration(cart);
         return cart;
-      } catch {
-        dispatch(setMedusaCartId(""));
-        dispatch(clearCart());
-        throw new Error("Cart expired or invalid — starting a new cart.");
+      } catch (error) {
+        if (isStaleCartError(error)) {
+          dispatch(setMedusaCartId(""));
+          dispatch(clearCart());
+          throw new Error("Cart expired or invalid — starting a new cart.");
+        }
+        throw error;
       }
     },
     [applyHydration, dispatch, medusaCartId]
@@ -60,7 +70,8 @@ export default function useMedusaCart() {
         const { cart } = await retrieveCart(medusaCartId);
         applyHydration(cart);
         return medusaCartId;
-      } catch {
+      } catch (error) {
+        if (!isStaleCartError(error)) throw error;
         dispatch(setMedusaCartId(""));
       }
     }
@@ -97,6 +108,7 @@ export default function useMedusaCart() {
         return cart;
       } catch (err) {
         // Stale cart — discard it, create a fresh one, and retry once.
+        if (!isStaleCartError(err)) throw err;
         console.warn("[useMedusaCart] addLineItem failed, retrying with fresh cart:", err);
         dispatch(setMedusaCartId(""));
         const region_id = await resolveDefaultRegionId();

@@ -59,21 +59,21 @@ export default function B2BSidebarCard({ navigate }) {
         </p>
         <div className="flex flex-col gap-2">
           <button
-            onClick={() => navigate('/dashboard/b2b/manage')}
+            onClick={() => navigate('/b2b')}
             className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-50 dark:hover:bg-slate-700 text-text-primary text-sm font-bold transition-colors"
           >
             <span className="flex items-center gap-3"><Settings size={16} /> Manage Company</span>
             <ChevronRight size={16} className="text-stone-300" />
           </button>
           <button
-            onClick={() => navigate('/dashboard/b2b/quotes')}
+            onClick={() => navigate('/b2b/request-quote')}
             className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-50 dark:hover:bg-slate-700 text-text-primary text-sm font-bold transition-colors"
           >
             <span className="flex items-center gap-3"><Send size={16} /> New Quote</span>
             <ChevronRight size={16} className="text-stone-300" />
           </button>
           <button
-            onClick={() => navigate('/dashboard/b2b/history')}
+            onClick={() => navigate('/account/b2b-quotes')}
             className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-50 dark:hover:bg-slate-700 text-text-primary text-sm font-bold transition-colors"
           >
             <span className="flex items-center gap-3"><FileText size={16} /> Quote History</span>
@@ -97,7 +97,7 @@ export default function B2BSidebarCard({ navigate }) {
         Register your company to access wholesale pricing, bulk ordering, and dedicated account management.
       </p>
       <button
-        onClick={() => navigate('/dashboard/b2b/register')}
+        onClick={() => navigate('/b2b/register-company')}
         className="w-full flex items-center justify-between p-3 rounded-2xl bg-accent-primary/5 text-accent-primary text-sm font-bold hover:bg-accent-primary/10 transition-colors"
       >
         <span className="flex items-center gap-3"><Building2 size={16} /> Register Company</span>

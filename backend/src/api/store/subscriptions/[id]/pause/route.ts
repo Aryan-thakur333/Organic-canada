@@ -8,9 +8,11 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   try {
     const subscriptionService: any = req.scope.resolve(SUBSCRIPTION_MODULE)
     const subscription = await subscriptionService.retrieveSubscription(id)
-
     if (!subscription) return res.status(404).json({ message: "Subscription not found" })
     if (subscription.customer_id !== customer_id) return res.status(403).json({ message: "Forbidden" })
+    if (subscription.status !== "active") {
+      return res.status(400).json({ message: "Only active subscriptions can be paused" })
+    }
 
     const updated = await subscriptionService.updateSubscriptions({ id, status: "paused" })
     return res.json({ subscription: updated })

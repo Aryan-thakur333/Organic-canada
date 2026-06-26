@@ -10,22 +10,25 @@ import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
  */
 const CURRENCY_PROVIDER_MAP: Record<string, { allow: string[]; deny?: string[] }> = {
   eur: {
-    allow: ["pp_stripe_stripe", "pp_system_default", "stripe"],
+    allow: ["pp_stripe_stripe", "pp_paypal_paypal", "pp_system_default", "stripe", "paypal"],
   },
   usd: {
-    allow: ["pp_stripe_stripe", "pp_system_default", "stripe"],
+    allow: ["pp_stripe_stripe", "pp_paypal_paypal", "pp_system_default", "stripe", "paypal"],
+  },
+  cad: {
+    allow: ["pp_stripe_stripe", "pp_paypal_paypal", "pp_system_default", "stripe", "paypal"],
   },
   inr: {
     deny: ["pp_stripe_stripe", "stripe"],
-    allow: ["pp_paypay_paypay", "pp_system_default", "paypay", "manual"],
+    allow: ["pp_paypal_paypal", "pp_system_default", "paypal", "manual"],
   },
   jpy: {
     deny: ["pp_stripe_stripe", "stripe"],
-    allow: ["pp_paypay_paypay", "pp_system_default", "paypay", "manual"],
+    allow: ["pp_paypal_paypal", "pp_system_default", "paypal", "manual"],
   },
   cny: {
     deny: ["pp_stripe_stripe", "stripe"],
-    allow: ["pp_system_default", "manual"],
+    allow: ["pp_paypal_paypal", "pp_system_default", "paypal", "manual"],
   },
 }
 
@@ -94,8 +97,15 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     }
 
     // ── 4. Fetch all registered payment providers ───────────────────────
-    const allProviders: Array<{ id: string; is_installed?: boolean }> =
+    const storedProviders: Array<{ id: string; is_installed?: boolean }> =
       await paymentModuleService.listPaymentProviders()
+    const allProviders = storedProviders.filter((provider) => {
+      if (provider.id.startsWith("pp_stripe")) return Boolean(process.env.STRIPE_API_KEY)
+      if (provider.id.includes("paypal")) {
+        return Boolean(process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET)
+      }
+      return provider.id === "pp_system_default" || provider.is_installed !== false
+    })
 
     if (!allProviders || allProviders.length === 0) {
       return res.json({ payment_providers: [] })
@@ -108,11 +118,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     if (rules) {
       if (rules.allow) {
         // Allow-list: only providers whose ID is in the allow array
-        filtered = allProviders.filter((p) =>
-          rules.allow!.some((allowed) =>
-            p.id === allowed || p.id.endsWith(`_${allowed}`) || p.id.startsWith(`pp_${allowed}_`)
-          )
-        )
+        filtered = allProviders.filter((p) => rules.allow!.includes(p.id))
       } else {
         // Deny-list: remove providers that match the deny array
         filtered = allProviders.filter((p) =>
@@ -143,7 +149,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
     console.log(
       `[Cart PaymentProviders] Cart ${cartId} (${regionCurrency}): ` +
-      `returning ${payment_providers.length}/${allProviders.length} providers`
+      `returning ${payment_providers.length}/${storedProviders.length} stored providers`
     )
 
     return res.json({ payment_providers })

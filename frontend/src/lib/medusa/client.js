@@ -25,7 +25,7 @@ export function getMedusaSdk() {
     auth: {
       type: "jwt",
       jwtTokenStorageMethod: "local",
-      jwtStorageKey: "medusa_token",
+      jwtStorageKey: "medusa_customer_token",
     },
   });
 

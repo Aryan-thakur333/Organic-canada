@@ -6,15 +6,18 @@ import { store } from "./redux/store";
 import { Toaster } from "react-hot-toast";
 import AuthSync from "./components/common/AuthSync";
 import CartBootstrap from "./components/common/CartBootstrap";
+import { ThemeProvider } from "./hooks/useTheme";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <Provider store={store}>
-      <AuthSync />
-      <CartBootstrap />
-      <App />
-      <Toaster position="top-right" reverseOrder={false} />
+      <ThemeProvider>
+        <AuthSync />
+        <CartBootstrap />
+        <App />
+        <Toaster position="top-right" reverseOrder={false} />
+      </ThemeProvider>
     </Provider>
   </React.StrictMode>
 );

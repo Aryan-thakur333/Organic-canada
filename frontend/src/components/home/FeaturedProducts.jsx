@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import ProductCard from '../ProductCard';
 import { ProductCardSkeleton } from '../common/Skeleton';
 import { listStoreProducts } from '../../services/medusa/productService';
+import { homeBackgrounds } from '../../config/homeBackgrounds';
 
 const FeaturedProducts = () => {
   const [products, setProducts] = useState([]);
@@ -25,8 +26,17 @@ const FeaturedProducts = () => {
   }, []);
 
   return (
-    <section className="py-24 bg-bg-primary">
-      <div className="container-custom">
+    <section
+      className="relative overflow-hidden py-24 bg-bg-primary"
+      style={{
+        backgroundImage: `url(${homeBackgrounds.bestSellers})`,
+        backgroundPosition: 'center',
+        backgroundSize: 'cover',
+      }}
+    >
+      <div className="absolute inset-0 bg-bg-primary/90 dark:bg-slate-950/88" />
+      <div className="absolute inset-0 bg-gradient-to-r from-bg-primary via-bg-primary/92 to-bg-primary/76 dark:from-slate-950 dark:via-slate-950/92 dark:to-slate-950/76" />
+      <div className="container-custom relative z-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
             <h2 className="text-3xl md:text-5xl font-black mb-4 text-text-primary">Best Sellers</h2>

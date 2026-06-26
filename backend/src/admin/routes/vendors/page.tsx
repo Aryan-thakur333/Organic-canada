@@ -181,7 +181,7 @@ const VendorsPage = () => {
 }
 
 export const config = defineRouteConfig({
-  label: "Vendors",
+  label: "Vendor Approvals",
   icon: Users,
 })
 

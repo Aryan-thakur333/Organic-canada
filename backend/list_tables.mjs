@@ -1,8 +1,12 @@
-import pg from 'pg';
-const client = new pg.Client({
-  connectionString: 'postgres://postgres:9426695327@localhost:5432/medusa-backend'
-});
-await client.connect();
-const res = await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema='public';");
-console.log(res.rows.map(r => r.table_name));
-await client.end();
+import fs from 'fs';
+const content = fs.readFileSync('.medusa/types/query-entry-points.d.ts', 'utf8');
+const lines = content.split('\n');
+console.log("Matching lines:");
+console.log(lines.filter(l => l.includes('b2b') || l.includes('quote') || l.includes('Company')).slice(0, 100));
+
+
+
+
+
+
+

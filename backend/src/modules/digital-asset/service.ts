@@ -1,6 +1,10 @@
 import { MedusaService } from "@medusajs/framework/utils"
 import { DigitalAsset } from "./models/digital-asset"
+import { DigitalOrderDownload } from "./models/digital-order-download"
 
-export default class DigitalAssetModuleService extends MedusaService({
+class DigitalAssetModuleService extends MedusaService({
   DigitalAsset,
+  DigitalOrderDownload,
 }) {}
+
+export default DigitalAssetModuleService

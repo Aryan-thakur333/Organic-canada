@@ -5,6 +5,7 @@ export const Vendor = model.define("vendor", {
   name: model.text(),
   store_name: model.text().default(""),
   email: model.text().unique(),
+  phone: model.text().nullable(),
   description: model.text().nullable(),
   company_details: model.json().nullable(),
   status: model.enum(["pending", "approved", "rejected", "suspended"]).default("pending"),

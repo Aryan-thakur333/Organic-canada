@@ -3,10 +3,17 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   profile: {
     id: null,
+    first_name: "",
+    last_name: "",
     name: "",
     email: "",
     phone: "",
     avatar: "",
+    company_name: "",
+    created_at: null,
+    metadata: {},
+    addresses: [],
+    active_subscription: null,
   },
   loading: false,
   error: null,

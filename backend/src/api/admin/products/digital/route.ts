@@ -1,237 +1,270 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import { ContainerRegistrationKeys, Modules, ProductStatus } from "@medusajs/framework/utils"
 import { createProductsWorkflow } from "@medusajs/medusa/core-flows"
-import {
-  ContainerRegistrationKeys,
-  Modules,
-  ProductStatus,
-} from "@medusajs/framework/utils"
-import { DIGITAL_ASSET_MODULE } from "../../../../modules/digital-asset"
 import multer from "multer"
-import os from "os"
+import path from "path"
 import fs from "fs"
+import crypto from "crypto"
 
-// ── Multer setup ────────────────────────────────────────────────────────────
-// Parse a single file field named "file" along with text fields (title,
-// price_eur, price_usd). Files are written to the OS temp directory before
-// being uploaded to the remote storage provider.
+const STORAGE_DIR = path.join(process.cwd(), "uploads", "digital")
+
+const ALLOWED_MIME_TYPES = [
+  "application/pdf",
+  "application/zip",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "image/png",
+  "image/jpeg",
+  "text/plain",
+  "application/octet-stream",
+  "application/json",
+  "text/csv",
+  "video/mp4",
+  "video/quicktime",
+  "audio/mpeg",
+  "audio/wav",
+]
+
 const upload = multer({
-  dest: os.tmpdir(),
-  limits: { fileSize: 500 * 1024 * 1024 }, // 500 MB cap
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024, files: 1 },
+  fileFilter: (_req, file, cb) => {
+    if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error(`File type ${file.mimetype} is not allowed. Allowed: PDF, ZIP, DOCX, XLSX, PNG, JPG, TXT`))
+    }
+  },
 }).single("file")
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+const toHandle = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
 
-/** Sanitize a title into a URL-friendly handle. */
-function toHandle(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "")
+const parsePrice = (value: unknown): number | null => {
+  if (value === undefined || value === null || value === "") return null
+  const amount = Number(value)
+  return Number.isFinite(amount) && amount >= 0 ? Math.round(amount * 100) : null
 }
 
 /**
- * Validate and coerce a price value from the multipart form body.
- * Accepts both numeric strings and numbers.
- * Returns the amount in **cents** (smallest currency unit).
+ * GET /admin/products/digital
+ * List all digital assets with their linked product info (title, handle, thumbnail).
+ * Returns an empty array when no digital products exist.
  */
-function parsePrice(value: unknown): number | null {
-  if (value === undefined || value === null || value === "") return null
-  const num = typeof value === "string" ? parseFloat(value) : Number(value)
-  if (Number.isNaN(num) || num < 0) return null
-  // Convert user-facing decimal (e.g. 19.99) to cents (1999)
-  return Math.round(num * 100)
-}
+export async function GET(req: MedusaRequest, res: MedusaResponse) {
+  try {
+    const query: any = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
-// ── POST /admin/products/digital ────────────────────────────────────────────
-//
-//  Accepts multipart/form-data:
-//    - title     (string)   – Product title
-//    - price_eur (number)   – Price in EUR (e.g. 19.99)
-//    - price_usd (number)   – Price in USD (e.g. 24.99)
-//    - file      (binary)   – The digital asset file to sell
-//
-//  Flow:
-//    1. Parse the multipart payload via multer
-//    2. Upload the binary file to the registered storage provider
-//    3. Create a core product (with a single "Digital Download" variant)
-//       carrying both EUR and USD prices
-//    4. Persist a DigitalAsset row linking the product_id ↔ file metadata
-//    5. Establish the product ↦ digitalAsset remote link
-//    6. Return a clean success payload for the admin panel toast notification
-// ────────────────────────────────────────────────────────────────────────────
+    // Use the Medusa query engine to fetch digital assets with linked product fields.
+    // The link definition (digital-asset-product.ts) connects Product → DigitalAsset,
+    // so we query from the product side and include the linked digital assets.
+    const { data: products } = await query.graph({
+      entity: "product",
+      fields: [
+        "id",
+        "title",
+        "handle",
+        "thumbnail",
+        "status",
+        "created_at",
+        "digital_asset.id",
+        "digital_asset.product_id",
+        "digital_asset.secure_s3_key",
+        "digital_asset.file_name",
+        "digital_asset.mime_type",
+        "digital_asset.file_size",
+        "digital_asset.download_limit",
+        "digital_asset.download_count",
+        "digital_asset.is_active",
+        "digital_asset.created_at",
+      ],
+      pagination: { take: 200 },
+    })
+
+    // Flatten the response: each product with its digital assets as individual entries
+    const items: any[] = []
+    for (const product of products || []) {
+      const assets = product.digital_asset || []
+      for (const asset of assets) {
+        items.push({
+          id: asset.id,
+          product_id: product.id,
+          product_title: product.title,
+          product_handle: product.handle,
+          product_thumbnail: product.thumbnail,
+          product_status: product.status,
+          file_name: asset.file_name,
+          mime_type: asset.mime_type,
+          file_size: asset.file_size,
+          download_limit: asset.download_limit,
+          download_count: asset.download_count,
+          is_active: asset.is_active,
+          secure_s3_key: asset.secure_s3_key,
+          created_at: asset.created_at || product.created_at,
+        })
+      }
+    }
+
+    return res.json({ products: items })
+  } catch (error: any) {
+    console.error("[Digital Product] List error:", error)
+    return res.status(500).json({ message: error.message || "Failed to list digital products" })
+  }
+}
 
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   return new Promise<void>((resolve) => {
-    upload(req, res, async (err: any) => {
-      // ── Multer error handling ─────────────────────────────────────────
-      if (err) {
-        const message =
-          err.code === "LIMIT_FILE_SIZE"
-            ? "File too large. Maximum allowed size is 500 MB."
-            : err.message || "File upload failed."
-
-        console.error("[Digital Product] Multer error:", err)
+    upload(req, res, async (uploadError: any) => {
+      if (uploadError) {
+        const message = uploadError.code === "LIMIT_FILE_SIZE"
+          ? "File too large. Maximum allowed size is 50 MB."
+          : uploadError.message || "File upload failed."
         res.status(400).json({ message })
         return resolve()
       }
 
       try {
-        const file = (req as any).file
-        const body = req.body as Record<string, any>
-        const title: string | undefined = body.title
-        const priceEurRaw = body.price_eur
-        const priceUsdRaw = body.price_usd
+        const file = (req as any).file as any
+        const body = req.body as Record<string, string | undefined>
+        const title = String(body.title || "").trim()
+        const description = String(body.description || "").trim()
 
-        // ── 1. Validate required fields ─────────────────────────────────
-        if (!title || !title.trim()) {
+        // Parse dynamic prices from form data (price_cad, price_usd, price_eur, etc.)
+        const prices: { amount: number; currency_code: string }[] = []
+        for (const key of Object.keys(body)) {
+          if (key.startsWith("price_")) {
+            const currencyCode = key.replace("price_", "").toLowerCase()
+            const amount = parsePrice(body[key])
+            if (amount !== null) {
+              prices.push({ amount, currency_code: currencyCode })
+            }
+          }
+        }
+
+        const version = String(body.version || "1.0.0").trim()
+        const downloadExpiryDays = Math.max(1, Number(body.download_expiry_days) || 365)
+        const licenseRequired = body.license_required === "true"
+
+        if (!title) {
           res.status(400).json({ message: "Product title is required." })
           return resolve()
         }
-
         if (!file) {
-          res
-            .status(400)
-            .json({ message: "A digital asset file is required." })
+          res.status(400).json({ message: "A digital asset file is required." })
+          return resolve()
+        }
+        if (prices.length === 0) {
+          res.status(400).json({ message: "At least one valid price is required (CAD minimum)." })
+          return resolve()
+        }
+        // Ensure CAD is present
+        const hasCadPrice = prices.some(p => p.currency_code === "cad")
+        if (!hasCadPrice) {
+          res.status(400).json({ message: "CAD price is required (primary store currency)." })
           return resolve()
         }
 
-        const priceEur = parsePrice(priceEurRaw)
-        const priceUsd = parsePrice(priceUsdRaw)
-
-        if (priceEur === null && priceUsd === null) {
-          res.status(400).json({
-            message:
-              "At least one valid price (price_eur or price_usd) must be provided.",
-          })
-          return resolve()
+        // Ensure storage directory exists
+        if (!fs.existsSync(STORAGE_DIR)) {
+          fs.mkdirSync(STORAGE_DIR, { recursive: true })
         }
 
-        // ── 2. Upload file via the registered storage provider ──────────
-        const fileService: any = req.scope.resolve("fileService")
-        let secureKey: string
-        let uploadedFile: any
+        // Generate unique storage key and save file
+        const assetId = `asset_${crypto.randomBytes(16).toString("hex")}`
+        const ext = path.extname(file.originalname) || ".bin"
+        const storageKey = `digital/${assetId}${ext}`
+        const filePath = path.join(STORAGE_DIR, `${assetId}${ext}`)
+        fs.writeFileSync(filePath, file.buffer)
 
-        if (fileService && typeof fileService.upload === "function") {
-          const uploadResults = await fileService.upload([
-            {
-              filename: file.originalname,
-              path: file.path,
-              mimetype: file.mimetype,
-            },
+        const salesChannelService: any = req.scope.resolve(Modules.SALES_CHANNEL)
+        const [salesChannel] = await salesChannelService.listSalesChannels(
+          { is_disabled: false },
+          { take: 1 }
+        )
+        if (!salesChannel) throw new Error("No active sales channel is configured")
+
+        const handle = `${toHandle(title)}-${Date.now().toString(36)}`
+
+        const actualDownloadLimit = Math.max(0, Number(body.download_limit) || 5)
+
+        // ── Digital product metadata ────────────────────────────────────────
+        const digitalMetadata: Record<string, any> = {
+          is_digital: true,
+          requires_shipping: false,
+          version,
+          download_limit: actualDownloadLimit,
+          download_expiry_days: downloadExpiryDays,
+          license_required: licenseRequired,
+          file_name: file.originalname,
+          file_size: file.size,
+          file_type: (file.mimetype || "application/octet-stream").split("/").pop() || "bin",
+          mime_type: file.mimetype || "application/octet-stream",
+          download_assets: [{
+            id: assetId,
+            filename: file.originalname,
+            mime_type: file.mimetype || "application/octet-stream",
+            size: file.size,
+            version,
+            storage_key: storageKey,
+          }],
+        }
+
+        // Resolve product types to find or create "Digital Product" type
+        const productTypeService: any = req.scope.resolve(Modules.PRODUCT)
+        let productType = await productTypeService.listProductTypes(
+          { value: "Digital Product" },
+          { take: 1 }
+        )
+        let typeId = productType?.[0]?.id
+        if (!typeId) {
+          const [newType] = await productTypeService.createProductTypes([
+            { value: "Digital Product" },
           ])
-          // Clean up the temporary file from disk
-          try {
-            fs.unlinkSync(file.path)
-          } catch { /* best-effort cleanup */ }
-          uploadedFile = uploadResults?.[0]
-          secureKey = uploadedFile?.key || uploadedFile?.url || file.filename
-        } else {
-          // Fallback: no file module registered — use the local temp path
-          // as the key so the admin can still reference the asset.
-          console.warn(
-            "[Digital Product] No fileService with upload() found. " +
-              "Falling back to local temp path. " +
-              "Configure a file module in medusa-config.ts for production use."
-          )
-          secureKey = file.path
-        }
-
-        // ── 3. Create the core product with EUR/USD pricing ─────────────
-        const handle = toHandle(title)
-        const prices: Array<{ amount: number; currency_code: string }> = []
-
-        if (priceEur !== null) {
-          prices.push({ amount: priceEur, currency_code: "eur" })
-        }
-        if (priceUsd !== null) {
-          prices.push({ amount: priceUsd, currency_code: "usd" })
+          typeId = newType.id
         }
 
         const { result } = await createProductsWorkflow(req.scope).run({
           input: {
-            products: [
-              {
-                title: title.trim(),
-                description: `Digital product: ${title.trim()}`,
-                handle,
-                status: ProductStatus.PUBLISHED,
-                options: [
-                  { title: "Format", values: ["Digital Download"] },
-                ],
-                variants: [
-                  {
-                    title: "Digital Download",
-                    sku: `DIGITAL-${handle.toUpperCase().replace(/-/g, "_")}`,
-                    prices,
-                    options: { Format: "Digital Download" },
-                    manage_inventory: false,
-                    allow_backorder: true,
-                  },
-                ],
-              },
-            ],
+            products: [{
+              title,
+              description: description || `Digital product: ${title}`,
+              handle,
+              status: ProductStatus.PUBLISHED,
+              type_id: typeId,
+              sales_channels: [{ id: salesChannel.id }],
+              options: [{ title: "Format", values: ["Digital"] }],
+              variants: [{
+                title: "Digital Download",
+                sku: `DIGITAL-${Date.now()}`,
+                prices,
+                options: { Format: "Digital" },
+                manage_inventory: false,
+                allow_backorder: true,
+                metadata: {
+                  is_digital: true,
+                  requires_shipping: false,
+                },
+              }],
+              metadata: digitalMetadata,
+            }],
           },
         })
-
         const product = result[0]
 
-        // ── 4. Persist the DigitalAsset record ─────────────────────────
-        const digitalAssetService: any =
-          req.scope.resolve(DIGITAL_ASSET_MODULE)
-        const digitalAsset = await digitalAssetService.createDigitalAssets({
-          product_id: product.id,
-          secure_s3_key: secureKey,
-          file_name: file.originalname,
-          mime_type: file.mimetype,
-          file_size: file.size,
-          is_active: true,
-        })
-
-        // ── 5. Establish the remote link ────────────────────────────────
-        const remoteLink = req.scope.resolve(
-          ContainerRegistrationKeys.REMOTE_LINK
-        )
-        await remoteLink.create({
-          [Modules.PRODUCT]: { product_id: product.id },
-          [DIGITAL_ASSET_MODULE]: { digital_asset_id: digitalAsset.id },
-        })
-
-        console.log(
-          `[Digital Product] Created product ${product.id} ` +
-            `→ digital asset ${digitalAsset.id} (${file.originalname})`
-        )
-
-        // ── 6. Return success payload for admin UI toast ────────────────
         res.status(201).json({
-          message: "Digital product created successfully.",
-          type: "success",
-          product: {
-            id: product.id,
-            title: product.title,
-            handle: product.handle,
-          },
-          digital_asset: {
-            id: digitalAsset.id,
-            file_name: digitalAsset.file_name,
-            mime_type: digitalAsset.mime_type,
-            file_size: digitalAsset.file_size,
+          message: "Digital product created and published successfully.",
+          product: { id: product.id, title: product.title, handle: product.handle },
+          asset: {
+            id: assetId,
+            filename: file.originalname,
+            size: file.size,
+            mime_type: file.mimetype || "application/octet-stream",
+            storage_key: storageKey,
           },
         })
       } catch (error: any) {
         console.error("[Digital Product] Creation error:", error)
-
-        const status =
-          error.type === "not_found"
-            ? 404
-            : error.type === "invalid_data"
-              ? 400
-              : 500
-        res.status(status).json({
-          message: error.message || "Failed to create digital product.",
-          type: "error",
-        })
+        res.status(500).json({ message: error.message || "Failed to create digital product." })
       }
-
       resolve()
     })
   })

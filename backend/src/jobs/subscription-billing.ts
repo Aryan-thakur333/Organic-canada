@@ -1,12 +1,8 @@
 import { createStep, createWorkflow, StepResponse } from "@medusajs/framework/workflows-sdk"
 import { Modules } from "@medusajs/framework/utils"
 import { MedusaContainer } from "@medusajs/framework/types"
-import Stripe from "stripe"
 import { SUBSCRIPTION_MODULE } from "../modules/subscription"
-
-const stripe = new Stripe(process.env.STRIPE_API_KEY || "", {
-  apiVersion: "2025-05-28.basil" as any,
-})
+import { getStripeClient } from "../lib/stripe-client"
 
 const PLAN_DAYS: Record<string, number> = { weekly: 7, monthly: 30, quarterly: 90, yearly: 365 }
 
@@ -33,7 +29,7 @@ const chargeSubscriptionStep = (createStep as any)(
     }
 
     try {
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await getStripeClient().paymentIntents.create({
         amount: sub.amount,
         currency: sub.currency || "usd",
         customer: sub.stripe_customer_id,

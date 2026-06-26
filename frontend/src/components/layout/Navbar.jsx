@@ -22,10 +22,10 @@ import {
 import { useTheme } from '../../hooks/useTheme';
 import Button from '../common/Button';
 import { logout } from '../../redux/authSlice';
-import { authService } from '../../services/medusa/authService';
+import { clearUserProfile, updateUserProfile } from '../../redux/userSlice';
 import { firebaseAuthService } from '../../services/firebaseAuthService';
 import { BRAND } from '../../config/branding';
-import apiClient from '../../services/apiClient';
+import { subscriptionService } from '../../services/medusa/subscriptionService';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -36,6 +36,9 @@ const Navbar = () => {
   const wishlistItems = useSelector((state) => state.wishlist.items);
   const { isAuthenticated } = useSelector((state) => state.auth);
   const userProfile = useSelector((state) => state.user?.profile);
+  const activeSubscription = userProfile?.active_subscription;
+  const isPremium = ['active', 'trialing'].includes(activeSubscription?.status);
+  const hasFastDelivery = isPremium && activeSubscription?.metadata?.fast_delivery === true;
   const location = useLocation();
   const dispatch = useDispatch();
 
@@ -48,6 +51,7 @@ const Navbar = () => {
     try {
       await firebaseAuthService.logout();
       dispatch(logout());
+      dispatch(clearUserProfile());
       setIsProfileOpen(false);
       navigate('/login');
     } catch (error) {
@@ -62,6 +66,17 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let active = true;
+    subscriptionService.list().then(({ subscriptions = [] }) => {
+      if (!active) return;
+      const current = subscriptions.find((item) => ['active', 'trialing'].includes(item.status)) || null;
+      dispatch(updateUserProfile({ active_subscription: current }));
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [dispatch, isAuthenticated]);
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -172,47 +187,27 @@ const Navbar = () => {
                     <>
                       <div className="px-3 py-2 border-b border-stone-50 dark:border-slate-700 mb-1">
                         <p className="text-xs font-bold text-text-secondary uppercase">Account</p>
-                        <p className="text-sm font-semibold truncate">{userProfile?.email || 'User'}</p>
+                        <p className="text-sm font-semibold truncate">{userProfile?.name || userProfile?.email || 'User'}</p>
                       </div>
 
                       {/* Premium Membership Status */}
-                      {userProfile?.metadata?.is_premium === true || userProfile?.metadata?.is_premium === 'true' ? (
+                      {isPremium ? (
                         <div className="px-3 py-2 mx-1 my-1 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border border-amber-200 dark:border-amber-700/50 flex items-center gap-2">
                           <Sparkles size={14} className="text-amber-500 shrink-0" />
                           <span className="text-xs font-bold text-amber-700 dark:text-amber-300 leading-tight">
                             ✨ Premium Member
                           </span>
-                          <span className="text-[10px] text-amber-600 dark:text-amber-400 ml-auto font-medium whitespace-nowrap">
+                          {hasFastDelivery && <span className="text-[10px] text-amber-600 dark:text-amber-400 ml-auto font-medium whitespace-nowrap">
                             <Zap size={10} className="inline mr-0.5" />Fast Delivery
-                          </span>
+                          </span>}
                         </div>
                       ) : (
                         <button
-                          onClick={async () => {
-                            try {
-                              setIsProfileOpen(false)
-                              // POST to /store/subscriptions to initiate the premium checkout session
-                              const res = await apiClient.post('/store/subscriptions', {
-                                product_title: 'Premium Membership',
-                                plan: 'monthly',
-                                amount: 1000,
-                                currency: 'usd',
-                              })
-                              // If a Stripe Checkout URL is returned, redirect the user
-                              if (res?.url) {
-                                window.location.href = res.url
-                              } else if (res?.subscription) {
-                                navigate('/profile', { state: { premium_upgraded: true } })
-                              }
-                            } catch (err) {
-                              console.error('[Premium Upgrade] Failed to initiate:', err)
-                            }
-                          }}
+                          onClick={() => { setIsProfileOpen(false); navigate('/dashboard/subscriptions'); }}
                           className="w-full flex items-center gap-2 px-3 py-2.5 mx-1 my-1 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-700/50 hover:from-amber-100 hover:to-orange-100 dark:hover:from-amber-800/30 dark:hover:to-orange-800/30 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm font-semibold text-amber-800 dark:text-amber-200"
                         >
                           <Sparkles size={16} className="text-amber-500 shrink-0" />
                           <span>🚀 Upgrade to Premium</span>
-                          <span className="ml-auto text-[11px] text-amber-600 dark:text-amber-400 font-medium">$10/mo</span>
                         </button>
                       )}
 

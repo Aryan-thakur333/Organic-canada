@@ -6,6 +6,8 @@ import VendorProtectedRoute from "./VendorProtectedRoute";
 
 // Premium Pages
 const Home = lazy(() => import("../pages/Home"));
+const About = lazy(() => import("../pages/About"));
+const Contact = lazy(() => import("../pages/Contact"));
 const Cart = lazy(() => import("../pages/Cart"));
 const ProductDetails = lazy(() => import("../pages/ProductDetails"));
 const Checkout = lazy(() => import("../pages/Checkout"));
@@ -17,17 +19,16 @@ const Profile = lazy(() => import("../pages/Profile"));
 const Search = lazy(() => import("../pages/Search"));
 const OrderSuccess = lazy(() => import("../pages/OrderSuccess"));
 const CategoryDetail = lazy(() => import("../pages/CategoryDetail"));
-const AdminDashboard = lazy(() => import("../pages/AdminDashboard"));
 const DeliveryTracking = lazy(() => import("../pages/DeliveryTracking"));
 const Coupons = lazy(() => import("../pages/Coupons"));
 const CustomerSubscriptions = lazy(() => import("../pages/CustomerSubscriptions"));
-const AdminSubscriptions = lazy(() => import("../pages/AdminSubscriptions"));
+const CustomerDashboard = lazy(() => import("../pages/CustomerDashboard"));
+const MyDownloads = lazy(() => import("../pages/MyDownloads"));
+const Addresses = lazy(() => import("../pages/Addresses"));
 const B2BQuoteRequest = lazy(() => import("../pages/B2BQuoteRequest"));
 const B2BQuoteHistory = lazy(() => import("../pages/B2BQuoteHistory"));
-const AdminB2BQuotes = lazy(() => import("../pages/AdminB2BQuotes"));
 const B2BCompanyRegistration = lazy(() => import("../pages/B2BCompanyRegistration"));
 const B2BManageCompany = lazy(() => import("../pages/B2BManageCompany"));
-const AdminB2BCompanies = lazy(() => import("../pages/AdminB2BCompanies"));
 
 // Vendor Pages
 const VendorLogin = lazy(() => import("../pages/vendor/Login"));
@@ -35,6 +36,9 @@ const VendorRegister = lazy(() => import("../pages/vendor/Register"));
 const VendorOverview = lazy(() => import("../pages/vendor/Overview"));
 const VendorProducts = lazy(() => import("../pages/vendor/Products"));
 const VendorOrders = lazy(() => import("../pages/vendor/Orders"));
+const VendorInventory = lazy(() => import("../pages/vendor/Inventory"));
+const VendorEarnings = lazy(() => import("../pages/vendor/Earnings"));
+const VendorProfile = lazy(() => import("../pages/vendor/Profile"));
 
 function AppRoutes() {
   return (
@@ -48,6 +52,9 @@ function AppRoutes() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/shop" element={<Listing />} />
           <Route path="/listing" element={<Listing />} />
           <Route path="/category/:id" element={<CategoryDetail />} />
           <Route path="/product/:id" element={<ProductDetails />} />
@@ -106,6 +113,30 @@ function AppRoutes() {
             }
           />
           <Route
+            path="/my-downloads"
+            element={
+              <ProtectedRoute>
+                <MyDownloads />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <CustomerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/addresses"
+            element={
+              <ProtectedRoute>
+                <Addresses />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/dashboard/subscriptions"
             element={
               <ProtectedRoute>
@@ -145,27 +176,44 @@ function AppRoutes() {
               </ProtectedRoute>
             }
           />
+          {/* Compatibility storefront B2B routes */}
           <Route
-            path="/admin/subscriptions"
+            path="/b2b"
             element={
               <ProtectedRoute>
-                <AdminSubscriptions />
+                <B2BManageCompany />
               </ProtectedRoute>
             }
           />
           <Route
-            path="/admin/b2b-quotes"
+            path="/b2b/register-company"
             element={
               <ProtectedRoute>
-                <AdminB2BQuotes />
+                <B2BCompanyRegistration />
               </ProtectedRoute>
             }
           />
           <Route
-            path="/admin/b2b/companies"
+            path="/b2b/request-quote"
             element={
               <ProtectedRoute>
-                <AdminB2BCompanies />
+                <B2BQuoteRequest />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account/b2b-quotes"
+            element={
+              <ProtectedRoute>
+                <B2BQuoteHistory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account/b2b-quotes/:id"
+            element={
+              <ProtectedRoute>
+                <B2BQuoteHistory />
               </ProtectedRoute>
             }
           />
@@ -198,14 +246,17 @@ function AppRoutes() {
               </VendorProtectedRoute>
             }
           />
-
           <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
+            path="/vendor/inventory"
+            element={<VendorProtectedRoute><VendorInventory /></VendorProtectedRoute>}
+          />
+          <Route
+            path="/vendor/earnings"
+            element={<VendorProtectedRoute><VendorEarnings /></VendorProtectedRoute>}
+          />
+          <Route
+            path="/vendor/profile"
+            element={<VendorProtectedRoute><VendorProfile /></VendorProtectedRoute>}
           />
 
           {/* Catch all */}

@@ -35,6 +35,9 @@ export const b2bApi = {
    * @returns {Promise<{ quotes: Array<object>, count: number, offset: number, limit: number }>}
    */
   getQuotes: (params) => apiClient.get("/store/b2b/quotes", { params }),
+  getQuote: (id) => apiClient.get(`/store/b2b/quotes/${id}`),
+  acceptQuote: (id, payload = {}) => apiClient.post(`/store/b2b/quotes/${id}/accept`, payload),
+  rejectQuote: (id) => apiClient.post(`/store/b2b/quotes/${id}/reject`),
 
   /**
    * GET /admin/b2b-quotes

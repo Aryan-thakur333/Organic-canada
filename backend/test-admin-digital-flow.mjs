@@ -109,9 +109,9 @@ async function run() {
   group("Step 1 — Server Health Check")
 
   try {
-    const { status } = await api("GET", "/")
+    const { status, data } = await api("GET", "/health")
     if (status === 200) {
-      ok("Server is running")
+      ok(`Server is running (uptime: ${data.uptime || "?"}s)`)
     } else {
       fail(`Server returned status ${status}`)
       console.log("\n  Start the server with: cd backend && npx medusa develop")

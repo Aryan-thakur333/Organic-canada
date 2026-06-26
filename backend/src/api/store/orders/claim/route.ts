@@ -32,10 +32,18 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   }
 
   const normalizedEmail = String(customer.email).trim().toLowerCase()
+  const requestedOrderIds = Array.isArray((req.body as any)?.order_ids)
+    ? (req.body as any).order_ids.filter((id: unknown) => typeof id === "string").slice(0, 20)
+    : []
+
+  if (!requestedOrderIds.length) {
+    return res.status(400).json({ message: "At least one guest order ID is required" })
+  }
 
   const { data: matchingOrders } = await query.graph({
     entity: "order",
     filters: {
+      id: requestedOrderIds,
       email: normalizedEmail,
     },
     fields: ORDER_FIELDS,
@@ -53,18 +61,6 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   })
 
   const remoteLink = req.scope.resolve(ContainerRegistrationKeys.REMOTE_LINK)
-
-  // Ensure ALL orders matching this email have the remote link (self-healing for older orders)
-  for (const order of (matchingOrders || [])) {
-    try {
-      await remoteLink.create({
-        [Modules.ORDER]: { order_id: order.id },
-        [Modules.CUSTOMER]: { customer_id: customerId },
-      })
-    } catch (e) {
-      // Ignore if it already exists
-    }
-  }
 
   const claimedOrders: any[] = []
 

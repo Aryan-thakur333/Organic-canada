@@ -1,7 +1,6 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { MedusaError } from "@medusajs/framework/utils"
 import { B2B_MODULE } from "../../../../../modules/b2b"
-import { convertQuoteToOrderWorkflow } from "../../../../../workflows/convert-quote-to-order"
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -58,7 +57,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     }
 
     // ── 3. Validate the quote is in a reviewable state ──────────────────
-    if (quote.status !== "pending" && quote.status !== "draft") {
+    if (!["pending", "draft", "pending_review"].includes(quote.status)) {
       return res.status(409).json({
         message: `Quote is already in status "${quote.status}". Only 'draft' or 'pending' quotes can be reviewed.`,
       })
@@ -96,9 +95,11 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     const effectiveTotal = negotiated_total ?? quote.subtotal
 
     // Persist the approval overrides first
-    await b2bService.updateQuotes({
+    const approved = await b2bService.updateQuotes({
       ...updatePayload,
       status: "approved",
+      total: effectiveTotal,
+      discount_total: Math.max(0, quote.subtotal - effectiveTotal),
     })
 
     console.log(
@@ -108,25 +109,10 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     )
 
     // ── 7. Trigger the convert-quote-to-order workflow ──────────────────
-    const { result } = await convertQuoteToOrderWorkflow(req.scope).run({
-      input: {
-        quote_id: id,
-        company_id: quote.company_id,
-        customer_id: quote.customer_id,
-        customer_email: quote.customer_email,
-        items: quote.items || [],
-        total: effectiveTotal,
-        admin_notes: admin_notes || null,
-      },
-    })
-
-    // Re-fetch the quote to return the final 'converted' state
-    const finalQuote = await b2bService.retrieveQuote(id)
-
-    return res.status(201).json({
-      message: "Quote approved and converted to order",
-      quote: finalQuote,
-      order: result.order,
+    return res.json({
+      message: "Quote approved and awaiting customer acceptance",
+      quote: approved,
+      order: null,
     })
   } catch (error: any) {
     console.error("[Admin B2B Quotes] Review error:", error)

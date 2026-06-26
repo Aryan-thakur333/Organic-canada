@@ -1,8 +1,7 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import Stripe from "stripe"
 import { SUBSCRIPTION_MODULE } from "../../../../modules/subscription"
+import { getStripeClient } from "../../../../lib/stripe-client"
 
-const stripe = new Stripe(process.env.STRIPE_API_KEY || "", { apiVersion: "2025-05-28.basil" as any })
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || ""
 
 type PaymentEventPayload = {
@@ -98,7 +97,7 @@ async function handleStripeEvent(
 
       if (piId) {
         try {
-          const pi = await stripe.paymentIntents.retrieve(piId)
+          const pi = await getStripeClient().paymentIntents.retrieve(piId)
           const subId = pi.metadata?.subscription_id
           if (subId) {
             await subscriptionService.updateSubscriptions({
@@ -225,7 +224,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       try {
         const rawBody = (req as any).rawBody || JSON.stringify(req.body)
         if (sig && webhookSecret && webhookSecret !== "whsec_test") {
-          event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret) as any
+          event = getStripeClient().webhooks.constructEvent(rawBody, sig, webhookSecret) as any
         } else {
           if (process.env.NODE_ENV !== "development") {
             console.warn("[Subscription Payment Webhook] Stripe signature verification skipped (dev mode)")

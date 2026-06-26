@@ -13,6 +13,14 @@ export default async function ensureDefaultRegion({ container }: ExecArgs) {
     return
   }
 
+  const defaultPaymentProviders = ["pp_system_default"];
+  if (process.env.STRIPE_API_KEY) {
+    defaultPaymentProviders.push("pp_stripe_stripe");
+  }
+  if (process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET) {
+    defaultPaymentProviders.push("pp_paypal_paypal");
+  }
+  logger.info(`Default region payment providers: ${defaultPaymentProviders.join(", ")}`);
   const { result } = await createRegionsWorkflow(container).run({
     input: {
       regions: [
@@ -20,7 +28,7 @@ export default async function ensureDefaultRegion({ container }: ExecArgs) {
           name: "Default Region",
           currency_code: "eur",
           countries: ["de"],
-          payment_providers: ["pp_system_default"],
+          payment_providers: defaultPaymentProviders,
         },
       ],
     },
