@@ -54,39 +54,168 @@ export default async function orderPlacedSubscriptionCreator({
         filters: { id: orderId },
       })
       const cartId = orderCartLinks?.[0]?.cart?.id
+      
+      // Also check order metadata for b2b_quote_id (set during quote accept)
+      const orderMetadata = order.metadata || {}
+      const quoteIdFromMetadata = orderMetadata.b2b_quote_id
+      
+      const b2bService: any = container.resolve(B2B_MODULE)
+      let quote: any = null
+      
+      // Try to find quote by created_cart_id first
       if (cartId) {
-        const b2bService: any = container.resolve(B2B_MODULE)
-        const [quotes] = await b2bService.listQuotes({ cart_id: cartId }, { take: 1 })
-        const quote = quotes?.[0]
-        if (quote) {
-          console.log(`[OrderPlaced Subscriber] Found B2B quote ${quote.id} for cart ${cartId}. Linking to order ${orderId}...`)
-          
-          await b2bService.updateQuotes({
-            id: quote.id,
-            order_id: orderId,
-            status: "converted_to_order",
-          })
-          
-          await remoteLink.create({
-            [Modules.ORDER]: { order_id: orderId },
-            [B2B_MODULE]: { company_id: quote.company_id },
-          })
-          
-          const orderService: any = container.resolve(Modules.ORDER)
-          await orderService.updateOrders({
-            id: orderId,
-            metadata: {
-              ...(order.metadata || {}),
-              quote_id: quote.id,
-              company_id: quote.company_id,
-              is_wholesale: true,
-            }
-          })
-          console.log(`[OrderPlaced Subscriber] Linked B2B Quote ${quote.id} and Company ${quote.company_id} to Order ${orderId}`)
+        const quotes = await b2bService.listQuotes({ created_cart_id: cartId }, { take: 1 })
+        quote = quotes?.[0]
+        
+        // Also try legacy cart_id
+        if (!quote) {
+          const legacyQuotes = await b2bService.listQuotes({ cart_id: cartId }, { take: 1 })
+          quote = legacyQuotes?.[0]
         }
+      }
+      
+      // If not found by cart, try by metadata quote ID
+      if (!quote && quoteIdFromMetadata) {
+        try {
+          quote = await b2bService.retrieveQuote(quoteIdFromMetadata)
+        } catch {
+          // quote not found by ID, ignore
+        }
+      }
+      
+      if (quote) {
+        console.log(`[OrderPlaced Subscriber] Found B2B quote ${quote.id} linked to order ${orderId}. Converting...`)
+        
+        // Update quote with order linkage
+        await b2bService.updateQuotes({
+          id: quote.id,
+          created_order_id: orderId,
+          status: "converted_to_order",
+          order_id: orderId,
+          metadata: {
+            ...(quote.metadata || {}),
+            converted_to_order_at: new Date().toISOString(),
+          },
+        })
+        
+        // Create remote link between order and company
+        await remoteLink.create({
+          [Modules.ORDER]: { order_id: orderId },
+          [B2B_MODULE]: { company_id: quote.company_id },
+        })
+        
+        // Update order metadata with comprehensive B2B quote info
+        const orderService: any = container.resolve(Modules.ORDER)
+        await orderService.updateOrders({
+          id: orderId,
+          metadata: {
+            ...orderMetadata,
+            b2b_quote_id: quote.id,
+            b2b_company_id: quote.company_id,
+            b2b_company_name: quote.company_name || quote.company_name,
+            b2b_price_list: "B2B customer",
+            customer_type: "b2b",
+            b2b_quote_order: true,
+          }
+        })
+        
+        console.log(`[OrderPlaced Subscriber] B2B Quote ${quote.id} → status=converted_to_order, order=${orderId}`)
+      } else if (orderMetadata.b2b_quote_accepted) {
+        // Quote was accepted but we couldn't find it - still tag order as B2B quote order
+        const orderService: any = container.resolve(Modules.ORDER)
+        await orderService.updateOrders({
+          id: orderId,
+          metadata: {
+            ...orderMetadata,
+            customer_type: "b2b",
+            b2b_quote_order: true,
+            b2b_price_list: "B2B customer",
+            b2b_company_id: orderMetadata.b2b_company_id,
+            b2b_company_name: orderMetadata.b2b_company_name,
+          }
+        })
+        console.log(`[OrderPlaced Subscriber] Order ${orderId} tagged with B2B quote metadata from cart.`)
       }
     } catch (b2bLinkErr: any) {
       console.error(`[OrderPlaced Subscriber] Failed to process B2B quote/company linkage:`, b2bLinkErr.message)
+    }
+
+    // ── B2B COMPANY ORDER METADATA ─────────────────────────────────────────
+    // For approved B2B customers placing direct orders (not via quotes),
+    // attach B2B company metadata to the order so admin dashboards can
+    // identify the customer's company and group affiliation.
+    if (order.customer_id) {
+      try {
+        const b2bService: any = container.resolve(B2B_MODULE)
+        const customerModule: any = container.resolve(Modules.CUSTOMER)
+
+        // Look up B2B company for this customer
+        const companies = typeof b2bService.listCompanies === "function"
+          ? await b2bService.listCompanies(
+              { customer_id: order.customer_id },
+              { take: 1, order: { created_at: "DESC" } }
+            )
+          : (await b2bService.listAndCountCompanies(
+              { customer_id: order.customer_id },
+              { take: 1, order: { created_at: "DESC" } }
+            ))[0]
+        const b2bCompany = companies?.[0]
+
+        if (b2bCompany && (b2bCompany.status === "approved" || b2bCompany.status === "active")) {
+          // Check if order already has B2B metadata from quote flow
+          const existingMetadata = order.metadata || {}
+          if (!existingMetadata.customer_type) {
+            // Find customer group name
+            let groupName = "B2B Partners"
+            try {
+              const { data: customers } = await query.graph({
+                entity: "customer",
+                fields: ["customer_groups.name"],
+                filters: { id: order.customer_id },
+              })
+              const groups = (customers?.[0] as any)?.customer_groups
+              if (Array.isArray(groups) && groups.length > 0) {
+                groupName = groups[0].name || groupName
+              }
+            } catch {
+              // Use default
+            }
+
+            const orderService: any = container.resolve(Modules.ORDER)
+            await orderService.updateOrders({
+              id: orderId,
+              metadata: {
+                ...existingMetadata,
+                customer_type: "b2b",
+                b2b_company_id: b2bCompany.id,
+                b2b_company_name: b2bCompany.company_name,
+                b2b_price_list: "B2B customer",
+                b2b_customer_group: groupName,
+              },
+            })
+
+            // Also create a Remote Link between order and company
+            try {
+              await remoteLink.create({
+                [Modules.ORDER]: { order_id: orderId },
+                [B2B_MODULE]: { company_id: b2bCompany.id },
+              })
+            } catch (linkErr: any) {
+              if (!/already exists|duplicate/i.test(String(linkErr?.message || linkErr))) {
+                throw linkErr
+              }
+            }
+
+            console.log(
+              `[OrderPlaced Subscriber] Set B2B order metadata for ${orderId}: ` +
+              `company=${b2bCompany.company_name} (${b2bCompany.id}), group=${groupName}`
+            )
+          }
+        }
+      } catch (b2bMetaErr: any) {
+        // Non-fatal: B2B metadata should not block order completion
+        console.error(`[OrderPlaced Subscriber] Failed to set B2B order metadata:`, b2bMetaErr.message)
+      }
     }
 
     console.log(`[OrderPlaced Subscriber] Checking items for subscriptions...`)

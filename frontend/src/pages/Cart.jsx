@@ -11,6 +11,7 @@ import {
   Ticket,
   ChevronLeft
 } from 'lucide-react';
+import B2BPriceBadge from '../components/common/B2BPriceBadge';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/Footer';
 import MobileNav from '../components/MobileNav';
@@ -19,6 +20,7 @@ import Input from '../components/common/Input';
 import useMedusaCart from '../hooks/useMedusaCart';
 import useCart from '../hooks/useCart';
 import useToast from '../hooks/useToast';
+import useB2BCompany from '../hooks/useB2BCompany';
 import { resolveMedusaImageUrl, PRODUCT_IMAGE_FALLBACK } from '../utils/medusaImage';
 
 const Cart = () => {
@@ -37,6 +39,8 @@ const Cart = () => {
   const navigate = useNavigate();
   const [couponInput, setCouponInput] = useState('');
   const [isUpdating, setIsUpdating] = useState(null);
+  const { company: b2bCompany } = useB2BCompany();
+  const isApprovedB2B = b2bCompany?.status === 'approved' || b2bCompany?.status === 'active';
 
   const handleUpdateQuantity = async (lineId, newQty) => {
     if (newQty < 1) return;
@@ -123,6 +127,11 @@ const Cart = () => {
                       <p className="text-sm text-text-secondary mb-4">
                         Premium Quality Organic Item
                       </p>
+                      {isApprovedB2B && (
+                        <div className="mb-4">
+                          <B2BPriceBadge compact />
+                        </div>
+                      )}
                       
                       <div className="flex items-center justify-between mt-auto">
                         <div className="flex items-center bg-stone-50 dark:bg-slate-900 rounded-xl p-1">
@@ -155,6 +164,16 @@ const Cart = () => {
             {/* Summary */}
             <div className="sticky top-32 flex flex-col gap-8 p-8 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-premium border border-stone-100 dark:border-slate-700">
               <h2 className="text-2xl font-black">Order Summary</h2>
+
+              {/* B2B badge at top of summary */}
+              {isApprovedB2B && (
+              <div className="-mt-2">
+                <B2BPriceBadge />
+                  <p className="mt-2 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                    B2B Wholesale Pricing Applied for {b2bCompany.company_name}
+                  </p>
+              </div>
+              )}
               
               <div className="flex flex-col gap-4 border-b border-stone-100 dark:border-slate-700 pb-6">
                 <div className="flex justify-between text-sm">

@@ -4,35 +4,65 @@ import { B2B_MODULE } from "../../../../../modules/b2b"
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
+type NegotiatedItem = {
+  variant_id: string
+  quantity: number
+  negotiated_unit_price: number
+}
+
 type ReviewRequestBody = {
-  /** 'approved' | 'rejected' */
+  /**
+   * 'approved' | 'rejected'
+   */
   status: "approved" | "rejected"
-  /** Optional custom negotiated total in cents — overrides subtotal on approval */
-  negotiated_total?: number
-  /** Admin notes to attach to the quote record */
-  admin_notes?: string
+
+  /**
+   * For approval: array of negotiated items with per-variant pricing.
+   * Must match the requested items' variants.
+   */
+  negotiated_items?: NegotiatedItem[]
+
+  /**
+   * Admin note attached to quote
+   */
+  admin_note?: string
+
+  /**
+   * Rejection reason (required when status='rejected')
+   */
+  rejection_reason?: string
+
+  /**
+   * ISO date string for quote expiry (optional, defaults to 7 days from now)
+   */
+  expires_at?: string
 }
 
 // ────────────────────────────────────────────────────────────────────────────
 //  POST /admin/b2b-quotes/:id/review
 //
-//  Accepts a status payload to approve or reject a B2B wholesale draft quote.
-//  Optional custom negotiated price override can be supplied on approval.
+//  Approves or rejects a B2B quote request with per-item negotiated pricing.
 //
-//  If the quote is approved with a valid negotiated_total, this route:
-//    1. Validates the quote exists and is in a reviewable state
-//    2. Applies the negotiation override and admin notes
-//    3. Triggers the `convertQuoteToOrderWorkflow` which:
-//       a. Creates a Medusa Order from the quote items
-//       b. Links the order to the corporate customer's checkout profile
-//       c. Marks the quote status as 'converted'
-//    4. Returns the updated quote + the newly created order
+//  Approve payload:
+//    {
+//      "status": "approved",
+//      "negotiated_items": [
+//        { "variant_id": "variant_xxx", "quantity": 50, "negotiated_unit_price": 9 }
+//      ],
+//      "admin_note": "Approved bulk price for 7 days",
+//      "expires_at": "2026-07-05T00:00:00.000Z"
+//    }
 //
-//  If rejected, simply updates the quote status to 'rejected' with notes.
+//  Reject payload:
+//    {
+//      "status": "rejected",
+//      "rejection_reason": "Quantity too low for wholesale quote",
+//      "admin_note": "Please increase quantity."
+//    }
 // ────────────────────────────────────────────────────────────────────────────
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const { id } = req.params
-  const { status, negotiated_total, admin_notes } = req.body as ReviewRequestBody
+  const { status, negotiated_items, admin_note, rejection_reason, expires_at } = req.body as ReviewRequestBody
 
   // ── 1. Validate the payload ───────────────────────────────────────────
   if (!status || !["approved", "rejected"].includes(status)) {
@@ -41,9 +71,9 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     })
   }
 
-  if (negotiated_total !== undefined && (typeof negotiated_total !== "number" || negotiated_total < 0)) {
+  if (status === "rejected" && !rejection_reason) {
     return res.status(400).json({
-      message: "negotiated_total must be a non-negative integer (cents) when provided",
+      message: "Rejection reason is required when rejecting a quote",
     })
   }
 
@@ -57,62 +87,135 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     }
 
     // ── 3. Validate the quote is in a reviewable state ──────────────────
-    if (!["pending", "draft", "pending_review"].includes(quote.status)) {
+    if (!["pending_review", "draft", "pending"].includes(quote.status)) {
       return res.status(409).json({
-        message: `Quote is already in status "${quote.status}". Only 'draft' or 'pending' quotes can be reviewed.`,
+        message: `Quote is already in status "${quote.status}". Only 'pending_review' quotes can be reviewed.`,
       })
     }
 
-    // ── 4. Build update payload ─────────────────────────────────────────
-    const updatePayload: Record<string, any> = {
-      id,
-      admin_notes: admin_notes ?? null,
-    }
-
-    if (negotiated_total !== undefined) {
-      updatePayload.negotiated_total = negotiated_total
-    }
-
-    // ── 5. Handle rejection — simple status update ──────────────────────
+    // ── 4. Handle rejection — simple status update ──────────────────────
     if (status === "rejected") {
-      updatePayload.status = "rejected"
-
-      const updated = await b2bService.updateQuotes(updatePayload)
+      const updated = await b2bService.updateQuotes({
+        id,
+        status: "rejected",
+        rejection_reason: rejection_reason || null,
+        admin_note: admin_note || null,
+        rejected_at: new Date().toISOString(),
+      })
 
       console.log(
         `[Admin B2B Quotes] Quote ${id} rejected. ` +
-          `Company: ${quote.company_id}, Customer: ${quote.customer_email}`
+          `Reason: ${rejection_reason}`
       )
 
       return res.json({
-        message: "Quote rejected",
-        quote: updated,
-        order: null,
+        message: "Quote rejected.",
+        quote: {
+          id: updated.id,
+          status: updated.status,
+          rejection_reason: updated.rejection_reason,
+          admin_note: updated.admin_note,
+          rejected_at: updated.rejected_at,
+        },
       })
     }
 
-    // ── 6. Handle approval — persist overrides, then convert to order ───
-    const effectiveTotal = negotiated_total ?? quote.subtotal
+    // ── 5. Handle approval — validate and apply negotiated pricing ─────
+    const requestedItems = quote.requested_items || quote.items || []
 
-    // Persist the approval overrides first
-    const approved = await b2bService.updateQuotes({
-      ...updatePayload,
+    // Validate negotiated_items
+    if (!negotiated_items || !Array.isArray(negotiated_items) || negotiated_items.length === 0) {
+      return res.status(400).json({
+        message: "negotiated_items is required when approving a quote. Provide per-item negotiated pricing.",
+      })
+    }
+
+    // Validate each negotiated item
+    for (const [i, item] of negotiated_items.entries()) {
+      if (!item.variant_id) {
+        return res.status(400).json({
+          message: `negotiated_items[${i}] is missing 'variant_id'`,
+        })
+      }
+      if (typeof item.quantity !== "number" || item.quantity < 1) {
+        return res.status(400).json({
+          message: `negotiated_items[${i}] has an invalid 'quantity' — must be a positive integer`,
+        })
+      }
+      if (typeof item.negotiated_unit_price !== "number" || item.negotiated_unit_price < 0) {
+        return res.status(400).json({
+          message: `negotiated_items[${i}] has an invalid 'negotiated_unit_price' — must be a non-negative number (cents)`,
+        })
+      }
+
+      // Check variant exists in requested items
+      const matchingRequested = requestedItems.find(
+        (ri: any) => ri.variant_id === item.variant_id
+      )
+      if (!matchingRequested) {
+        return res.status(400).json({
+          message: `negotiated_items[${i}] variant_id "${item.variant_id}" not found in the requested items`,
+        })
+      }
+    }
+
+    // ── 6. Build negotiated_items snapshot ──────────────────────────────
+    const negotiatedItemsSnapshot = negotiated_items.map((item) => {
+      const matchingRequested = requestedItems.find(
+        (ri: any) => ri.variant_id === item.variant_id
+      )
+
+      return {
+        product_id: matchingRequested?.product_id || null,
+        variant_id: item.variant_id,
+        title: matchingRequested?.title || "Unknown Product",
+        sku: matchingRequested?.sku || null,
+        quantity: item.quantity,
+        negotiated_unit_price: item.negotiated_unit_price,
+        line_total: item.quantity * item.negotiated_unit_price,
+      }
+    })
+
+    // ── 7. Calculate negotiated_total ───────────────────────────────────
+    const negotiated_total = negotiatedItemsSnapshot.reduce(
+      (sum, item) => sum + item.line_total,
+      0
+    )
+
+    // ── 8. Set expiry ───────────────────────────────────────────────────
+    const effectiveExpiry = expires_at
+      ? new Date(expires_at)
+      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days default
+
+    // ── 9. Update quote with approval ───────────────────────────────────
+    const updated = await b2bService.updateQuotes({
+      id,
       status: "approved",
-      total: effectiveTotal,
-      discount_total: Math.max(0, quote.subtotal - effectiveTotal),
+      negotiated_items: negotiatedItemsSnapshot,
+      negotiated_total,
+      admin_note: admin_note || null,
+      expires_at: effectiveExpiry,
+      // Legacy fields
+      total: negotiated_total,
+      discount_total: Math.max(0, (quote.requested_total || quote.subtotal || 0) - negotiated_total),
     })
 
     console.log(
       `[Admin B2B Quotes] Quote ${id} approved. ` +
-        `Effective total: ${effectiveTotal} (subtotal: ${quote.subtotal}, override: ${negotiated_total ?? "none"}). ` +
-        `Triggering order conversion workflow...`
+        `Negotiated total: ${negotiated_total} (requested: ${quote.requested_total || quote.subtotal || 0}). ` +
+        `Expires: ${effectiveExpiry.toISOString()}`
     )
 
-    // ── 7. Trigger the convert-quote-to-order workflow ──────────────────
     return res.json({
-      message: "Quote approved and awaiting customer acceptance",
-      quote: approved,
-      order: null,
+      message: "Quote approved.",
+      quote: {
+        id: updated.id,
+        status: updated.status,
+        negotiated_items: updated.negotiated_items,
+        negotiated_total: updated.negotiated_total,
+        admin_note: updated.admin_note,
+        expires_at: updated.expires_at,
+      },
     })
   } catch (error: any) {
     console.error("[Admin B2B Quotes] Review error:", error)

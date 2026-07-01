@@ -17,6 +17,12 @@ export default function useOrderNotifications() {
   const { showToast } = useToast();
   const knownStatuses = useRef({}); // { [orderId]: status }
   const backendOnline = useRef(true);
+  const showToastRef = useRef(showToast);
+
+  // Stabilize showToast in a ref so it doesn't break useCallback identity
+  useEffect(() => {
+    showToastRef.current = showToast;
+  }, [showToast]);
 
   const checkForUpdates = useCallback(async () => {
     if (!isAuthenticated || !backendOnline.current) return;
@@ -54,18 +60,18 @@ export default function useOrderNotifications() {
             messages[curr] || `Order ${orderLabel} status changed to "${curr}".`;
 
           if (curr === "canceled") {
-            showToast(msg, "error", 5000);
+            showToastRef.current(msg, "error", 5000);
           } else if (curr === "requires_action") {
-            showToast(msg, "warning", 5000);
+            showToastRef.current(msg, "warning", 5000);
           } else {
-            showToast(msg, "success", 4000);
+            showToastRef.current(msg, "success", 4000);
           }
         }
       }
     } catch {
       // Silently ignore — polling shouldn't be noisy
     }
-  }, [isAuthenticated, showToast]);
+  }, [isAuthenticated]); // showToast removed: stabilized via showToastRef
 
   useEffect(() => {
     if (!isAuthenticated) return;

@@ -14,7 +14,9 @@ import {
   Repeat,
   Sparkles,
   Loader2,
-  Download
+  Download,
+  Building2,
+  ClipboardList
 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -30,12 +32,16 @@ import { authService } from '../services/medusa/authService';
 import { subscriptionService } from '../services/medusa/subscriptionService';
 import useToast from '../hooks/useToast';
 import B2BSidebarCard from '../components/B2BSidebarCard';
+import useB2BCompany from '../hooks/useB2BCompany';
+import { getAccountType } from '../utils/accountType';
 
 const Profile = () => {
   const user = useSelector(state => state.user.profile);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { company: b2bCompany } = useB2BCompany();
+  const isApprovedB2B = getAccountType(user, b2bCompany) === 'b2b_approved';
   
   const [formData, setFormData] = useState({
     first_name: user?.first_name || '',
@@ -66,8 +72,13 @@ const Profile = () => {
   }, []);
 
   useEffect(() => {
-    fetchSubscriptions();
-  }, [fetchSubscriptions]);
+    if (!isApprovedB2B) {
+      fetchSubscriptions();
+    } else {
+      setSubLoading(false);
+      setActiveSubscriptions([]);
+    }
+  }, [fetchSubscriptions, isApprovedB2B]);
 
   useEffect(() => {
     let active = true;
@@ -156,13 +167,47 @@ const Profile = () => {
                   <span className="flex items-center gap-3"><CreditCard size={18} /> Payments</span>
                   <ChevronRight size={16} />
                 </button>
-                <button
-                  onClick={() => navigate('/dashboard/subscriptions')}
-                  className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-50 dark:hover:bg-slate-700 text-text-secondary text-sm font-bold transition-colors"
-                >
-                  <span className="flex items-center gap-3"><Repeat size={18} /> My Subscriptions</span>
-                  <ChevronRight size={16} />
-                </button>
+                {!isApprovedB2B && (
+                  <button
+                    onClick={() => navigate('/dashboard/subscriptions')}
+                    className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-50 dark:hover:bg-slate-700 text-text-secondary text-sm font-bold transition-colors"
+                  >
+                    <span className="flex items-center gap-3"><Repeat size={18} /> My Subscriptions</span>
+                    <ChevronRight size={16} />
+                  </button>
+                )}
+                {isApprovedB2B && (
+                  <>
+                    <button
+                      onClick={() => navigate('/b2b/dashboard')}
+                      className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-50 dark:hover:bg-slate-700 text-text-secondary text-sm font-bold transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><Building2 size={18} /> B2B Dashboard</span>
+                      <ChevronRight size={16} />
+                    </button>
+                    <button
+                      onClick={() => navigate('/b2b/products')}
+                      className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-50 dark:hover:bg-slate-700 text-text-secondary text-sm font-bold transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><Building2 size={18} /> Wholesale Products</span>
+                      <ChevronRight size={16} />
+                    </button>
+                    <button
+                      onClick={() => navigate('/account/b2b-quotes')}
+                      className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-50 dark:hover:bg-slate-700 text-text-secondary text-sm font-bold transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><ClipboardList size={18} /> B2B Quotes</span>
+                      <ChevronRight size={16} />
+                    </button>
+                    <button
+                      onClick={() => navigate('/orders')}
+                      className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-50 dark:hover:bg-slate-700 text-text-secondary text-sm font-bold transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><ClipboardList size={18} /> My Orders</span>
+                      <ChevronRight size={16} />
+                    </button>
+                  </>
+                )}
                 <button 
                   onClick={handleLogout}
                   className="flex items-center justify-between p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 text-sm font-bold transition-colors"
@@ -173,6 +218,7 @@ const Profile = () => {
             </div>
 
             {/* Subscription Card */}
+            {!isApprovedB2B && (
             <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-6 shadow-premium border border-stone-100 dark:border-slate-700">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg shadow-emerald-500/20">
@@ -231,6 +277,7 @@ const Profile = () => {
                 </>
               )}
             </div>
+            )}
 
             {/* B2B Wholesale Card */}
             <B2BSidebarCard navigate={navigate} />

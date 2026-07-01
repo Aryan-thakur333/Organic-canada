@@ -50,7 +50,7 @@ export const checkCompanyCreditStep = createStep(
       )
     }
 
-    if (company.status !== "active") {
+    if (company.status !== "active" && company.status !== "approved") {
       throw new MedusaError(
         MedusaError.Types.INVALID_DATA,
         `Company "${company.company_name}" is ${company.status}. Corporate checkout is not permitted.`

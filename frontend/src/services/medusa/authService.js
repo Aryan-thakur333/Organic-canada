@@ -6,9 +6,43 @@ import {
 } from './tokenStorage';
 
 let pendingCustomerRequest;
+let cachedCustomerResponse = null;
+let cachedCustomerAt = 0;
+const CUSTOMER_CACHE_MS = 30_000;
+
+/**
+ * Wrap an existing promise with an AbortSignal so the caller can cancel it.
+ * The underlying request isn't aborted, but the caller's promise rejects.
+ */
+function waitForRequest(request, signal) {
+  if (!signal) return request;
+  if (signal.aborted) return Promise.reject(new DOMException('Request aborted', 'AbortError'));
+
+  return new Promise((resolve, reject) => {
+    const onAbort = () => reject(new DOMException('Request aborted', 'AbortError'));
+    signal.addEventListener('abort', onAbort, { once: true });
+    request.then(resolve, reject).finally(() => {
+      signal.removeEventListener('abort', onAbort);
+    });
+  });
+}
 
 function clearCustomerTokens() {
   clearCustomerToken();
+  cachedCustomerResponse = null;
+  cachedCustomerAt = 0;
+  pendingCustomerRequest = undefined;
+}
+
+function setCachedCustomerResponse(response) {
+  cachedCustomerResponse = response;
+  cachedCustomerAt = Date.now();
+}
+
+function getFreshCachedCustomerResponse() {
+  if (!cachedCustomerResponse) return null;
+  if (Date.now() - cachedCustomerAt > CUSTOMER_CACHE_MS) return null;
+  return cachedCustomerResponse;
 }
 
 /**
@@ -138,6 +172,9 @@ export const authService = {
       console.log('[AuthService] Generated customer JWT token saved');
     }
 
+    cachedCustomerResponse = null;
+    cachedCustomerAt = 0;
+
     return authResp;
   },
 
@@ -176,21 +213,29 @@ export const authService = {
    */
   logout: async () => {
     console.log('[AuthService] Customer logout requested.');
-    try {
-      await apiClient.delete('/auth/session');
-    } catch (err) {
-      console.warn('[AuthService] Failed to call logout endpoint on backend:', err.message);
-      // Ignore — we're logging out regardless
-    } finally {
-      clearCustomerToken();
-      console.log('[AuthService] Local tokens cleared from localStorage.');
-      // Clear session cookies
-      document.cookie.split(';').forEach((c) => {
-        document.cookie = c
-          .replace(/^ +/, '')
-          .replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
-      });
+    const hasToken = getCustomerToken();
+    if (hasToken) {
+      try {
+        await apiClient.delete('/auth/session');
+      } catch (err) {
+        // Silently ignore 401/403 — token may already be invalid/expired
+        const status = err?.response?.status;
+        if (![401, 403].includes(status)) {
+          console.warn('[AuthService] Failed to call logout endpoint on backend:', err?.message || err);
+        }
+      }
     }
+    clearCustomerToken();
+    cachedCustomerResponse = null;
+    cachedCustomerAt = 0;
+    pendingCustomerRequest = undefined;
+    console.log('[AuthService] Local tokens cleared from localStorage.');
+    // Clear session cookies
+    document.cookie.split(';').forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, '')
+        .replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
+    });
   },
 
   /* ---------------------------------------------------------------------- */
@@ -198,7 +243,7 @@ export const authService = {
   /* ---------------------------------------------------------------------- */
 
   /** GET /store/customers/me */
-  getCurrentCustomer: async () => {
+  getCurrentCustomer: async ({ signal } = {}) => {
     const token = getCustomerToken();
     if (!token) {
       const error = new Error('Unauthenticated profile');
@@ -206,9 +251,25 @@ export const authService = {
       throw error;
     }
 
-    if (pendingCustomerRequest) return pendingCustomerRequest;
+    const cached = getFreshCachedCustomerResponse();
+    if (cached) return cached;
 
-    pendingCustomerRequest = apiClient.get('/store/customers/me')
+    // If a request is already in-flight, wrap it with signal support
+    if (pendingCustomerRequest) {
+      if (signal) return waitForRequest(pendingCustomerRequest, signal);
+      return pendingCustomerRequest;
+    }
+
+    // Check for pre-aborted signal BEFORE starting the request
+    if (signal?.aborted) {
+      return Promise.reject(new DOMException('Request aborted', 'AbortError'));
+    }
+
+    pendingCustomerRequest = apiClient.get('/store/customers/me', { signal })
+      .then((response) => {
+        setCachedCustomerResponse(response);
+        return response;
+      })
       .catch((error) => {
         if (error.response?.status === 401) clearCustomerTokens();
         throw error;
@@ -217,13 +278,18 @@ export const authService = {
         pendingCustomerRequest = undefined;
       });
 
+    // If a signal was provided, wrap the first request too so the
+    // caller gets a proper AbortError rather than the raw promise
+    if (signal) return waitForRequest(pendingCustomerRequest, signal);
     return pendingCustomerRequest;
   },
 
   /** POST /store/customers/me */
   updateCustomer: async (data) => {
     console.log('[AuthService] Updating customer profile (/store/customers/me)');
-    return apiClient.post('/store/customers/me', data);
+    const response = await apiClient.post('/store/customers/me', data);
+    setCachedCustomerResponse(response);
+    return response;
   },
 
   /* ---------------------------------------------------------------------- */

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileText,
@@ -29,6 +29,7 @@ import Footer from '../components/Footer';
 import MobileNav from '../components/MobileNav';
 import Button from '../components/common/Button';
 import { b2bApi } from '../services/b2bApi';
+import { extractB2BQuotes } from '../utils/b2bProductsResponse';
 import useToast from '../hooks/useToast';
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -114,9 +115,11 @@ const B2BQuoteHistory = () => {
   const [quotes, setQuotes] = useState([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [expandedId, setExpandedId] = useState(null);
   const [offset, setOffset] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [actionLoading, setActionLoading] = useState(null);
   const limit = PAGE_SIZE;
 
@@ -125,21 +128,29 @@ const B2BQuoteHistory = () => {
   const currentPage = Math.floor(offset / limit) + 1;
 
   const { id } = useParams();
+  const requestSeqRef = useRef(0);
 
   // ── Fetch quotes ──────────────────────────────────────────────────────
-  const fetchQuotes = useCallback(async () => {
-    setLoading(true);
+  const fetchQuotes = useCallback(async (signal) => {
+    const requestId = requestSeqRef.current + 1;
+    requestSeqRef.current = requestId;
+
     try {
+      setLoading(true);
+      setError(null);
       const params = { limit, offset };
       if (statusFilter) params.status = statusFilter;
-      const res = await b2bApi.getQuotes(params);
-      let list = res?.quotes || [];
+      const res = await b2bApi.getQuotes({ ...params, signal });
+      if (signal?.aborted || requestSeqRef.current !== requestId) return;
+
+      let list = extractB2BQuotes(res);
       let total = res?.count || 0;
       
       // If we have an id from route params, make sure it is in the list
       if (id && !list.some(q => q.id === id)) {
         try {
-          const singleQuoteRes = await b2bApi.getQuote(id);
+          const singleQuoteRes = await b2bApi.getQuote(id, { signal });
+          if (signal?.aborted || requestSeqRef.current !== requestId) return;
           if (singleQuoteRes?.quote) {
             list = [singleQuoteRes.quote, ...list];
             total += 1;
@@ -155,17 +166,30 @@ const B2BQuoteHistory = () => {
         setExpandedId(id);
       }
     } catch (err) {
+      if (err?.name === 'AbortError' || err?.code === 'ERR_CANCELED' || err?.message === 'canceled') return;
       const msg = err?.response?.data?.message || err?.message || 'Failed to load quotes';
-      showToast(msg, 'error');
+      setError(msg);
       setQuotes([]);
+      setCount(0);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted && requestSeqRef.current === requestId) {
+        setLoading(false);
+      }
     }
-  }, [statusFilter, offset, limit, showToast, id]);
+  }, [statusFilter, offset, limit, id, refreshKey]);
 
   useEffect(() => {
-    fetchQuotes();
+    const controller = new AbortController();
+    fetchQuotes(controller.signal);
+
+    return () => {
+      controller.abort();
+    };
   }, [fetchQuotes]);
+
+  const handleRefresh = () => {
+    setRefreshKey((value) => value + 1);
+  };
 
   // Reset to first page on filter change
   const handleStatusFilter = (value) => {
@@ -198,7 +222,7 @@ const B2BQuoteHistory = () => {
 
   // ── Derived ────────────────────────────────────────────────────────────
   const activeQuotes = quotes.filter((q) => q.status === 'draft' || q.status === 'pending' || q.status === 'pending_review');
-  const resolvedQuotes = quotes.filter((q) => q.status === 'approved' || q.status === 'rejected' || q.status === 'converted' || q.status === 'converted_to_order' || q.status === 'expired');
+  const resolvedQuotes = quotes.filter((q) => q.status === 'approved' || q.status === 'rejected' || q.status === 'accepted' || q.status === 'converted' || q.status === 'converted_to_cart' || q.status === 'converted_to_order' || q.status === 'expired');
 
   return (
     <div className="min-h-screen bg-bg-primary">
@@ -248,7 +272,7 @@ const B2BQuoteHistory = () => {
             </button>
           ))}
           <button
-            onClick={fetchQuotes}
+            onClick={handleRefresh}
             className="ml-auto p-2 rounded-full hover:bg-stone-100 dark:hover:bg-slate-800 transition-colors text-text-secondary hover:text-text-primary"
             title="Refresh"
           >
@@ -265,6 +289,17 @@ const B2BQuoteHistory = () => {
                 className="h-28 bg-white dark:bg-slate-800 rounded-[2rem] border border-stone-100 dark:border-slate-700 animate-pulse"
               />
             ))}
+          </div>
+        ) : error ? (
+          <div className="py-24 text-center max-w-xl mx-auto bg-white dark:bg-slate-800 p-12 rounded-[2.5rem] border border-red-100 dark:border-red-900/30 shadow-premium">
+            <div className="inline-flex p-6 rounded-full bg-red-100 dark:bg-red-950/30 text-red-500 mb-6">
+              <AlertCircle size={48} />
+            </div>
+            <h2 className="text-3xl font-black mb-4">Could not load B2B quotes</h2>
+            <p className="text-text-secondary mb-8 leading-relaxed">{error}</p>
+            <Button size="lg" className="gap-2" onClick={handleRefresh}>
+              <RefreshCw size={18} /> Retry
+            </Button>
           </div>
         ) : quotes.length === 0 ? (
           /* ── Empty state ─────────────────────────────────────────────── */
@@ -486,7 +521,7 @@ const B2BQuoteHistory = () => {
                                 <Button disabled={actionLoading === quote.id} onClick={() => acceptQuote(quote)}>
                                   {actionLoading === quote.id ? 'Creating checkout…' : 'Accept Quote & Checkout'}
                                 </Button>
-                                <Button variant="secondary" disabled={actionLoading === quote.id} onClick={async () => { await b2bApi.rejectQuote(quote.id); await fetchQuotes(); }}>
+                                <Button variant="secondary" disabled={actionLoading === quote.id} onClick={async () => { await b2bApi.rejectQuote(quote.id); handleRefresh(); }}>
                                   Decline Quote
                                 </Button>
                               </div>

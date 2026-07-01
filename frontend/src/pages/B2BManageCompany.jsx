@@ -71,10 +71,11 @@ const B2BManageCompany = () => {
   const [companyName, setCompanyName] = useState('');
 
   // ── Fetch company ─────────────────────────────────────────────────────
-  const fetchCompany = async () => {
+  const fetchCompany = async ({ signal, forceRefresh = false } = {}) => {
     setLoading(true);
     try {
-      const res = await b2bApi.getCompany();
+      const res = await b2bApi.getCompany({ signal, forceRefresh });
+      if (signal?.aborted) return;
       const c = res?.company ?? null;
       setCompany(c);
       if (c) {
@@ -84,10 +85,11 @@ const B2BManageCompany = () => {
           credit_limit: c.credit_limit ? String(c.credit_limit / 100) : '',
         });
       }
-    } catch {
+    } catch (err) {
+      if (err?.name === 'AbortError') return;
       setCompany(null);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   };
 
@@ -106,8 +108,10 @@ const B2BManageCompany = () => {
   };
 
   useEffect(() => {
-    fetchCompany();
+    const controller = new AbortController();
+    fetchCompany({ signal: controller.signal });
     fetchMembers();
+    return () => controller.abort();
   }, []);
 
   // ── Validation ────────────────────────────────────────────────────────
@@ -158,7 +162,7 @@ const B2BManageCompany = () => {
       await b2bApi.updateCompany(payload);
       showToast('Company updated successfully! ✅', 'success');
       setEditing(false);
-      await fetchCompany();
+      await fetchCompany({ forceRefresh: true });
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to update company';
       showToast(msg, 'error');

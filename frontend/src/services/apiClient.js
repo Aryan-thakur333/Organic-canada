@@ -5,9 +5,10 @@ import {
   setCustomerToken,
   VENDOR_TOKEN_KEY,
 } from './medusa/tokenStorage';
+import { getMedusaPublishableKey } from '../config/publicEnv';
 
 const ENV_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL || 'http://localhost:9000';
-const PUBLISHABLE_KEY = import.meta.env.VITE_MEDUSA_PUBLISHABLE_KEY;
+const PUBLISHABLE_KEY = getMedusaPublishableKey();
 
 /**
  * Discover the backend URL at runtime.
@@ -89,6 +90,8 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     const url = config.url || '';
+    config.withCredentials = true;
+    config.headers = config.headers || {};
 
     if (Date.now() < backendOfflineUntil) {
       return Promise.reject(backendOfflineError());
@@ -138,6 +141,9 @@ apiClient.interceptors.response.use(
     return data;
   },
   async (error) => {
+    if (axios.isCancel(error) || error.code === 'ERR_CANCELED' || error.message === 'canceled') {
+      return Promise.reject(error);
+    }
     if (error.code === 'BACKEND_OFFLINE') {
       return Promise.reject(error);
     }
@@ -162,10 +168,13 @@ apiClient.interceptors.response.use(
       error.retryAfterMs = retryAfterMs;
       error.retryAt = retryAfterMs === null ? null : Date.now() + retryAfterMs;
       message = 'Too many requests, please wait';
+      error.message = message;
+      console.warn('[API] Rate limited', url);
+      return Promise.reject(error);
     }
 
     const transient = Boolean(error.response) && (status === 408 || status >= 500);
-    if (config?.method?.toLowerCase() === 'get' && transient && !config.__retried) {
+    if (config?.method?.toLowerCase() === 'get' && transient && !config.__retried && !config.__skipRetry) {
       config.__retried = true;
       await new Promise((resolve) => setTimeout(resolve, 300 + Math.random() * 400));
       return apiClient.request(config);

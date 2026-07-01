@@ -2,14 +2,19 @@ import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Home, ShoppingBag, Heart, ShoppingCart, User, LogIn } from "lucide-react";
 import { ROUTES } from "../utils/constants";
+import useB2BCompany from "../hooks/useB2BCompany";
+import { getAccountType } from "../utils/accountType";
 
 export default function MobileNav() {
   const location = useLocation();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const userProfile = useSelector((state) => state.user?.profile);
+  const { company: b2bCompany } = useB2BCompany();
+  const shopPath = getAccountType(userProfile, b2bCompany) === "b2b_approved" ? "/b2b/products" : "/listing";
 
   const navItems = [
     { label: "Home", icon: <Home size={20} />, to: ROUTES.HOME },
-    { label: "Shop", icon: <ShoppingBag size={20} />, to: "/listing" },
+    { label: "Shop", icon: <ShoppingBag size={20} />, to: shopPath },
     { label: "Wish", icon: <Heart size={20} />, to: ROUTES.WISHLIST },
     { label: "Cart", icon: <ShoppingCart size={20} />, to: ROUTES.CART },
     ...(isAuthenticated
@@ -26,6 +31,7 @@ export default function MobileNav() {
           const isActive =
             location.pathname === item.to ||
             (item.to === "/listing" && location.pathname.startsWith("/listing")) ||
+            (item.to === "/b2b/products" && location.pathname.startsWith("/b2b/products")) ||
             (item.to === ROUTES.WISHLIST && location.pathname.startsWith("/wishlist"));
 
           return (

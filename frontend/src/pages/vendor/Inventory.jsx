@@ -384,7 +384,8 @@ function InventoryPanel() {
                     )}
                   </td>
                 </motion.tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         )}

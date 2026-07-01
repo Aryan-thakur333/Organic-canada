@@ -8,6 +8,8 @@ import {
 import { isMedusaConfigured } from "../config/publicEnv";
 import { resolveDefaultRegionId } from "../lib/medusa/regions";
 import { getSdkErrorMessage } from "../lib/medusa/errors";
+import { getCustomerToken } from "../services/medusa/tokenStorage";
+import { b2bApi } from "../services/b2bApi";
 import {
   addLineItem,
   buildCartHydrationPayload,
@@ -68,8 +70,13 @@ export default function useMedusaCart() {
     if (medusaCartId) {
       try {
         const { cart } = await retrieveCart(medusaCartId);
-        applyHydration(cart);
-        return medusaCartId;
+        if (getCustomerToken() && !cart?.customer_id) {
+          dispatch(setMedusaCartId(""));
+          dispatch(clearCart());
+        } else {
+          applyHydration(cart);
+          return medusaCartId;
+        }
       } catch (error) {
         if (!isStaleCartError(error)) throw error;
         dispatch(setMedusaCartId(""));
@@ -93,17 +100,51 @@ export default function useMedusaCart() {
    */
   const addVariant = useCallback(
     async (payload) => {
-      const qty = Math.min(99, Math.max(1, Number(payload.quantity) || 1));
+      const qty = Math.min(100, Math.max(1, Number(payload.quantity) || 1));
       let cartId = await ensureCart();
       if (!cartId) {
         throw new Error("Medusa is not configured (missing publishable key).");
       }
+
+      let b2bMeta = {};
+      try {
+        const companyRes = await b2bApi.getCompany();
+        const company = companyRes?.company;
+        if (company && (company.status === 'approved' || company.status === 'active')) {
+          b2bMeta = {
+            b2b: true,
+            customer_type: 'b2b',
+            b2b_company_id: company.id,
+            b2b_company_name: company.company_name,
+            b2b_price_list: 'B2B customer',
+          };
+        }
+      } catch (err) {
+        // ignore
+      }
+
+      const mergedMetadata = {
+        ...b2bMeta,
+        ...(payload.metadata || {}),
+      };
+
       try {
         const { cart } = await addLineItem(cartId, {
           variant_id: payload.variantId,
           quantity: qty,
-          metadata: payload.metadata,
+          metadata: mergedMetadata,
         });
+        if (import.meta.env.DEV) {
+          const line = cart?.items?.find((item) => item.variant_id === payload.variantId);
+          console.log("[B2B Cart Pricing Debug]", {
+            cartId: cart?.id,
+            customerId: cart?.customer_id,
+            lineUnitPrice: line?.unit_price,
+            lineQuantity: line?.quantity,
+            subtotal: cart?.subtotal,
+            total: cart?.total,
+          });
+        }
         applyHydration(cart);
         return cart;
       } catch (err) {
@@ -125,8 +166,19 @@ export default function useMedusaCart() {
         const { cart } = await addLineItem(cartId, {
           variant_id: payload.variantId,
           quantity: qty,
-          metadata: payload.metadata,
+          metadata: mergedMetadata,
         });
+        if (import.meta.env.DEV) {
+          const line = cart?.items?.find((item) => item.variant_id === payload.variantId);
+          console.log("[B2B Cart Pricing Debug]", {
+            cartId: cart?.id,
+            customerId: cart?.customer_id,
+            lineUnitPrice: line?.unit_price,
+            lineQuantity: line?.quantity,
+            subtotal: cart?.subtotal,
+            total: cart?.total,
+          });
+        }
         applyHydration(cart);
         return cart;
       }
@@ -141,7 +193,7 @@ export default function useMedusaCart() {
   const setLineQuantity = useCallback(
     async (lineItemId, quantity) => {
       if (!isMedusaConfigured() || !medusaCartId) return;
-      const q = Math.min(99, Math.max(1, Number(quantity) || 1));
+      const q = Math.min(100, Math.max(1, Number(quantity) || 1));
       const { cart } = await updateLineItem(medusaCartId, lineItemId, { quantity: q });
       applyHydration(cart);
     },

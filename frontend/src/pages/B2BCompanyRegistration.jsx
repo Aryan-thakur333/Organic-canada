@@ -14,13 +14,19 @@ import {
   Sparkles,
   Package,
   Send,
+  Clock,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/Footer';
 import MobileNav from '../components/MobileNav';
 import Button from '../components/common/Button';
 import { b2bApi } from '../services/b2bApi';
+import { authService } from '../services/medusa/authService';
+import { authResolved, authStart, loginSuccess } from '../redux/authSlice';
+import { setUserProfile } from '../redux/userSlice';
+import { mapCustomerToProfile } from '../utils/customerProfile';
 import useToast from '../hooks/useToast';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -31,7 +37,9 @@ const fmtPrice = (cents) => `$${(cents / 100).toFixed(2)}`;
 
 const B2BCompanyRegistration = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { showToast } = useToast();
+  const { isAuthenticated, authResolved: isAuthResolved } = useSelector((state) => state.auth);
 
   // ── State ─────────────────────────────────────────────────────────────
   const [loading, setLoading] = useState(true);
@@ -40,6 +48,12 @@ const B2BCompanyRegistration = () => {
   const [success, setSuccess] = useState(false);
 
   // ── Form fields ───────────────────────────────────────────────────────
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [phone, setPhone] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [taxId, setTaxId] = useState('');
   const [creditLimit, setCreditLimit] = useState('');
@@ -49,26 +63,58 @@ const B2BCompanyRegistration = () => {
 
   // ── Check for existing company on mount ───────────────────────────────
   useEffect(() => {
+    const controller = new AbortController();
     (async () => {
+      if (!isAuthResolved) return;
+      if (!isAuthenticated) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const res = await b2bApi.getCompany();
+        const res = await b2bApi.getCompany({ signal: controller.signal });
+        if (controller.signal.aborted) return;
         if (res?.company) {
           setExistingCompany(res.company);
           setCompanyName(res.company.company_name || '');
           setTaxId(res.company.tax_id || '');
-          setCreditLimit(res.company.credit_limit ? String(res.company.credit_limit / 100) : '');
+          setCreditLimit(res.company.requested_credit_limit ? String(res.company.requested_credit_limit / 100) : '');
         }
-      } catch {
-        // No company — fine, show the form
+      } catch (err) {
+        const isCanceled = err?.name === 'AbortError' || err?.code === 'ERR_CANCELED' || err?.message === 'canceled';
+        if (!isCanceled && err?.response?.status !== 401 && err?.response?.status !== 404) {
+          showToast('Unable to load B2B application status. Please try again.', 'error');
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     })();
-  }, []);
+    return () => controller.abort();
+  }, [isAuthenticated, isAuthResolved, showToast]);
 
   // ── Validation ────────────────────────────────────────────────────────
   const validate = () => {
     const errors = {};
+
+    if (!isAuthenticated) {
+      const trimmedEmail = email.trim();
+      if (!firstName.trim()) errors.firstName = 'First name is required';
+      if (!lastName.trim()) errors.lastName = 'Last name is required';
+      if (!trimmedEmail) {
+        errors.email = 'Email is required';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+        errors.email = 'Enter a valid email address';
+      }
+      if (!password) {
+        errors.password = 'Password is required';
+      } else if (password.length < 8) {
+        errors.password = 'Password must be at least 8 characters';
+      }
+      if (confirmPassword !== password) {
+        errors.confirmPassword = 'Passwords must match';
+      }
+    }
+
     if (!companyName.trim()) {
       errors.companyName = 'Company name is required';
     } else if (companyName.trim().length < 2) {
@@ -97,15 +143,31 @@ const B2BCompanyRegistration = () => {
 
     setSubmitting(true);
     try {
+      if (!isAuthenticated) {
+        dispatch(authStart());
+        const { token, customer } = await authService.register({
+          email,
+          password,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          phone: phone.trim(),
+        });
+        dispatch(loginSuccess({ token, user: customer }));
+        dispatch(setUserProfile(mapCustomerToProfile(customer)));
+        dispatch(authResolved());
+      }
+
       const payload = {
         company_name: companyName.trim(),
       };
       if (taxId.trim()) payload.tax_id = taxId.trim();
-      if (creditLimit.trim()) payload.credit_limit = Math.round(parseFloat(creditLimit) * 100);
+      if (creditLimit.trim()) payload.requested_credit_limit = parseFloat(creditLimit);
 
-      await b2bApi.registerCompany(payload);
+      const res = await b2bApi.registerCompany(payload);
+      setExistingCompany(res?.company ?? null);
       setSuccess(true);
-      showToast('Company registered successfully! 🎉', 'success');
+      showToast('Application submitted successfully.', 'success');
+      navigate('/b2b/pending');
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || 'Registration failed';
       showToast(msg, 'error');
@@ -133,6 +195,11 @@ const B2BCompanyRegistration = () => {
 
   // ── Render: Already registered ────────────────────────────────────────
   if (existingCompany && !success) {
+    const status = existingCompany.status;
+    const isApproved = status === 'approved' || status === 'active';
+    const isPending = status === 'pending';
+    const isRejected = status === 'rejected';
+
     return (
       <div className="min-h-screen bg-bg-primary">
         <Navbar />
@@ -142,14 +209,70 @@ const B2BCompanyRegistration = () => {
             animate={{ opacity: 1, y: 0 }}
             className="max-w-xl mx-auto bg-white dark:bg-slate-800 rounded-[2.5rem] p-12 shadow-premium border border-stone-100 dark:border-slate-700 text-center"
           >
-            <div className="inline-flex p-6 rounded-full bg-emerald-500/10 text-emerald-500 mb-6">
+            <div className={`inline-flex p-6 rounded-full mb-6 ${
+              isApproved
+                ? 'bg-emerald-500/10 text-emerald-500'
+                : isPending
+                  ? 'bg-amber-500/10 text-amber-500'
+                  : 'bg-red-500/10 text-red-500'
+            }`}>
               <Building2 size={48} />
             </div>
-            <h2 className="text-3xl font-black mb-2">Company Already Registered</h2>
-            <p className="text-text-secondary mb-8 leading-relaxed">
-              Your B2B account is already set up. You can submit wholesale quote
-              requests or view your quote history.
-            </p>
+
+            {isApproved && (
+              <>
+                <h2 className="text-3xl font-black mb-2">B2B Wholesale Active 🎉</h2>
+                <p className="text-text-secondary mb-6 leading-relaxed">
+                  Your company is approved! You have access to wholesale pricing and can
+                  submit bulk quote requests.
+                </p>
+                <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/25 rounded-2xl p-4 mb-8">
+                  <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400 flex items-center justify-center gap-2">
+                    <CheckCircle2 size={18} /> Wholesale pricing active
+                  </p>
+                </div>
+              </>
+            )}
+
+            {isPending && (
+              <>
+                <h2 className="text-3xl font-black mb-2">Application Pending Review</h2>
+                <p className="text-text-secondary mb-8 leading-relaxed">
+                  Your B2B company application has been submitted and is awaiting
+                  admin approval. You'll be notified once your account is activated.
+                </p>
+                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/25 rounded-2xl p-4 mb-8">
+                  <p className="text-sm font-bold text-amber-700 dark:text-amber-400 flex items-center justify-center gap-2">
+                    <Clock size={18} /> Pending admin approval
+                  </p>
+                </div>
+              </>
+            )}
+
+            {isRejected && (
+              <>
+                <h2 className="text-3xl font-black mb-2">Application Not Approved</h2>
+                <p className="text-text-secondary mb-6 leading-relaxed">
+                  Your B2B company application was not approved at this time.
+                </p>
+                {existingCompany.rejection_reason && (
+                  <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/25 rounded-2xl p-4 mb-4">
+                    <p className="text-xs font-black uppercase tracking-widest text-red-600 dark:text-red-400 mb-1">Reason</p>
+                    <p className="text-sm font-medium text-red-700 dark:text-red-300">{existingCompany.rejection_reason}</p>
+                  </div>
+                )}
+                <div className="mb-8">
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    className="gap-2"
+                    onClick={() => { setExistingCompany(null); setSuccess(false); }}
+                  >
+                    <Building2 size={18} /> Resubmit Application
+                  </Button>
+                </div>
+              </>
+            )}
 
             <div className="bg-stone-50 dark:bg-slate-900/50 rounded-2xl p-6 mb-8 text-left text-sm space-y-3">
               <div className="flex justify-between">
@@ -164,36 +287,44 @@ const B2BCompanyRegistration = () => {
               )}
               <div className="flex justify-between">
                 <span className="text-text-secondary font-medium">Credit Limit</span>
-                <span className="font-bold text-text-primary">{fmtPrice(existingCompany.credit_limit)}</span>
+                <span className="font-bold text-text-primary">{fmtPrice(existingCompany.approved_credit_limit || existingCompany.credit_limit || 0)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-text-secondary font-medium">Status</span>
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
-                  existingCompany.status === 'active'
+                  isApproved
                     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/25'
-                    : 'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border-amber-200 dark:border-amber-800/25'
+                    : isPending
+                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border-amber-200 dark:border-amber-800/25'
+                      : 'bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400 border-red-200 dark:border-red-800/25'
                 }`}>
                   {existingCompany.status}
                 </span>
               </div>
+              {existingCompany.admin_note && (
+                <div className="pt-2 border-t border-stone-200 dark:border-slate-700">
+                  <span className="text-text-secondary font-medium block text-xs">Admin Note</span>
+                  <span className="font-medium text-text-primary text-xs italic">{existingCompany.admin_note}</span>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button
-                size="lg"
-                className="gap-2"
-                onClick={() => navigate('/b2b/request-quote')}
-              >
-                <Send size={18} /> New Quote
-              </Button>
-              <Button
-                variant="secondary"
-                size="lg"
-                className="gap-2"
-                onClick={() => navigate('/account/b2b-quotes')}
-              >
-                <FileText size={18} /> Quote History
-              </Button>
+              {isApproved && (
+                <>
+                  <Button size="lg" className="gap-2" onClick={() => navigate('/b2b/request-quote')}>
+                    <Send size={18} /> New Quote
+                  </Button>
+                  <Button variant="secondary" size="lg" className="gap-2" onClick={() => navigate('/account/b2b-quotes')}>
+                    <FileText size={18} /> Quote History
+                  </Button>
+                </>
+              )}
+              {isPending && (
+                <Button variant="secondary" size="lg" className="gap-2" onClick={() => navigate('/profile')}>
+                  <ChevronLeft size={18} /> Back to Profile
+                </Button>
+              )}
             </div>
           </motion.div>
         </main>
@@ -307,8 +438,127 @@ const B2BCompanyRegistration = () => {
                 <div className="w-10 h-10 rounded-xl bg-accent-primary/10 text-accent-primary flex items-center justify-center">
                   <Building2 size={20} />
                 </div>
-                Company Details
+                Create your B2B buyer account
               </h2>
+
+              {!isAuthenticated ? (
+                <div className="mb-8 grid sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-text-secondary mb-2">
+                      First Name <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => {
+                        setFirstName(e.target.value);
+                        if (fieldErrors.firstName) setFieldErrors((prev) => ({ ...prev, firstName: '' }));
+                      }}
+                      className={`w-full px-4 py-3.5 bg-stone-50 dark:bg-slate-900 border-2 rounded-2xl text-sm font-semibold outline-none transition-all ${
+                        fieldErrors.firstName ? 'border-red-300 dark:border-red-700 focus:border-red-500' : 'border-transparent focus:border-accent-primary'
+                      }`}
+                    />
+                    {fieldErrors.firstName && <p className="mt-1.5 text-xs font-medium text-red-500">{fieldErrors.firstName}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-text-secondary mb-2">
+                      Last Name <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => {
+                        setLastName(e.target.value);
+                        if (fieldErrors.lastName) setFieldErrors((prev) => ({ ...prev, lastName: '' }));
+                      }}
+                      className={`w-full px-4 py-3.5 bg-stone-50 dark:bg-slate-900 border-2 rounded-2xl text-sm font-semibold outline-none transition-all ${
+                        fieldErrors.lastName ? 'border-red-300 dark:border-red-700 focus:border-red-500' : 'border-transparent focus:border-accent-primary'
+                      }`}
+                    />
+                    {fieldErrors.lastName && <p className="mt-1.5 text-xs font-medium text-red-500">{fieldErrors.lastName}</p>}
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-black uppercase tracking-widest text-text-secondary mb-2">
+                      Email <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: '' }));
+                      }}
+                      placeholder="buyer@company.com"
+                      className={`w-full px-4 py-3.5 bg-stone-50 dark:bg-slate-900 border-2 rounded-2xl text-sm font-semibold outline-none transition-all ${
+                        fieldErrors.email ? 'border-red-300 dark:border-red-700 focus:border-red-500' : 'border-transparent focus:border-accent-primary'
+                      }`}
+                    />
+                    {fieldErrors.email && <p className="mt-1.5 text-xs font-medium text-red-500">{fieldErrors.email}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-text-secondary mb-2">
+                      Password <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: '' }));
+                      }}
+                      placeholder="Minimum 8 characters"
+                      className={`w-full px-4 py-3.5 bg-stone-50 dark:bg-slate-900 border-2 rounded-2xl text-sm font-semibold outline-none transition-all ${
+                        fieldErrors.password ? 'border-red-300 dark:border-red-700 focus:border-red-500' : 'border-transparent focus:border-accent-primary'
+                      }`}
+                    />
+                    {fieldErrors.password && <p className="mt-1.5 text-xs font-medium text-red-500">{fieldErrors.password}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-text-secondary mb-2">
+                      Confirm Password <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        if (fieldErrors.confirmPassword) setFieldErrors((prev) => ({ ...prev, confirmPassword: '' }));
+                      }}
+                      className={`w-full px-4 py-3.5 bg-stone-50 dark:bg-slate-900 border-2 rounded-2xl text-sm font-semibold outline-none transition-all ${
+                        fieldErrors.confirmPassword ? 'border-red-300 dark:border-red-700 focus:border-red-500' : 'border-transparent focus:border-accent-primary'
+                      }`}
+                    />
+                    {fieldErrors.confirmPassword && <p className="mt-1.5 text-xs font-medium text-red-500">{fieldErrors.confirmPassword}</p>}
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-black uppercase tracking-widest text-text-secondary mb-2">
+                      Phone <span className="text-stone-400 font-normal normal-case">- optional</span>
+                    </label>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full px-4 py-3.5 bg-stone-50 dark:bg-slate-900 border-2 border-transparent focus:border-accent-primary rounded-2xl text-sm font-semibold outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800 dark:border-emerald-800/25 dark:bg-emerald-950/20 dark:text-emerald-300">
+                  You are signed in. This B2B application will be linked to your current customer account.
+                </div>
+              )}
+
+              <h3 className="text-xl font-black text-text-primary mb-6 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-accent-primary/10 text-accent-primary flex items-center justify-center">
+                  <Building2 size={18} />
+                </div>
+                Company Details
+              </h3>
 
               {/* Company Name */}
               <div className="mb-6">
@@ -412,7 +662,7 @@ const B2BCompanyRegistration = () => {
                 isLoading={submitting}
               >
                 <Building2 size={18} />
-                {submitting ? 'Registering…' : 'Register Company'}
+                {submitting ? 'Creating account...' : isAuthenticated ? 'Register Company' : 'Create Account & Register Company'}
               </Button>
             </motion.form>
 

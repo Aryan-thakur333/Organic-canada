@@ -15,6 +15,7 @@ import {
   Download,
   Info
 } from 'lucide-react';
+import B2BPriceBadge from '../components/common/B2BPriceBadge';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
@@ -74,10 +75,7 @@ const Checkout = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [b2bMethod, setB2bMethod] = useState(false);
 
-  const { company: b2bCompany, isLoading: b2bLoading, creditCheck: b2bCreditCheck } = useB2BCompany();
-  const b2bCreditResult = b2bMethod && b2bCompany
-    ? b2bCreditCheck(displayGrandTotal)
-    : { isApproved: true, warning: null };
+  const { company: b2bCompany, isLoading: b2bLoading, creditCheck: b2bCreditCheck, refetch: refetchB2BCompany } = useB2BCompany();
 
   const { items: rawItems, medusaCartId, currencyCode, serverTotals } = useSelector(state => state.cart);
   const { formatPrice, grandTotal: hookGrandTotal, tax: hookTax, subtotal: hookSubtotal, shipping, couponDiscount } = useCart();
@@ -88,6 +86,10 @@ const Checkout = () => {
 
   const activeItems = useMemo(() => Array.isArray(rawItems) ? rawItems : [], [rawItems]);
   const displayGrandTotal = hookGrandTotal || 0;
+  const isApprovedB2B = b2bCompany?.status === 'approved' || b2bCompany?.status === 'active';
+  const b2bCreditResult = b2bMethod && isApprovedB2B
+    ? b2bCreditCheck(displayGrandTotal)
+    : { isApproved: true, warning: null };
 
   // Detect digital items: check metadata on cart items, variant, and product
   const isDigitalItem = (item) => {
@@ -343,6 +345,29 @@ const Checkout = () => {
         dispatch(clearCart());
         dispatch(addOrder(result.order));
         showToast("Order placed successfully!", "success");
+
+        // ── Eliminate Post-Checkout Session Eviction ───────────────────
+        // Force a clean session validation re-handshake with withCredentials
+        // to securely link the existing corporate customer context back to
+        // the frontend page lifecycle. Do NOT invoke any method that clears
+        // credentials or deletes bearer headers.
+        console.log("[Checkout] Performing post-checkout session re-validation...");
+        
+        // Small delay to allow backend to settle after order creation
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Re-validate B2B company session with explicit withCredentials
+        // This ensures the corporate customer context is properly linked
+        // without clearing any existing authentication state
+        try {
+          await refetchB2BCompany();
+          console.log("[Checkout] Post-checkout B2B session re-validation successful");
+        } catch (revalidationError) {
+          // If re-validation fails, log but don't block navigation
+          // The user can manually retry from the order success page
+          console.warn("[Checkout] Post-checkout session re-validation failed:", revalidationError);
+        }
+
         navigate('/order-success');
       } else {
         console.error("[Checkout] Order completion failed or returned cart:", result);
@@ -523,7 +548,7 @@ const Checkout = () => {
                     )}
 
                     {/* 4. B2B Corporate Credit (shown only if user has an active company) */}
-                    {!b2bLoading && b2bCompany?.status === "active" && (
+                    {!b2bLoading && isApprovedB2B && (
                       <label className={`flex items-center gap-4 p-6 rounded-3xl border-2 transition-all cursor-pointer ${
                         b2bMethod ? 'border-accent-primary bg-accent-primary/5' : 'border-gray-200 hover:border-gray-300'
                       }`}>
@@ -658,7 +683,15 @@ const Checkout = () => {
           {/* Sidebar Summary */}
           <div className="sticky top-32 flex flex-col gap-6">
             <div className="bg-white p-8 rounded-[2.5rem] shadow-premium border border-gray-200">
-              <h3 className="text-xl font-black mb-6 text-gray-900">Your Order</h3>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-black text-gray-900">Your Order</h3>
+                {isApprovedB2B && <B2BPriceBadge compact />}
+              </div>
+              {isApprovedB2B && (
+                <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-bold text-emerald-700">
+                  B2B Wholesale Pricing Applied for {b2bCompany.company_name}
+                </div>
+              )}
               <div className="flex flex-col gap-4 mb-6 max-h-60 overflow-y-auto pr-2 scrollbar-hide">
                 {activeItems.map(item => (
                   <div key={item.id} className="flex justify-between items-center gap-4">
@@ -667,6 +700,7 @@ const Checkout = () => {
                       <div>
                         <p className="text-sm font-bold line-clamp-1 text-gray-900">{item.title || "Product"}</p>
                         <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                        {isApprovedB2B && <B2BPriceBadge compact />}
                       </div>
                     </div>
                     <span className="text-sm font-black text-gray-900">{formatPrice(item.price * item.quantity)}</span>

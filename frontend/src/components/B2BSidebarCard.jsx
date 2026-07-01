@@ -11,16 +11,20 @@ export default function B2BSidebarCard({ navigate }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const controller = new AbortController();
     (async () => {
       try {
-        const res = await b2bApi.getCompany();
+        const res = await b2bApi.getCompany({ signal: controller.signal });
+        if (controller.signal.aborted) return;
         setCompany(res?.company ?? null);
-      } catch {
+      } catch (err) {
+        if (err?.name === 'AbortError') return;
         setCompany(null);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     })();
+    return () => controller.abort();
   }, []);
 
   if (loading) {
@@ -46,7 +50,7 @@ export default function B2BSidebarCard({ navigate }) {
           </div>
           <h4 className="text-sm font-black uppercase tracking-widest flex-1">B2B Wholesale</h4>
           <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${
-            company.status === 'active'
+            company.status === 'active' || company.status === 'approved'
               ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/25'
               : 'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border-amber-200 dark:border-amber-800/25'
           }`}>

@@ -1,132 +1,106 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { MedusaError } from "@medusajs/framework/utils"
 import { B2B_MODULE } from "../../../../modules/b2b"
+import { MedusaError, Modules } from "@medusajs/framework/utils"
 
-/**
- * GET /admin/b2b/companies
- *
- * Lists all registered B2B companies with linked customer info and
- * per-company quote statistics (total, pending, approved, rejected, converted).
- *
- * Query params:
- *   - status  : filter by status (active, inactive, suspended)
- *   - search  : search company_name or tax_id
- *   - offset  : pagination offset (default 0)
- *   - limit   : pagination limit (default 50, max 200)
- *
- * Response:
- * {
- *   companies: Array<{
- *     id, company_name, tax_id, gstin, credit_limit, status,
- *     customer_count: number,
- *     quote_stats: { total, draft, pending, approved, rejected, converted },
- *     primary_admin: { id, email, first_name, last_name } | null,
- *     created_at, updated_at
- *   }>,
- *   count: number,
- *   offset: number,
- *   limit: number
- * }
- */
+const COMPANY_FIELDS = [
+  "id",
+  "company_name",
+  "tax_id",
+  "gstin",
+  "credit_limit",
+  "requested_credit_limit",
+  "approved_credit_limit",
+  "customer_id",
+  "approved_by",
+  "approved_at",
+  "rejected_at",
+  "rejection_reason",
+  "admin_note",
+  "status",
+  "created_at",
+  "updated_at",
+]
+
+async function listCompaniesSafe(
+  service: any,
+  filters: Record<string, any>,
+  config: Record<string, any>
+) {
+  if (typeof service.listCompanies === "function") {
+    const companies = await service.listCompanies(filters, config)
+    return [companies, companies.length] as [any[], number]
+  }
+
+  if (typeof service.listAndCountCompanies === "function") {
+    return service.listAndCountCompanies(filters, config)
+  }
+
+  throw new Error("B2B company list service method is unavailable")
+}
+
+async function getCustomerEmail(customerModule: any, customerId?: string | null) {
+  if (!customerId) {
+    return null
+  }
+
+  try {
+    const customer = await customerModule.retrieveCustomer(customerId)
+    return customer?.email ?? null
+  } catch {
+    return null
+  }
+}
+
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   try {
-    const query = req.scope.resolve("query")
     const b2bService: any = req.scope.resolve(B2B_MODULE)
-
+    const customerModule: any = req.scope.resolve(Modules.CUSTOMER)
     const { status, search, offset, limit } = req.query as Record<string, string | undefined>
 
     const skip = Math.max(0, parseInt(offset || "0", 10) || 0)
     const take = Math.min(Math.max(1, parseInt(limit || "50", 10) || 50), 200)
-
-    // ── 1. Fetch companies via Remote Query with linked customers ───────
-    //     Using query.graph to hydrate each company with linked customer info.
     const filters: Record<string, any> = {}
-    if (status) filters.status = status
 
-    const { data: hydrated, metadata } = await query.graph({
-      entity: "company",
-      fields: [
-        "id",
-        "company_name",
-        "tax_id",
-        "gstin",
-        "credit_limit",
-        "status",
-        "created_at",
-        "updated_at",
-        "customer.id",
-        "customer.email",
-        "customer.first_name",
-        "customer.last_name",
-      ],
-      filters: search
-        ? { ...filters, company_name: { $ilike: `%${search}%` } }
-        : filters,
-      pagination: { skip, take },
-    })
-
-    // ── 2. Get per-company quote statistics ──────────────────────────────
-    const companyIds = hydrated.map((c: any) => c.id)
-    const quoteStatsMap = new Map<string, any>()
-
-    if (companyIds.length > 0) {
-      const [allQuotes] = await b2bService.listAndCountQuotes(
-        { company_id: companyIds },
-        { take: 9999, select: ["id", "company_id", "status"] }
-      )
-
-      for (const companyId of companyIds) {
-        const companyQuotes = allQuotes.filter((q: any) => q.company_id === companyId)
-        quoteStatsMap.set(companyId, {
-          total: companyQuotes.length,
-          draft: companyQuotes.filter((q: any) => q.status === "draft").length,
-          pending: companyQuotes.filter((q: any) => q.status === "pending").length,
-          approved: companyQuotes.filter((q: any) => q.status === "approved").length,
-          rejected: companyQuotes.filter((q: any) => q.status === "rejected").length,
-          converted: companyQuotes.filter((q: any) => q.status === "converted").length,
-        })
-      }
+    if (status) {
+      filters.status = status
     }
 
-    // ── 3. Build response ────────────────────────────────────────────────
-    const companies = hydrated.map((c: any) => {
-      const linkedCustomer = c.customer
-        ? Array.isArray(c.customer)
-          ? c.customer[0]
-          : c.customer
-        : null
+    if (search) {
+      filters.company_name = { $ilike: `%${search}%` }
+    }
 
-      return {
-        id: c.id,
-        company_name: c.company_name,
-        tax_id: c.tax_id,
-        gstin: c.gstin,
-        credit_limit: c.credit_limit,
-        status: c.status,
-        customer_count: c.customer
-          ? Array.isArray(c.customer)
-            ? c.customer.length
-            : 1
-          : 0,
-        quote_stats: quoteStatsMap.get(c.id) || {
-          total: 0, draft: 0, pending: 0, approved: 0, rejected: 0, converted: 0,
-        },
-        primary_admin: linkedCustomer
-          ? {
-              id: linkedCustomer.id,
-              email: linkedCustomer.email,
-              first_name: linkedCustomer.first_name,
-              last_name: linkedCustomer.last_name,
-            }
-          : null,
-        created_at: c.created_at,
-        updated_at: c.updated_at,
-      }
+    const [rows, count] = await listCompaniesSafe(b2bService, filters, {
+      skip,
+      take,
+      order: { created_at: "DESC" },
+      select: COMPANY_FIELDS,
     })
+
+    const companies = await Promise.all(
+      rows.map(async (company: any) => ({
+        id: company.id,
+        company_name: company.company_name,
+        customer_id: company.customer_id ?? null,
+        customer_email: await getCustomerEmail(customerModule, company.customer_id),
+        tax_id: company.tax_id ?? null,
+        gstin: company.gstin ?? null,
+        credit_limit: company.credit_limit ?? 0,
+        requested_credit_limit: company.requested_credit_limit ?? 0,
+        approved_credit_limit: company.approved_credit_limit ?? null,
+        status: company.status,
+        created_at: company.created_at ?? null,
+        updated_at: company.updated_at ?? null,
+        approved_at: company.approved_at ?? null,
+        approved_by: company.approved_by ?? null,
+        rejected_at: company.rejected_at ?? null,
+        rejection_reason: company.rejection_reason ?? null,
+        admin_note: company.admin_note ?? null,
+      }))
+    )
 
     return res.json({
       companies,
-      count: metadata?.count ?? companies.length,
+      count,
       offset: skip,
       limit: take,
     })

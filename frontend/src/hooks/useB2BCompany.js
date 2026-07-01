@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { b2bApi } from "../services/b2bApi";
+import { getCustomerToken } from "../services/medusa/tokenStorage";
 
 /**
  * @typedef {Object} B2BCompany
@@ -7,7 +8,7 @@ import { b2bApi } from "../services/b2bApi";
  * @property {string} company_name
  * @property {string|null} tax_id
  * @property {number} credit_limit  - in cents
- * @property {"active"|"inactive"|"suspended"} status
+ * @property {"approved"|"active"|"pending"|"rejected"|"inactive"|"suspended"} status
  */
 
 /**
@@ -31,25 +32,33 @@ export default function useB2BCompany() {
 
   // ── Fetch company on mount ───────────────────────────────────────────
 
-  const fetchCompany = useCallback(async () => {
+  const fetchCompany = useCallback(async ({ signal, forceRefresh = false } = {}) => {
     setIsLoading(true);
     setError(null);
+    if (!getCustomerToken()) {
+      setCompany(null);
+      setIsLoading(false);
+      return;
+    }
     try {
-      const res = await b2bApi.getCompany();
+      const res = await b2bApi.getCompany({ signal, forceRefresh });
       setCompany(res?.company ?? null);
     } catch (err) {
+      if (err?.name === "AbortError") return;
       // Silent fail — user simply has no B2B company (or is not logged in)
       if (err?.response?.status !== 401 && err?.response?.status !== 404) {
-        setError(err?.message || "Failed to load company data");
+        setError("Unable to load B2B application status. Please try again.");
       }
       setCompany(null);
     } finally {
-      setIsLoading(false);
+      if (!signal?.aborted) setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchCompany();
+    const controller = new AbortController();
+    fetchCompany({ signal: controller.signal });
+    return () => controller.abort();
   }, [fetchCompany]);
 
   // ── Credit validation helper ─────────────────────────────────────────
@@ -70,7 +79,7 @@ export default function useB2BCompany() {
         warning: null,
       };
 
-      if (!company || company.status !== "active") {
+      if (!company || (company.status !== "active" && company.status !== "approved")) {
         return defaultResult;
       }
 

@@ -18,13 +18,17 @@ import {
   ChevronLeft,
   Scale,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/Footer';
 import MobileNav from '../components/MobileNav';
 import Button from '../components/common/Button';
 import { b2bApi } from '../services/b2bApi';
 import useToast from '../hooks/useToast';
+import { resolveDefaultRegionId } from '../lib/medusa/regions';
+import { normalizeProductList } from '../lib/medusa/normalize';
+import { getB2BVariantPrice } from '../utils/b2bPricing';
+import { extractB2BProducts } from '../utils/b2bProductsResponse';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -45,7 +49,7 @@ import useToast from '../hooks/useToast';
  * @property {string} company_name
  * @property {string|null} tax_id
  * @property {number} credit_limit
- * @property {'active'|'inactive'|'suspended'} status
+ * @property {'approved'|'active'|'pending'|'rejected'|'inactive'|'suspended'} status
  */
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -67,66 +71,117 @@ const emptyItem = () => ({
   unit_price: 0,
 });
 
-// ── Quick-pick templates ──────────────────────────────────────────────────
+const getPurchasableVariant = (product, selectedVariant = null) => {
+  if (selectedVariant?.id) return selectedVariant;
+  return product?.variants?.find((variant) => variant?.id) || product?.variants?.[0] || null;
+};
 
-const QUICK_PRODUCTS = [
-  { title: 'Organic Apple Box (12 ct)', unit_price: 2400, sku: 'ORG-APP-12' },
-  { title: 'Heirloom Tomato Basket (5 lbs)', unit_price: 1800, sku: 'HRM-TOM-5' },
-  { title: 'Mixed Greens Medley (2 lbs)', unit_price: 1200, sku: 'MIX-GRN-2' },
-  { title: 'Cold-Pressed Juice Variety Pack', unit_price: 3600, sku: 'JUC-VAR-6' },
-  { title: 'Free-Range Egg Carton (18 ct)', unit_price: 850, sku: 'EGG-FR-18' },
-  { title: 'Artisan Sourdough Loaf', unit_price: 650, sku: 'BRD-SR-1' },
-];
+const getQuoteUnitPrice = (variant) => (
+  getB2BVariantPrice(variant) ?? variant?.prices?.[0]?.amount ?? 0
+);
+
+// Real B2B catalog products are fetched on mount and populated dynamically.
 
 // ── Component ──────────────────────────────────────────────────────────────
 
 const B2BQuoteRequest = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { showToast } = useToast();
+
+  const initialProduct = location.state?.product;
+  const initialVariant = location.state?.variant;
 
   // ── State ─────────────────────────────────────────────────────────────
   const [company, setCompany] = useState(/** @type {B2BCompany|null} */ (null));
   const [companyLoading, setCompanyLoading] = useState(true);
-  const [items, setItems] = useState(/** @type {QuoteLineItem[]} */ ([emptyItem()]));
+  const [items, setItems] = useState(/** @type {QuoteLineItem[]} */ (() => {
+    if (initialProduct) {
+      const variant = getPurchasableVariant(initialProduct, initialVariant);
+      const unitPrice = getQuoteUnitPrice(variant);
+      return [{
+        id: genItemId(),
+        product_id: initialProduct.id,
+        variant_id: variant?.id || null,
+        title: initialProduct.title,
+        sku: variant?.sku || initialProduct.sku || null,
+        quantity: location.state?.quantity || 1,
+        unit_price: unitPrice,
+      }];
+    }
+    return [emptyItem()];
+  }));
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(/** @type {object|null} */ (null));
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [catalogProducts, setCatalogProducts] = useState([]);
+  const [catalogLoading, setCatalogLoading] = useState(false);
 
-  // ── Fetch company on mount ────────────────────────────────────────────
+  // ── Fetch company & B2B Products catalog on mount ─────────────────────
   useEffect(() => {
+    const controller = new AbortController();
     (async () => {
       try {
-        const res = await b2bApi.getCompany();
+        const res = await b2bApi.getCompany({ signal: controller.signal });
+        if (controller.signal.aborted) return;
         setCompany(res?.company ?? null);
-      } catch {
+      } catch (err) {
+        if (err?.name === 'AbortError' || err?.code === 'ERR_CANCELED' || err?.message === 'canceled') return;
         setCompany(null);
       } finally {
-        setCompanyLoading(false);
+        if (!controller.signal.aborted) setCompanyLoading(false);
       }
     })();
+
+    (async () => {
+      try {
+        setCatalogLoading(true);
+        const regionId = await resolveDefaultRegionId();
+        if (!regionId) return;
+        const res = await b2bApi.getB2BProducts({
+          limit: 100,
+          region_id: regionId,
+          currency_code: 'cad',
+        });
+        if (controller.signal.aborted) return;
+        setCatalogProducts(normalizeProductList(extractB2BProducts(res)));
+      } catch (err) {
+        console.warn("Failed to load catalog products for Quick Add:", err);
+      } finally {
+        if (!controller.signal.aborted) setCatalogLoading(false);
+      }
+    })();
+
+    return () => controller.abort();
   }, []);
 
   // ── Derived values ────────────────────────────────────────────────────
   const subtotal = items.reduce((sum, item) => sum + (item.unit_price || 0) * (item.quantity || 0), 0);
   const itemCount = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
   const isValid = items.some((item) => item.title.trim() && item.unit_price > 0 && item.quantity > 0);
-  const isB2BReady = company && company.status === 'active';
+  const isB2BReady = company && (company.status === 'active' || company.status === 'approved');
 
   // ── Item management ───────────────────────────────────────────────────
-  const addItem = (template) => {
-    if (template) {
+  const addItem = (product) => {
+    if (product) {
+      const variant = getPurchasableVariant(product);
+      if (!variant?.id) {
+        showToast('No purchasable variant available.', 'error');
+        return;
+      }
+      const unitPrice = getQuoteUnitPrice(variant);
       setItems((prev) => [
-        ...prev,
+        ...prev.filter((it) => it.title.trim() !== ''),
         {
           id: genItemId(),
-          product_id: null,
-          variant_id: null,
-          title: template.title,
-          sku: template.sku || null,
+          product_id: product.id,
+          variant_id: variant?.id || null,
+          title: product.title,
+          sku: variant?.sku || product.sku || null,
           quantity: 1,
-          unit_price: template.unit_price,
+          unit_price: unitPrice,
         },
       ]);
       setSearchOpen(false);
@@ -149,10 +204,10 @@ const B2BQuoteRequest = () => {
   };
 
   // ── Quick-add filtered products ───────────────────────────────────────
-  const filteredQuick = QUICK_PRODUCTS.filter(
+  const filteredQuick = catalogProducts.filter(
     (p) =>
-      p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()))
+      p.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.variants?.some((v) => v.sku?.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   // ── Submit ────────────────────────────────────────────────────────────
@@ -160,25 +215,39 @@ const B2BQuoteRequest = () => {
     e.preventDefault();
     if (!isValid) return;
 
+    const filteredItems = items.filter((item) => item.title.trim() && item.quantity > 0);
+
+    if (filteredItems.length === 0) {
+      showToast('Please add at least one valid item to the quote.', 'error');
+      return;
+    }
+
+    for (const [index, item] of filteredItems.entries()) {
+      if (!item.product_id || !item.variant_id) {
+        showToast(`Item at row ${index + 1} ("${item.title}") must be a valid catalog product with an active variant. Please use Quick Add.`, 'error');
+        return;
+      }
+      if (!Number.isFinite(Number(item.quantity)) || Number(item.quantity) <= 0) {
+        showToast(`Item at row ${index + 1} must have a positive quantity.`, 'error');
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       const payload = {
-        items: items
-          .filter((item) => item.title.trim() && item.unit_price > 0 && item.quantity > 0)
-          .map((item) => ({
-            product_id: item.product_id || undefined,
-            variant_id: item.variant_id || undefined,
-            title: item.title.trim(),
-            sku: item.sku || undefined,
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-          })),
-        notes: notes.trim() || undefined,
+        items: filteredItems.map((item) => ({
+          product_id: item.product_id,
+          variant_id: item.variant_id,
+          quantity: Math.max(1, Math.floor(Number(item.quantity) || 1)),
+          note: item.title ? `Product: ${item.title}${item.sku ? ` (SKU: ${item.sku})` : ''}${item.unit_price ? ` at ${fmtPrice(item.unit_price)}/unit` : ''}` : undefined,
+        })),
+        buyer_note: notes.trim() || undefined,
       };
 
       const res = await b2bApi.submitQuote(payload);
       setSubmitted(res);
-      showToast('Wholesale quote submitted! ✅', 'success');
+      showToast('Quote request submitted for admin review! ✅', 'success');
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to submit quote';
       showToast(msg, 'error');
@@ -235,7 +304,7 @@ const B2BQuoteRequest = () => {
   }
 
   // ── Render: Inactive company ──────────────────────────────────────────
-  if (company.status !== 'active') {
+  if (!isB2BReady) {
     return (
       <div className="min-h-screen bg-bg-primary">
         <Navbar />
@@ -546,27 +615,32 @@ const B2BQuoteRequest = () => {
                             No matching products found.
                           </p>
                         ) : (
-                          filteredQuick.map((product) => (
-                            <button
-                              type="button"
-                              key={product.sku}
-                              onClick={() => addItem(product)}
-                              className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-slate-800 border border-stone-100 dark:border-slate-700 hover:border-accent-primary/30 hover:bg-accent-primary/5 text-left transition-all group"
-                            >
-                              <div className="w-8 h-8 rounded-lg bg-accent-primary/10 text-accent-primary flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                                <Package size={16} />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-bold text-text-primary truncate">
-                                  {product.title}
-                                </p>
-                                <p className="text-[10px] text-text-secondary font-medium">
-                                  {fmtPrice(product.unit_price)} · {product.sku}
-                                </p>
-                              </div>
-                              <Plus size={14} className="text-stone-300 group-hover:text-accent-primary shrink-0 transition-colors" />
-                            </button>
-                          ))
+                          filteredQuick.map((product) => {
+                            const variant = getPurchasableVariant(product);
+                            const unitPrice = getQuoteUnitPrice(variant);
+                            return (
+                              <button
+                                type="button"
+                                key={product.id}
+                                onClick={() => addItem(product)}
+                                disabled={!variant?.id}
+                                className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-slate-800 border border-stone-100 dark:border-slate-700 hover:border-accent-primary/30 hover:bg-accent-primary/5 text-left transition-all group"
+                              >
+                                <div className="w-8 h-8 rounded-lg bg-accent-primary/10 text-accent-primary flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                  <Package size={16} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-bold text-text-primary truncate">
+                                    {product.title}
+                                  </p>
+                                  <p className="text-[10px] text-text-secondary font-medium">
+                                    {fmtPrice(unitPrice)} · {variant?.sku || 'No SKU'}
+                                  </p>
+                                </div>
+                                <Plus size={14} className="text-stone-300 group-hover:text-accent-primary shrink-0 transition-colors" />
+                              </button>
+                            );
+                          })
                         )}
                       </div>
                     </div>

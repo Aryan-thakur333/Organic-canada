@@ -1,6 +1,7 @@
 import apiClient from "../apiClient";
 import { normalizeProductList, normalizeStoreProduct } from "../../lib/medusa/normalize";
 import { resolveDefaultRegionId } from "../../lib/medusa/regions";
+import { getCustomerToken } from "./tokenStorage";
 
 const PRODUCT_FIELDS = "id,title,handle,description,thumbnail,images.*,variants.*,variants.prices.*,variants.calculated_price.*,categories.*";
 const PRODUCT_CACHE_PREFIX = "eatsie_products_v1:";
@@ -31,12 +32,18 @@ function writeCachedProducts(params, response) {
 
 export const productService = {
   list: async (params = {}) => {
-    const regionId = await resolveDefaultRegionId();
+    const {
+      category_handle,
+      region_id: requestedRegionId,
+      currency_code,
+      signal,
+      ...restParams
+    } = params;
+    const regionId = requestedRegionId || await resolveDefaultRegionId();
     if (!regionId) {
       return { products: [], count: 0 };
     }
 
-    const { category_handle, ...restParams } = params;
     const categoryId = category_handle
       ? await productService.resolveCategoryIdByHandle(category_handle)
       : null;
@@ -49,15 +56,20 @@ export const productService = {
         fields: PRODUCT_FIELDS,
         limit: 100,
         region_id: regionId,
+        ...(currency_code ? { currency_code } : {}),
         ...restParams,
         ...(categoryId ? { category_id: [categoryId] } : {}),
     };
+    const hasCustomerContext = Boolean(getCustomerToken());
+
     try {
-      const response = await apiClient.get("/store/products", { params: requestParams });
-      writeCachedProducts(requestParams, response);
+      const response = await apiClient.get("/store/products", { params: requestParams, signal });
+      if (!hasCustomerContext) {
+        writeCachedProducts(requestParams, response);
+      }
       return response;
     } catch (error) {
-      const cached = readCachedProducts(requestParams);
+      const cached = hasCustomerContext ? null : readCachedProducts(requestParams);
       if (cached && (error?.code === "BACKEND_OFFLINE" || error?.response?.status >= 500)) {
         return { ...cached, stale: true };
       }

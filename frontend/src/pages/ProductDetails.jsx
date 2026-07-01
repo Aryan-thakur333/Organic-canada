@@ -16,6 +16,7 @@ import {
   FileText,
   Monitor
 } from 'lucide-react';
+import B2BPriceBadge from '../components/common/B2BPriceBadge';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/Footer';
 import MobileNav from '../components/MobileNav';
@@ -29,6 +30,7 @@ import { toggleWishlist } from '../redux/wishlistSlice';
 import useToast from '../hooks/useToast';
 import { resolveMedusaImageUrl, PRODUCT_IMAGE_FALLBACK } from '../utils/medusaImage';
 import useMedusaCart from '../hooks/useMedusaCart';
+import { getVariantDisplayPrice } from '../utils/productPricing';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -128,8 +130,7 @@ const ProductDetails = () => {
   }, [product, selectedVariantId]);
 
   const price = useMemo(() => {
-    const p = activeVariant?.prices?.[0]?.amount || 0;
-    return p / 100;
+    return getVariantDisplayPrice(activeVariant).amount;
   }, [activeVariant]);
 
   const handleAddToCart = async () => {
@@ -244,9 +245,12 @@ const ProductDetails = () => {
               {product.title}
             </h1>
             
-            <p className="text-3xl font-black text-accent-primary mb-8">
-              ${price.toFixed(2)}
-            </p>
+            <div className="flex items-center gap-3 mb-8">
+              <p className="text-3xl font-black text-accent-primary">
+                ${price.toFixed(2)}
+              </p>
+              <B2BPriceBadge />
+            </div>
 
             <div className="prose prose-stone dark:prose-invert max-w-none mb-10">
               <p className="text-text-secondary leading-relaxed text-lg">

@@ -9,7 +9,7 @@ import useToast from '../hooks/useToast';
 import useMedusaCart from '../hooks/useMedusaCart';
 import { isMedusaConfigured } from '../config/publicEnv';
 import { resolveMedusaImageUrl, PRODUCT_IMAGE_FALLBACK } from '../utils/medusaImage';
-import Button from './common/Button';
+import { getDisplayPrice } from '../utils/pricing';
 
 const ProductCard = ({ item }) => {
   const dispatch = useDispatch();
@@ -18,9 +18,8 @@ const ProductCard = ({ item }) => {
   const { addVariant } = useMedusaCart();
   const [isHovered, setIsHovered] = useState(false);
 
-  const price = item.variants?.[0]?.prices?.[0]?.amount 
-    ? item.variants[0].prices[0].amount / 100 
-    : 0;
+  const priceInfo = getDisplayPrice(item);
+  const price = priceInfo.amount;
 
   const handleAddToCart = async (e) => {
     e.stopPropagation();
@@ -119,9 +118,11 @@ const ProductCard = ({ item }) => {
         </p>
 
         <div className="flex items-center justify-between mt-auto">
-          <span className="text-xl font-black text-accent-primary">
-            ${price.toFixed(2)}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-black text-accent-primary">
+              {priceInfo.formatted}
+            </span>
+          </div>
           <button 
             onClick={handleAddToCart}
             className="p-3 rounded-2xl bg-stone-100 dark:bg-slate-700 text-text-primary hover:bg-accent-primary hover:text-white transition-all shadow-sm"

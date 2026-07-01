@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Leaf, ArrowLeft, Store, User, AlertCircle } from "lucide-react";
+import { ArrowRight, Leaf, ArrowLeft, Store, User, AlertCircle, Building2 } from "lucide-react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -252,6 +252,9 @@ const Login = () => {
               <Button variant="outline" size="lg" className="w-full gap-3 justify-center border-accent-primary text-accent-primary hover:bg-accent-primary hover:text-white transition-all" onClick={() => navigate("/vendor/login")}>
                  <Store size={18} /> Login as Seller
               </Button>
+              <Button variant="outline" size="lg" className="w-full gap-3 justify-center border-organic-primary text-organic-primary hover:bg-organic-primary hover:text-white transition-all" onClick={() => navigate("/b2b/login")}>
+                 <Building2 size={18} /> Login as B2B Buyer
+              </Button>
               
               <div className="relative my-4">
                 <div className="absolute inset-0 flex items-center">
@@ -266,6 +269,9 @@ const Login = () => {
               
               <Button variant="secondary" size="lg" className="w-full gap-3 justify-center" onClick={() => navigate("/vendor/register")}>
                  <Leaf size={18} /> Become a Seller
+              </Button>
+              <Button variant="secondary" size="lg" className="w-full gap-3 justify-center" onClick={() => navigate("/b2b/register-company")}>
+                 <Building2 size={18} /> Register B2B Company
               </Button>
             </div>
           ) : (

@@ -29,6 +29,12 @@ const B2BQuoteRequest = lazy(() => import("../pages/B2BQuoteRequest"));
 const B2BQuoteHistory = lazy(() => import("../pages/B2BQuoteHistory"));
 const B2BCompanyRegistration = lazy(() => import("../pages/B2BCompanyRegistration"));
 const B2BManageCompany = lazy(() => import("../pages/B2BManageCompany"));
+const B2BLogin = lazy(() => import("../pages/B2BLogin"));
+const B2BDashboard = lazy(() => import("../pages/B2BDashboard"));
+const B2BProducts = lazy(() => import("../pages/B2BProducts"));
+const B2BPending = lazy(() => import("../pages/B2BPending"));
+const B2BRejected = lazy(() => import("../pages/B2BRejected"));
+const B2BSuspended = lazy(() => import("../pages/B2BSuspended"));
 
 // Vendor Pages
 const VendorLogin = lazy(() => import("../pages/vendor/Login"));
@@ -176,6 +182,52 @@ function AppRoutes() {
               </ProtectedRoute>
             }
           />
+          {/* ── B2B Routes ──────────────────────────────────────────── */}
+          {/* B2B Login — public (no ProtectedRoute) because user isn't logged in yet */}
+          <Route path="/b2b/login" element={<B2BLogin />} />
+          <Route path="/b2b/register-company" element={<B2BCompanyRegistration />} />
+          {/* B2B Dashboard — protected, checks company status internally */}
+          <Route
+            path="/b2b/dashboard"
+            element={
+              <ProtectedRoute>
+                <B2BDashboard />
+              </ProtectedRoute>
+            }
+          />
+          {/* B2B Products — protected, checks company status internally */}
+          <Route
+            path="/b2b/products"
+            element={
+              <ProtectedRoute>
+                <B2BProducts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/b2b/pending"
+            element={
+              <ProtectedRoute>
+                <B2BPending />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/b2b/rejected"
+            element={
+              <ProtectedRoute>
+                <B2BRejected />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/b2b/suspended"
+            element={
+              <ProtectedRoute>
+                <B2BSuspended />
+              </ProtectedRoute>
+            }
+          />
           {/* Compatibility storefront B2B routes */}
           <Route
             path="/b2b"
@@ -186,10 +238,10 @@ function AppRoutes() {
             }
           />
           <Route
-            path="/b2b/register-company"
+            path="/b2b/manage-company"
             element={
               <ProtectedRoute>
-                <B2BCompanyRegistration />
+                <B2BManageCompany />
               </ProtectedRoute>
             }
           />

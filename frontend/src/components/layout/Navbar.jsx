@@ -17,7 +17,8 @@ import {
   ClipboardList,
   Store,
   Sparkles,
-  Zap
+  Zap,
+  Building2
 } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import Button from '../common/Button';
@@ -26,6 +27,8 @@ import { clearUserProfile, updateUserProfile } from '../../redux/userSlice';
 import { firebaseAuthService } from '../../services/firebaseAuthService';
 import { BRAND } from '../../config/branding';
 import { subscriptionService } from '../../services/medusa/subscriptionService';
+import useB2BCompany from '../../hooks/useB2BCompany';
+import { getAccountType } from '../../utils/accountType';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -36,6 +39,13 @@ const Navbar = () => {
   const wishlistItems = useSelector((state) => state.wishlist.items);
   const { isAuthenticated } = useSelector((state) => state.auth);
   const userProfile = useSelector((state) => state.user?.profile);
+  const { company: b2bCompany } = useB2BCompany();
+  const b2bStatus = b2bCompany?.status;
+  const accountType = getAccountType(userProfile, b2bCompany);
+  const isApprovedB2B = accountType === 'b2b_approved';
+  const isPendingB2B = accountType === 'b2b_pending';
+  const isRejectedB2B = accountType === 'b2b_rejected';
+  const hasB2BContext = Boolean(b2bCompany);
   const activeSubscription = userProfile?.active_subscription;
   const isPremium = ['active', 'trialing'].includes(activeSubscription?.status);
   const hasFastDelivery = isPremium && activeSubscription?.metadata?.fast_delivery === true;
@@ -70,17 +80,18 @@ const Navbar = () => {
   useEffect(() => {
     if (!isAuthenticated) return;
     let active = true;
+    if (isApprovedB2B) return;
     subscriptionService.list().then(({ subscriptions = [] }) => {
       if (!active) return;
       const current = subscriptions.find((item) => ['active', 'trialing'].includes(item.status)) || null;
       dispatch(updateUserProfile({ active_subscription: current }));
     }).catch(() => {});
     return () => { active = false; };
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated, isApprovedB2B]);
 
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Shop', path: '/listing' },
+    { name: 'Shop', path: isApprovedB2B ? '/b2b/products' : '/listing' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ];
@@ -90,8 +101,15 @@ const Navbar = () => {
       isScrolled ? 'bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-premium py-3' : 'bg-transparent py-5'
     }`}>
       <div className="container-custom flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 group">
+        {/* Logo — Navigation Isolation Boundary */}
+        {/* If the active context holds a validated corporate account role token,
+            intercept the request and redirect exclusively to the specialized B2B
+            catalog route context. Block all standard retail storefront lookups
+            from rendering fallback pricing tiers. */}
+        <Link
+          to={isApprovedB2B ? '/b2b/dashboard' : '/'}
+          className="flex items-center gap-2 group"
+        >
           <div className="bg-accent-primary p-2 rounded-xl text-white shadow-lg group-hover:rotate-12 transition-transform">
             <Leaf size={24} />
           </div>
@@ -117,13 +135,15 @@ const Navbar = () => {
 
         {/* Actions */}
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* Sell on Eatsie CTA */}
-          <Link
-            to="/login"
-            className="hidden md:flex items-center gap-2 text-xs font-bold bg-accent-primary/10 text-accent-primary px-3 py-2 rounded-xl hover:bg-accent-primary hover:text-white transition-colors uppercase tracking-widest"
-          >
-            <Store size={14} /> Sell
-          </Link>
+          {/* Sell on Eatsie CTA — blocked for B2B users to prevent retail fallback */}
+          {!isApprovedB2B && (
+            <Link
+              to="/login"
+              className="hidden md:flex items-center gap-2 text-xs font-bold bg-accent-primary/10 text-accent-primary px-3 py-2 rounded-xl hover:bg-accent-primary hover:text-white transition-colors uppercase tracking-widest"
+            >
+              <Store size={14} /> Sell
+            </Link>
+          )}
 
           {/* Theme Toggle */}
           <button
@@ -190,8 +210,25 @@ const Navbar = () => {
                         <p className="text-sm font-semibold truncate">{userProfile?.name || userProfile?.email || 'User'}</p>
                       </div>
 
-                      {/* Premium Membership Status */}
-                      {isPremium ? (
+                      {isApprovedB2B ? (
+                        <div className="px-3 py-2 mx-1 my-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40">
+                          <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
+                            <Building2 size={14} className="shrink-0" />
+                            <span className="text-xs font-black leading-tight">B2B Buyer</span>
+                          </div>
+                          <p className="mt-1 text-[10px] font-semibold text-emerald-700/80 dark:text-emerald-300/80 truncate">
+                            {b2bCompany.company_name}
+                          </p>
+                        </div>
+                      ) : isPendingB2B ? (
+                        <div className="px-3 py-2 mx-1 my-1 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 text-xs font-bold text-amber-700 dark:text-amber-300">
+                          B2B Pending Approval
+                        </div>
+                      ) : isRejectedB2B ? (
+                        <div className="px-3 py-2 mx-1 my-1 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 text-xs font-bold text-red-700 dark:text-red-300">
+                          B2B Application Rejected
+                        </div>
+                      ) : isPremium ? (
                         <div className="px-3 py-2 mx-1 my-1 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border border-amber-200 dark:border-amber-700/50 flex items-center gap-2">
                           <Sparkles size={14} className="text-amber-500 shrink-0" />
                           <span className="text-xs font-bold text-amber-700 dark:text-amber-300 leading-tight">
@@ -201,7 +238,7 @@ const Navbar = () => {
                             <Zap size={10} className="inline mr-0.5" />Fast Delivery
                           </span>}
                         </div>
-                      ) : (
+                      ) : !hasB2BContext ? (
                         <button
                           onClick={() => { setIsProfileOpen(false); navigate('/dashboard/subscriptions'); }}
                           className="w-full flex items-center gap-2 px-3 py-2.5 mx-1 my-1 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-700/50 hover:from-amber-100 hover:to-orange-100 dark:hover:from-amber-800/30 dark:hover:to-orange-800/30 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm font-semibold text-amber-800 dark:text-amber-200"
@@ -209,7 +246,7 @@ const Navbar = () => {
                           <Sparkles size={16} className="text-amber-500 shrink-0" />
                           <span>🚀 Upgrade to Premium</span>
                         </button>
-                      )}
+                      ) : null}
 
                       <Link to="/profile" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-3 py-2 hover:bg-stone-50 dark:hover:bg-slate-700 rounded-lg text-sm transition-colors">
                         <Settings size={16} /> Profile Settings
@@ -217,6 +254,19 @@ const Navbar = () => {
                       <Link to="/orders" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-3 py-2 hover:bg-stone-50 dark:hover:bg-slate-700 rounded-lg text-sm transition-colors">
                         <ClipboardList size={16} /> My Orders
                       </Link>
+                      {isApprovedB2B && (
+                        <>
+                          <Link to="/b2b/dashboard" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-3 py-2 hover:bg-stone-50 dark:hover:bg-slate-700 rounded-lg text-sm transition-colors">
+                            <Building2 size={16} /> B2B Dashboard
+                          </Link>
+                          <Link to="/b2b/products" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-3 py-2 hover:bg-stone-50 dark:hover:bg-slate-700 rounded-lg text-sm transition-colors">
+                            <Store size={16} /> Wholesale Products
+                          </Link>
+                          <Link to="/account/b2b-quotes" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-3 py-2 hover:bg-stone-50 dark:hover:bg-slate-700 rounded-lg text-sm transition-colors">
+                            <ClipboardList size={16} /> B2B Quotes
+                          </Link>
+                        </>
+                      )}
                       <button 
                         onClick={handleLogout}
                         className="w-full flex items-center gap-3 px-3 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 rounded-lg text-sm transition-colors mt-1"

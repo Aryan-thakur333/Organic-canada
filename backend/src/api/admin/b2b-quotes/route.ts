@@ -5,94 +5,74 @@ import { B2B_MODULE } from "../../../modules/b2b"
 // ────────────────────────────────────────────────────────────────────────────
 //  GET /admin/b2b-quotes
 //
-//  Lists all B2B wholesale draft quotes with optional status filtering.
-//  Uses Medusa's Remote Query framework (`query.graph`) to hydrate each
-//  quote with the linked Company details (corporate customer name, tax ID).
-//
-//  Query params:
-//    - status    : filter by status (draft, pending, approved, rejected, converted)
-//    - company_id: filter by company
-//    - offset    : pagination offset (default 0)
-//    - limit     : pagination limit (default 50, max 200)
+//  Lists all B2B quote requests with optional filtering.
+//  Supports filters: status, company_id, customer_email, limit, offset
 //
 //  Response shape:
 //    {
 //      quotes: Array<{
-//        id, company_id, customer_id, customer_email, status,
-//        items, subtotal, negotiated_total, admin_notes,
-//        company: { company_name, tax_id, credit_limit },
-//        created_at, updated_at
+//        id, company_name, customer_email, status,
+//        requested_total, negotiated_total, items_count,
+//        created_at, expires_at
 //      }>,
-//      count: number,
-//      offset: number,
-//      limit: number
+//      count: number
 //    }
 // ────────────────────────────────────────────────────────────────────────────
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   try {
-    const query = req.scope.resolve("query")
     const b2bService: any = req.scope.resolve(B2B_MODULE)
 
-    const { status, company_id, offset, limit } = req.query as Record<string, string | undefined>
+    const { status, company_id, customer_email, offset, limit } = req.query as Record<string, string | undefined>
 
     // ── 1. Build query filters ──────────────────────────────────────────
     const filters: Record<string, any> = {}
     if (status) filters.status = status
     if (company_id) filters.company_id = company_id
+    if (customer_email) filters.customer_email = customer_email
 
     const skip = Math.max(0, parseInt(offset || "0", 10) || 0)
     const take = Math.min(Math.max(1, parseInt(limit || "50", 10) || 50), 200)
 
-    // ── 2. Count total matching quotes (for pagination) ─────────────────
+    // ── 2. Fetch quotes ─────────────────────────────────────────────────
     const [allQuotes, totalCount] = await b2bService.listAndCountQuotes(filters, {
       skip,
       take,
       order: { created_at: "DESC" },
     })
 
-    // ── 3. Hydrate each quote with linked Company data via Remote Query ─
-    //      The defineLink(Quote, Company) enables this graph traversal.
-    const quoteIds = allQuotes.map((q: any) => q.id)
+    // ── 3. Map to response format ───────────────────────────────────────
+    const quotes = allQuotes.map((q: any) => {
+      const requestedItems = q.requested_items || q.items || []
+      const negotiatedItems = q.negotiated_items || []
+      const itemsCount = requestedItems.length
 
-    const companyMap = new Map<string, any>()
-
-    if (quoteIds.length > 0) {
-      const { data: hydrated } = await query.graph({
-        entity: "b2b_quote",
-        fields: [
-          "id",
-          "company.id",
-          "company.company_name",
-          "company.tax_id",
-          "company.gstin",
-          "company.credit_limit",
-          "company.status",
-        ],
-        filters: { id: quoteIds },
-      })
-
-      for (const row of hydrated) {
-        if (row.company) {
-          companyMap.set(row.id, row.company)
-        }
+      return {
+        id: q.id,
+        company_id: q.company_id,
+        company_name: q.company_name,
+        customer_id: q.customer_id,
+        customer_email: q.customer_email,
+        customer_name: q.customer_name,
+        status: q.status,
+        requested_items: requestedItems,
+        requested_total: q.requested_total || q.subtotal || 0,
+        negotiated_items: negotiatedItems,
+        negotiated_total: q.negotiated_total,
+        buyer_note: q.buyer_note || q.customer_note,
+        admin_note: q.admin_note || q.admin_notes,
+        rejection_reason: q.rejection_reason,
+        items_count: itemsCount,
+        currency_code: q.currency_code,
+        expires_at: q.expires_at,
+        accepted_at: q.accepted_at,
+        rejected_at: q.rejected_at,
+        created_cart_id: q.created_cart_id || q.cart_id,
+        created_order_id: q.created_order_id || q.order_id,
+        created_at: q.created_at,
+        updated_at: q.updated_at,
+        metadata: q.metadata,
       }
-    }
-
-    // ── 4. Merge company data into quote response ───────────────────────
-    const quotes = allQuotes.map((q: any) => ({
-      id: q.id,
-      company_id: q.company_id,
-      customer_id: q.customer_id,
-      customer_email: q.customer_email,
-      status: q.status,
-      items: q.items,
-      subtotal: q.subtotal,
-      negotiated_total: q.negotiated_total,
-      admin_notes: q.admin_notes,
-      company: companyMap.get(q.id) || null,
-      created_at: q.created_at,
-      updated_at: q.updated_at,
-    }))
+    })
 
     return res.json({
       quotes,

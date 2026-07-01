@@ -10,6 +10,17 @@ export const Company = model.define("company", {
   phone: model.text().nullable(),
   address: model.json().nullable(),
   metadata: model.json().nullable(),
+  // ── Credit & Approval fields ────────────────────────────────────────────
   credit_limit: model.number().default(0),
-  status: model.enum(["active", "inactive", "suspended"]).default("active"),
+  requested_credit_limit: model.number().default(0),
+  approved_credit_limit: model.number().default(0),
+  customer_id: model.text().nullable(),
+  approved_by: model.text().nullable(),
+  approved_at: model.dateTime().nullable(),
+  rejected_at: model.dateTime().nullable(),
+  rejection_reason: model.text().nullable(),
+  admin_note: model.text().nullable(),
+  status: model
+    .enum(["pending", "approved", "rejected", "active", "inactive", "suspended"])
+    .default("pending"),
 })

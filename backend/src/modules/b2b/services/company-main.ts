@@ -3,10 +3,10 @@ import { Company } from "../models/company"
 import { Quote } from "../models/quote"
 import { CompanyMember } from "../models/company-member"
 
-class CompanyService extends MedusaService({
+class B2BService extends MedusaService({
   Company,
   Quote,
   CompanyMember,
 }) {}
 
-export default CompanyService
+export default B2BService
