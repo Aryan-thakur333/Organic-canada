@@ -22,6 +22,7 @@ import MobileNav from '../components/MobileNav';
 import Button from '../components/common/Button';
 import Skeleton from '../components/common/Skeleton';
 import apiClient from '../services/apiClient';
+import { getCustomerToken } from '../services/medusa/tokenStorage';
 import useToast from '../hooks/useToast';
 import { resolveMedusaImageUrl, PRODUCT_IMAGE_FALLBACK } from '../utils/medusaImage';
 
@@ -104,9 +105,18 @@ export default function MyDownloads() {
 
     setDownloadingId(download.id);
     try {
-      const token = localStorage.getItem('medusa_customer_token');
-      const response = await fetch(`/store/downloads/${download.id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      const token = getCustomerToken();
+      const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
+      // Use the download record ID (dld_xxx) directly with the backend
+      // The /store/downloads/:id endpoint handles: authentication, ownership,
+      // expiry validation, download limit enforcement, and file streaming.
+      const downloadUrl = download.id
+        ? `/store/downloads/${download.id}`
+        : `/store/downloads/${download.item_id}?order_id=${download.order_id}`;
+
+      const response = await fetch(downloadUrl, {
+        headers: authHeaders,
         credentials: 'include',
       });
 
@@ -126,6 +136,7 @@ export default function MyDownloads() {
       const a = document.createElement('a');
       a.href = url;
       a.download = filename;
+      a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

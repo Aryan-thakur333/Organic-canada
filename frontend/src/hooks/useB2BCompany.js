@@ -44,7 +44,21 @@ export default function useB2BCompany() {
       const res = await b2bApi.getCompany({ signal, forceRefresh });
       setCompany(res?.company ?? null);
     } catch (err) {
-      if (err?.name === "AbortError") return;
+      // ── Bypass Axios Cancel Errors ────────────────────────────────────
+      // If the error is a routine browser request cancellation (AbortError,
+      // CanceledError, or ERR_CANCELED), silently exit without updating UI state.
+      // This prevents "Unable to load B2B application status" from appearing
+      // during normal page mount/navigation transitions.
+      if (err?.name === 'AbortError' || 
+          err?.name === 'CanceledError' ||
+          err?.code === 'ERR_CANCELED' ||
+          err?.message === 'canceled' ||
+          String(err?.message).toLowerCase().includes('canceled') ||
+          String(err?.message).toLowerCase().includes('aborted')) {
+        console.log('[useB2BCompany] Fetch aborted gracefully on unmount');
+        return;
+      }
+
       // Silent fail — user simply has no B2B company (or is not logged in)
       if (err?.response?.status !== 401 && err?.response?.status !== 404) {
         setError("Unable to load B2B application status. Please try again.");

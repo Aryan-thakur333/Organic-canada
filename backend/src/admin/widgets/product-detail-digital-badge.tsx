@@ -6,7 +6,7 @@ import { defineWidgetConfig } from "@medusajs/admin-sdk"
  *
  * Shows a prominent "Digital Product" badge at the top of the
  * Admin Product Detail page when the product is digital.
- * Zone: product.detail.before
+ * Zone: product.details.before
  */
 const ProductDetailDigitalBadge = ({ product }) => {
   if (!product) return null
@@ -35,7 +35,7 @@ const ProductDetailDigitalBadge = ({ product }) => {
 }
 
 export const config = defineWidgetConfig({
-  zone: "product.detail.before",
+  zone: "product.details.before",
 })
 
 export default ProductDetailDigitalBadge

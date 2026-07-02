@@ -10,6 +10,26 @@ let cachedCustomerResponse = null;
 let cachedCustomerAt = 0;
 const CUSTOMER_CACHE_MS = 30_000;
 
+function applyCustomerTokenToApiClient(token) {
+  const commonHeaders = apiClient.defaults?.headers?.common;
+  if (!commonHeaders) return;
+  if (!token) {
+    delete commonHeaders.Authorization;
+    return;
+  }
+  commonHeaders.Authorization = `Bearer ${token}`;
+}
+
+function isRequestCanceled(error) {
+  return Boolean(
+    error?.name === 'AbortError' ||
+    error?.name === 'CanceledError' ||
+    error?.code === 'ERR_CANCELED' ||
+    error?.message === 'canceled' ||
+    String(error?.message || '').toLowerCase().includes('aborted')
+  );
+}
+
 /**
  * Wrap an existing promise with an AbortSignal so the caller can cancel it.
  * The underlying request isn't aborted, but the caller's promise rejects.
@@ -29,6 +49,7 @@ function waitForRequest(request, signal) {
 
 function clearCustomerTokens() {
   clearCustomerToken();
+  applyCustomerTokenToApiClient(null);
   cachedCustomerResponse = null;
   cachedCustomerAt = 0;
   pendingCustomerRequest = undefined;
@@ -98,6 +119,7 @@ export const authService = {
 
     // Store token so Step 2 (customer creation) can use it
     setCustomerToken(token);
+    applyCustomerTokenToApiClient(token);
     console.log('[AuthService] Saved customer auth token. Creating customer profile in Medusa...');
 
     // Step 2 — create customer profile linked to the auth identity
@@ -133,6 +155,7 @@ export const authService = {
       throw new Error('Customer profile was created but login returned no token.');
     }
     setCustomerToken(customerToken);
+    applyCustomerTokenToApiClient(customerToken);
 
     if (!customerResp) {
       customerResp = await apiClient.get('/store/customers/me');
@@ -169,6 +192,7 @@ export const authService = {
     console.log('[AuthService] Login response token received:', token ? '[PRESENT]' : '[MISSING]');
     if (token) {
       setCustomerToken(token);
+      applyCustomerTokenToApiClient(token);
       console.log('[AuthService] Generated customer JWT token saved');
     }
 
@@ -225,10 +249,7 @@ export const authService = {
         }
       }
     }
-    clearCustomerToken();
-    cachedCustomerResponse = null;
-    cachedCustomerAt = 0;
-    pendingCustomerRequest = undefined;
+    clearCustomerTokens();
     console.log('[AuthService] Local tokens cleared from localStorage.');
     // Clear session cookies
     document.cookie.split(';').forEach((c) => {
@@ -271,7 +292,10 @@ export const authService = {
         return response;
       })
       .catch((error) => {
-        if (error.response?.status === 401) clearCustomerTokens();
+        if (!isRequestCanceled(error)) {
+          cachedCustomerResponse = null;
+          cachedCustomerAt = 0;
+        }
         throw error;
       })
       .finally(() => {

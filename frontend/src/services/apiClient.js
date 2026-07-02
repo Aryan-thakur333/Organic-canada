@@ -1,6 +1,5 @@
 import axios from 'axios';
 import {
-  clearCustomerToken,
   getCustomerToken,
   setCustomerToken,
   VENDOR_TOKEN_KEY,
@@ -63,6 +62,17 @@ function waitForRequest(request, signal) {
   });
 }
 
+export function isRequestCanceled(error) {
+  return Boolean(
+    (typeof axios.isCancel === 'function' && axios.isCancel(error)) ||
+    error?.name === 'AbortError' ||
+    error?.name === 'CanceledError' ||
+    error?.code === 'ERR_CANCELED' ||
+    error?.message === 'canceled' ||
+    String(error?.message || '').toLowerCase().includes('aborted')
+  );
+}
+
 function publishBackendStatus(online) {
   if (online) backendOfflineUntil = 0;
   window.dispatchEvent(new CustomEvent('organic-backend-status', {
@@ -85,6 +95,14 @@ const apiClient = axios.create({
   },
   withCredentials: true,
 });
+
+export function applyCustomerTokenToApiClient(token) {
+  if (!token) {
+    delete apiClient.defaults.headers.common.Authorization;
+    return;
+  }
+  apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+}
 
 // Request interceptor: Attach Bearer token from localStorage if present
 apiClient.interceptors.request.use(
@@ -118,6 +136,8 @@ apiClient.interceptors.request.use(
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      delete config.headers.Authorization;
     }
     return config;
   },
@@ -136,13 +156,14 @@ apiClient.interceptors.response.use(
         localStorage.setItem(VENDOR_TOKEN_KEY, data.token);
       } else {
         setCustomerToken(data.token);
+        applyCustomerTokenToApiClient(data.token);
       }
     }
     return data;
   },
   async (error) => {
-    if (axios.isCancel(error) || error.code === 'ERR_CANCELED' || error.message === 'canceled') {
-      return Promise.reject(error);
+    if (isRequestCanceled(error)) {
+      return undefined;
     }
     if (error.code === 'BACKEND_OFFLINE') {
       return Promise.reject(error);
@@ -194,8 +215,6 @@ apiClient.interceptors.response.use(
     if (status === 401) {
       if (url.startsWith('/vendor/')) {
         localStorage.removeItem(VENDOR_TOKEN_KEY);
-      } else if (url.startsWith('/store/')) {
-        clearCustomerToken();
       }
     }
 

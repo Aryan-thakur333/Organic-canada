@@ -33,7 +33,7 @@ import { subscriptionService } from '../services/medusa/subscriptionService';
 import useToast from '../hooks/useToast';
 import B2BSidebarCard from '../components/B2BSidebarCard';
 import useB2BCompany from '../hooks/useB2BCompany';
-import { getAccountType } from '../utils/accountType';
+import { isB2BUser } from '../utils/accountType';
 
 const Profile = () => {
   const user = useSelector(state => state.user.profile);
@@ -41,7 +41,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const { company: b2bCompany } = useB2BCompany();
-  const isApprovedB2B = getAccountType(user, b2bCompany) === 'b2b_approved';
+  const isApprovedB2B = isB2BUser(user, b2bCompany);
   
   const [formData, setFormData] = useState({
     first_name: user?.first_name || '',
@@ -82,20 +82,26 @@ const Profile = () => {
 
   useEffect(() => {
     let active = true;
-    authService.getCurrentCustomer().then(({ customer }) => {
+    const controller = new AbortController();
+    authService.getCurrentCustomer({ signal: controller.signal }).then(({ customer }) => {
       if (!active) return;
       const profile = mapCustomerToProfile(customer);
       dispatch(setUserProfile(profile));
       setFormData({ first_name: profile.first_name, last_name: profile.last_name, email: profile.email, phone: profile.phone, company_name: profile.company_name });
     }).catch((error) => {
+      const isCanceled = error?.name === 'AbortError' || error?.name === 'CanceledError' || error?.code === 'ERR_CANCELED' || error?.message === 'canceled';
+      if (!active || isCanceled) return;
       if (error?.status === 401 || error?.response?.status === 401) {
         dispatch(logout());
         dispatch(clearUserProfile());
         navigate('/login');
       } else showToast(error?.message || 'Unable to load profile', 'error');
     }).finally(() => active && setProfileLoading(false));
-    return () => { active = false; };
-  }, [dispatch, navigate]);
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [dispatch, navigate, showToast]);
 
   const handleLogout = async () => {
     try {
@@ -279,8 +285,7 @@ const Profile = () => {
             </div>
             )}
 
-            {/* B2B Wholesale Card */}
-            <B2BSidebarCard navigate={navigate} />
+            {isApprovedB2B && <B2BSidebarCard navigate={navigate} />}
 
             <div className="bg-bg-secondary p-6 rounded-[2rem] border border-stone-100 dark:border-slate-800">
               <div className="flex items-center gap-3 mb-4">

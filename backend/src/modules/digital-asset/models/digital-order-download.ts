@@ -6,7 +6,7 @@ export const DigitalOrderDownload = model.define("digital_order_download", {
   line_item_id: model.text().nullable(),
   product_id: model.text(),
   customer_id: model.text(),
-  digital_asset_id: model.text(),
+  digital_asset_id: model.text().nullable(),
   license_key: model.text().nullable(),
   remaining_downloads: model.number().default(0),
   download_count: model.number().default(0),

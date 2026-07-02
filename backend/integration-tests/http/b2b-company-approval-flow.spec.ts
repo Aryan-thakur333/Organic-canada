@@ -32,14 +32,14 @@ medusaIntegrationTestRunner({
         email,
         password,
       })
-      const token: string = regResp.body.token
+      const token: string = regResp.data.token
 
       const custResp = await api.post(
         "/store/customers",
         { email, first_name: "B2B", last_name: "Tester" },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      const id = custResp.body.customer?.id || custResp.body.id
+      const id = custResp.data.customer?.id || custResp.data.id
       expect(id).toBeTruthy()
 
       return { token, id, email }
@@ -96,7 +96,7 @@ medusaIntegrationTestRunner({
           { headers: authHeaders(customerToken) }
         )
         expect(res.status).toBe(400)
-        expect(res.body.message).toContain("company_name")
+        expect(res.data.message).toContain("company_name")
       })
 
       test("returns 400 when requested_credit_limit is negative", async () => {
@@ -109,7 +109,7 @@ medusaIntegrationTestRunner({
           { headers: authHeaders(customerToken) }
         )
         expect(res.status).toBe(400)
-        expect(res.body.message).toContain("credit_limit")
+        expect(res.data.message).toContain("credit_limit")
       })
 
       test("creates a pending company application", async () => {
@@ -125,13 +125,13 @@ medusaIntegrationTestRunner({
         )
 
         expect(res.status).toBe(201)
-        expect(res.body.company).toBeDefined()
-        expect(res.body.company.company_name).toBe(uniqueName)
-        expect(res.body.company.status).toBe("pending")
-        expect(res.body.company.tax_id).toBe("TAX-987654321")
-        expect(res.body.company.customer_id).toBe(customerId)
-        expect(res.body.company.requested_credit_limit).toBe(500000) // 5000 * 100 = 500000 cents
-        expect(res.body.message).toContain("pending admin approval")
+        expect(res.data.company).toBeDefined()
+        expect(res.data.company.company_name).toBe(uniqueName)
+        expect(res.data.company.status).toBe("pending")
+        expect(res.data.company.tax_id).toBe("TAX-987654321")
+        expect(res.data.company.customer_id).toBe(customerId)
+        expect(res.data.company.requested_credit_limit).toBe(500000) // 5000 * 100 = 500000 cents
+        expect(res.data.message).toContain("pending admin approval")
 
       })
 
@@ -143,8 +143,8 @@ medusaIntegrationTestRunner({
         })
 
         expect(res.status).toBe(200)
-        expect(res.body.company).toBeDefined()
-        expect(res.body.company.status).toBe("pending")
+        expect(res.data.company).toBeDefined()
+        expect(res.data.company.status).toBe("pending")
       })
 
       test("updates existing pending application instead of creating duplicate", async () => {
@@ -160,9 +160,9 @@ medusaIntegrationTestRunner({
 
         // Should return 200 (update) not 201 (create)
         expect(res.status).toBe(200)
-        expect(res.body.company.company_name).toBe("Updated Farm Name")
-        expect(res.body.company.status).toBe("pending")
-        expect(res.body.message).toContain("updated")
+        expect(res.data.company.company_name).toBe("Updated Farm Name")
+        expect(res.data.company.status).toBe("pending")
+        expect(res.data.message).toContain("updated")
       })
 
       test("creates application with minimal fields", async () => {
@@ -174,9 +174,9 @@ medusaIntegrationTestRunner({
         )
 
         expect(res.status).toBe(201)
-        expect(res.body.company.company_name).toBe("Minimal Co")
-        expect(res.body.company.requested_credit_limit).toBe(0)
-        expect(res.body.company.tax_id).toBeNull()
+        expect(res.data.company.company_name).toBe("Minimal Co")
+        expect(res.data.company.requested_credit_limit).toBe(0)
+        expect(res.data.company.tax_id).toBeNull()
       })
     })
 
@@ -209,10 +209,10 @@ medusaIntegrationTestRunner({
         })
 
         expect(res.status).toBe(200)
-        expect(res.body.company).toBeDefined()
-        expect(res.body.company.company_name).toBe("Retrievable Co")
-        expect(res.body.company.status).toBe("pending")
-        expect(res.body.company.customer_id).toBe(customerId)
+        expect(res.data.company).toBeDefined()
+        expect(res.data.company.company_name).toBe("Retrievable Co")
+        expect(res.data.company.status).toBe("pending")
+        expect(res.data.company.customer_id).toBe(customerId)
       })
 
       test("returns null when customer has no company", async () => {
@@ -222,7 +222,7 @@ medusaIntegrationTestRunner({
         })
 
         expect(res.status).toBe(200)
-        expect(res.body.company).toBeNull()
+        expect(res.data.company).toBeNull()
       })
     })
 
@@ -251,8 +251,8 @@ medusaIntegrationTestRunner({
         )
 
         expect(res.status).toBe(201)
-        expect(res.body.company).toBeDefined()
-        expect(res.body.company.status).toBe("pending")
+        expect(res.data.company).toBeDefined()
+        expect(res.data.company.status).toBe("pending")
       })
 
       test("GET /store/b2b/companies/me works (alias for company retrieval)", async () => {
@@ -261,8 +261,8 @@ medusaIntegrationTestRunner({
         })
 
         expect(res.status).toBe(200)
-        expect(res.body.company).toBeDefined()
-        expect(res.body.company.company_name).toBe("Alias Test Co")
+        expect(res.data.company).toBeDefined()
+        expect(res.data.company.company_name).toBe("Alias Test Co")
       })
     })
 
@@ -279,18 +279,18 @@ medusaIntegrationTestRunner({
         const res = await submitCompanyApplication(auth.token, {
           company_name: `ZebraSearchCo ${Date.now()}`,
         })
-        selfContainedCompanyId = res.body.company.id
+        selfContainedCompanyId = res.data.company.id
       })
 
       test("returns paginated list with all required fields", async () => {
         const res = await api.get("/admin/b2b/companies", adminHeaders)
 
         expect(res.status).toBe(200)
-        expect(Array.isArray(res.body.companies)).toBe(true)
-        expect(res.body.companies.length).toBeGreaterThanOrEqual(1)
-        expect(res.body.count).toBeGreaterThanOrEqual(1)
+        expect(Array.isArray(res.data.companies)).toBe(true)
+        expect(res.data.companies.length).toBeGreaterThanOrEqual(1)
+        expect(res.data.count).toBeGreaterThanOrEqual(1)
 
-        const first = res.body.companies[0]
+        const first = res.data.companies[0]
         // Verify the new fields are present
         expect(first.requested_credit_limit).toBeDefined()
         expect(first.customer_id).toBeDefined()
@@ -305,7 +305,7 @@ medusaIntegrationTestRunner({
         )
 
         expect(res.status).toBe(200)
-        for (const c of res.body.companies) {
+        for (const c of res.data.companies) {
           expect(c.status).toBe("pending")
         }
       })
@@ -317,9 +317,9 @@ medusaIntegrationTestRunner({
         )
 
         expect(res.status).toBe(200)
-        expect(res.body.companies.length).toBeLessThanOrEqual(5)
-        expect(res.body.offset).toBe(0)
-        expect(res.body.limit).toBe(5)
+        expect(res.data.companies.length).toBeLessThanOrEqual(5)
+        expect(res.data.offset).toBe(0)
+        expect(res.data.limit).toBe(5)
       })
 
       test("searches by company name", async () => {
@@ -329,8 +329,8 @@ medusaIntegrationTestRunner({
         )
 
         expect(res.status).toBe(200)
-        expect(res.body.companies.length).toBeGreaterThanOrEqual(1)
-        for (const c of res.body.companies) {
+        expect(res.data.companies.length).toBeGreaterThanOrEqual(1)
+        for (const c of res.data.companies) {
           expect(c.company_name).toContain("ZebraSearchCo")
         }
       })
@@ -356,7 +356,7 @@ medusaIntegrationTestRunner({
           company_name: "Approval Test Co",
           requested_credit_limit: 2500,
         })
-        targetCompanyId = res.body.company.id
+        targetCompanyId = res.data.company.id
       })
 
       test("returns 404 for non-existent company", async () => {
@@ -379,16 +379,16 @@ medusaIntegrationTestRunner({
         )
 
         expect(res.status).toBe(200)
-        expect(res.body.company).toBeDefined()
-        expect(res.body.company.status).toBe("approved")
-        expect(res.body.company.approved_credit_limit).toBe(300000) // 3000 * 100 = 300000 cents
-        expect(res.body.company.admin_note).toContain("wholesale")
+        expect(res.data.company).toBeDefined()
+        expect(res.data.company.status).toBe("approved")
+        expect(res.data.company.approved_credit_limit).toBe(300000) // 3000 * 100 = 300000 cents
+        expect(res.data.company.admin_note).toContain("wholesale")
 
         // Verify customer group info is returned
-        expect(res.body.customer_group).toBeDefined()
-        expect(res.body.customer_group.name).toMatch(/B2B|Partner|Wholesale/i)
+        expect(res.data.customer_group).toBeDefined()
+        expect(res.data.customer_group.name).toMatch(/B2B|Partner|Wholesale/i)
 
-        expect(res.body.message).toContain("Company approved")
+        expect(res.data.message).toContain("Company approved")
       })
 
       test("returns 400 when approving an already approved company", async () => {
@@ -398,7 +398,7 @@ medusaIntegrationTestRunner({
           adminHeaders
         )
         expect(res.status).toBe(400)
-        expect(res.body.message).toMatch(/already approved/i)
+        expect(res.data.message).toMatch(/already approved/i)
       })
 
       test("customer can retrieve their now-approved company", async () => {
@@ -407,9 +407,9 @@ medusaIntegrationTestRunner({
         })
 
         expect(res.status).toBe(200)
-        expect(res.body.company).toBeDefined()
-        expect(res.body.company.status).toBe("approved")
-        expect(res.body.company.approved_credit_limit).toBe(300000)
+        expect(res.data.company).toBeDefined()
+        expect(res.data.company.status).toBe("approved")
+        expect(res.data.company.approved_credit_limit).toBe(300000)
       })
 
       test("customer cannot resubmit once approved (returns approved company)", async () => {
@@ -424,9 +424,9 @@ medusaIntegrationTestRunner({
 
         // Should return the existing approved company, not create a new one
         expect(res.status).toBe(200)
-        expect(res.body.company.status).toBe("approved")
-        expect(res.body.company.company_name).toBe("Approval Test Co")
-        expect(res.body.message).toContain("already approved")
+        expect(res.data.company.status).toBe("approved")
+        expect(res.data.company.company_name).toBe("Approval Test Co")
+        expect(res.data.message).toContain("already approved")
       })
 
       test("customer sees approved_at and admin_note on retrieval", async () => {
@@ -435,9 +435,9 @@ medusaIntegrationTestRunner({
         })
 
         expect(res.status).toBe(200)
-        expect(res.body.company.approved_at).toBeTruthy()
-        expect(res.body.company.admin_note).toContain("wholesale")
-        expect(res.body.company.approved_credit_limit).toBe(300000)
+        expect(res.data.company.approved_at).toBeTruthy()
+        expect(res.data.company.admin_note).toContain("wholesale")
+        expect(res.data.company.approved_credit_limit).toBe(300000)
       })
     })
 
@@ -456,7 +456,7 @@ medusaIntegrationTestRunner({
         const res = await submitCompanyApplication(rejectToken, {
           company_name: "Reject Test Co",
         })
-        rejectCompanyId = res.body.company.id
+        rejectCompanyId = res.data.company.id
       })
 
       test("rejects a pending company with a reason", async () => {
@@ -470,9 +470,9 @@ medusaIntegrationTestRunner({
         )
 
         expect(res.status).toBe(200)
-        expect(res.body.company.status).toBe("rejected")
-        expect(res.body.company.rejection_reason).toContain("Invalid tax")
-        expect(res.body.company.admin_note).toContain("resubmit")
+        expect(res.data.company.status).toBe("rejected")
+        expect(res.data.company.rejection_reason).toContain("Invalid tax")
+        expect(res.data.company.admin_note).toContain("resubmit")
       })
 
       test("returns 400 when rejecting an already rejected company", async () => {
@@ -482,7 +482,7 @@ medusaIntegrationTestRunner({
           adminHeaders
         )
         expect(res.status).toBe(400)
-        expect(res.body.message).toMatch(/already rejected/i)
+        expect(res.data.message).toMatch(/already rejected/i)
       })
 
       test("returns 400 when rejecting an approved company", async () => {
@@ -491,7 +491,7 @@ medusaIntegrationTestRunner({
         const appRes = await submitCompanyApplication(auth.token, {
           company_name: "Approved Then Reject",
         })
-        const approvedId = appRes.body.company.id
+        const approvedId = appRes.data.company.id
 
         // Approve it first
         await api.post(
@@ -507,7 +507,7 @@ medusaIntegrationTestRunner({
           adminHeaders
         )
         expect(res.status).toBe(400)
-        expect(res.body.message).toContain("suspend")
+        expect(res.data.message).toContain("suspend")
       })
 
       test("rejected customer can resubmit a new application", async () => {
@@ -522,8 +522,8 @@ medusaIntegrationTestRunner({
 
         // Should create a new pending application
         expect(res.status).toBe(201)
-        expect(res.body.company.status).toBe("pending")
-        expect(res.body.company.company_name).toBe("Resubmitted Co")
+        expect(res.data.company.status).toBe("pending")
+        expect(res.data.company.company_name).toBe("Resubmitted Co")
       })
     })
 
@@ -540,7 +540,7 @@ medusaIntegrationTestRunner({
         const appRes = await submitCompanyApplication(auth.token, {
           company_name: "Suspend Test Co",
         })
-        suspendCompanyId = appRes.body.company.id
+        suspendCompanyId = appRes.data.company.id
         await api.post(
           `/admin/b2b/companies/${suspendCompanyId}/approve`,
           {},
@@ -556,8 +556,8 @@ medusaIntegrationTestRunner({
         )
 
         expect(res.status).toBe(200)
-        expect(res.body.company.status).toBe("suspended")
-        expect(res.body.company.admin_note).toContain("payment")
+        expect(res.data.company.status).toBe("suspended")
+        expect(res.data.company.admin_note).toContain("payment")
       })
 
       test("returns 400 when suspending a pending company", async () => {
@@ -567,12 +567,12 @@ medusaIntegrationTestRunner({
         })
 
         const res = await api.post(
-          `/admin/b2b/companies/${appRes.body.company.id}/suspend`,
+          `/admin/b2b/companies/${appRes.data.company.id}/suspend`,
           {},
           adminHeaders
         )
         expect(res.status).toBe(400)
-        expect(res.body.message).toContain("Reject")
+        expect(res.data.message).toContain("Reject")
       })
 
       test("returns 400 when suspending an already suspended company", async () => {
@@ -582,7 +582,7 @@ medusaIntegrationTestRunner({
           adminHeaders
         )
         expect(res.status).toBe(400)
-        expect(res.body.message).toMatch(/already suspended/i)
+        expect(res.data.message).toMatch(/already suspended/i)
       })
     })
 
@@ -598,7 +598,7 @@ medusaIntegrationTestRunner({
         const appRes = await submitCompanyApplication(auth.token, {
           company_name: "Legacy Status Co",
         })
-        legacyCompanyId = appRes.body.company.id
+        legacyCompanyId = appRes.data.company.id
       })
 
       test("updates status via legacy endpoint", async () => {
@@ -609,7 +609,7 @@ medusaIntegrationTestRunner({
         )
 
         expect(res.status).toBe(200)
-        expect(res.body.company.status).toBe("active")
+        expect(res.data.company.status).toBe("active")
       })
 
       test("returns 400 for invalid status value", async () => {
@@ -620,7 +620,7 @@ medusaIntegrationTestRunner({
         )
 
         expect(res.status).toBe(400)
-        expect(res.body.message).toContain("Status")
+        expect(res.data.message).toContain("Status")
       })
     })
 
@@ -649,8 +649,8 @@ medusaIntegrationTestRunner({
         )
 
         expect(res.status).toBe(201)
-        expect(res.body.company.status).toBe("pending")
-        e2eCompanyId = res.body.company.id
+        expect(res.data.company.status).toBe("pending")
+        e2eCompanyId = res.data.company.id
       })
 
       test("Step 2: Admin sees the pending application", async () => {
@@ -660,7 +660,7 @@ medusaIntegrationTestRunner({
         )
 
         expect(res.status).toBe(200)
-        const found = res.body.companies.find(
+        const found = res.data.companies.find(
           (c: any) => c.id === e2eCompanyId
         )
         expect(found).toBeDefined()
@@ -679,10 +679,10 @@ medusaIntegrationTestRunner({
         )
 
         expect(res.status).toBe(200)
-        expect(res.body.company.status).toBe("approved")
-        expect(res.body.company.approved_credit_limit).toBe(750000) // 7500 * 100
-        expect(res.body.customer_group).toBeDefined()
-        expect(res.body.message).toContain("Company approved")
+        expect(res.data.company.status).toBe("approved")
+        expect(res.data.company.approved_credit_limit).toBe(750000) // 7500 * 100
+        expect(res.data.customer_group).toBeDefined()
+        expect(res.data.message).toContain("Company approved")
       })
 
       test("Step 4: Customer sees approved status with wholesale pricing active", async () => {
@@ -691,8 +691,8 @@ medusaIntegrationTestRunner({
         })
 
         expect(res.status).toBe(200)
-        expect(res.body.company.status).toBe("approved")
-        expect(res.body.company.approved_credit_limit).toBe(750000)
+        expect(res.data.company.status).toBe("approved")
+        expect(res.data.company.approved_credit_limit).toBe(750000)
       })
 
       test("Step 5: Admin list shows company as approved", async () => {
@@ -702,7 +702,7 @@ medusaIntegrationTestRunner({
         )
 
         expect(res.status).toBe(200)
-        const found = res.body.companies.find(
+        const found = res.data.companies.find(
           (c: any) => c.id === e2eCompanyId
         )
         expect(found).toBeDefined()

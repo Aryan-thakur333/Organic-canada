@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import ProtectedRoute from "./ProtectedRoute";
+import B2BProtectedRoute from "./B2BProtectedRoute";
 import VendorProtectedRoute from "./VendorProtectedRoute";
 
 // Premium Pages
@@ -153,17 +154,17 @@ function AppRoutes() {
           <Route
             path="/dashboard/b2b/quotes"
             element={
-              <ProtectedRoute>
+              <B2BProtectedRoute>
                 <B2BQuoteRequest />
-              </ProtectedRoute>
+              </B2BProtectedRoute>
             }
           />
           <Route
             path="/dashboard/b2b/history"
             element={
-              <ProtectedRoute>
+              <B2BProtectedRoute>
                 <B2BQuoteHistory />
-              </ProtectedRoute>
+              </B2BProtectedRoute>
             }
           />
           <Route
@@ -177,9 +178,9 @@ function AppRoutes() {
           <Route
             path="/dashboard/b2b/manage"
             element={
-              <ProtectedRoute>
+              <B2BProtectedRoute>
                 <B2BManageCompany />
-              </ProtectedRoute>
+              </B2BProtectedRoute>
             }
           />
           {/* ── B2B Routes ──────────────────────────────────────────── */}
@@ -190,18 +191,18 @@ function AppRoutes() {
           <Route
             path="/b2b/dashboard"
             element={
-              <ProtectedRoute>
+              <B2BProtectedRoute>
                 <B2BDashboard />
-              </ProtectedRoute>
+              </B2BProtectedRoute>
             }
           />
           {/* B2B Products — protected, checks company status internally */}
           <Route
             path="/b2b/products"
             element={
-              <ProtectedRoute>
+              <B2BProtectedRoute>
                 <B2BProducts />
-              </ProtectedRoute>
+              </B2BProtectedRoute>
             }
           />
           <Route
@@ -232,41 +233,41 @@ function AppRoutes() {
           <Route
             path="/b2b"
             element={
-              <ProtectedRoute>
+              <B2BProtectedRoute>
                 <B2BManageCompany />
-              </ProtectedRoute>
+              </B2BProtectedRoute>
             }
           />
           <Route
             path="/b2b/manage-company"
             element={
-              <ProtectedRoute>
+              <B2BProtectedRoute>
                 <B2BManageCompany />
-              </ProtectedRoute>
+              </B2BProtectedRoute>
             }
           />
           <Route
             path="/b2b/request-quote"
             element={
-              <ProtectedRoute>
+              <B2BProtectedRoute>
                 <B2BQuoteRequest />
-              </ProtectedRoute>
+              </B2BProtectedRoute>
             }
           />
           <Route
             path="/account/b2b-quotes"
             element={
-              <ProtectedRoute>
+              <B2BProtectedRoute>
                 <B2BQuoteHistory />
-              </ProtectedRoute>
+              </B2BProtectedRoute>
             }
           />
           <Route
             path="/account/b2b-quotes/:id"
             element={
-              <ProtectedRoute>
+              <B2BProtectedRoute>
                 <B2BQuoteHistory />
-              </ProtectedRoute>
+              </B2BProtectedRoute>
             }
           />
           {/* Vendor Auth Routes */}

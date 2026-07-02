@@ -1,6 +1,7 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys, Modules, ProductStatus } from "@medusajs/framework/utils"
 import { createProductsWorkflow } from "@medusajs/medusa/core-flows"
+import { DIGITAL_ASSET_MODULE } from "../../../../modules/digital-asset"
 import multer from "multer"
 import path from "path"
 import fs from "fs"
@@ -249,6 +250,56 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
           },
         })
         const product = result[0]
+
+        // ── Create DigitalAsset database record ────────────────────────────
+        // Persist a proper DigitalAsset row so the download pipeline (order-placed
+        // subscriber, store download routes) can query it by ID instead of relying
+        // solely on metadata JSON lookups.
+        try {
+          const digitalAssetService: any = req.scope.resolve(DIGITAL_ASSET_MODULE)
+          const remoteLink: any = req.scope.resolve("remoteLink")
+
+          const [digitalAsset] = await digitalAssetService.createDigitalAssets([{
+            product_id: product.id,
+            secure_s3_key: storageKey,
+            file_name: file.originalname,
+            mime_type: file.mimetype || "application/octet-stream",
+            file_size: file.size,
+            version,
+            is_primary: true,
+            sort_order: 0,
+            download_limit: actualDownloadLimit,
+            download_count: 0,
+            is_active: true,
+            metadata: {
+              storage_key: storageKey,
+              download_expiry_days: downloadExpiryDays,
+              license_required: licenseRequired,
+              release_notes: String(body.release_notes || "").trim() || undefined,
+            },
+          }])
+
+          // Create remote link between Product and DigitalAsset
+          try {
+            await remoteLink.create({
+              [Modules.PRODUCT]: { product_id: product.id },
+              [DIGITAL_ASSET_MODULE]: { digital_asset_id: digitalAsset.id },
+            })
+          } catch (linkErr: any) {
+            if (!/already exists|duplicate/i.test(String(linkErr?.message || linkErr))) {
+              throw linkErr
+            }
+          }
+
+          console.log(
+            `[Digital Product] Created DigitalAsset record ${digitalAsset.id} ` +
+            `for product ${product.id} (${title})`
+          )
+        } catch (assetErr: any) {
+          // Non-fatal: the product was created successfully. The DigitalAsset
+          // record can be created manually from the admin panel if needed.
+          console.error(`[Digital Product] Failed to create DigitalAsset record:`, assetErr.message)
+        }
 
         res.status(201).json({
           message: "Digital product created and published successfully.",

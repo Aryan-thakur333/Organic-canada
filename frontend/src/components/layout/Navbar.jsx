@@ -16,19 +16,16 @@ import {
   Settings,
   ClipboardList,
   Store,
-  Sparkles,
-  Zap,
   Building2
 } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import Button from '../common/Button';
 import { logout } from '../../redux/authSlice';
-import { clearUserProfile, updateUserProfile } from '../../redux/userSlice';
+import { clearUserProfile } from '../../redux/userSlice';
 import { firebaseAuthService } from '../../services/firebaseAuthService';
 import { BRAND } from '../../config/branding';
-import { subscriptionService } from '../../services/medusa/subscriptionService';
 import useB2BCompany from '../../hooks/useB2BCompany';
-import { getAccountType } from '../../utils/accountType';
+import { isB2BUser } from '../../utils/accountType';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -40,15 +37,7 @@ const Navbar = () => {
   const { isAuthenticated } = useSelector((state) => state.auth);
   const userProfile = useSelector((state) => state.user?.profile);
   const { company: b2bCompany } = useB2BCompany();
-  const b2bStatus = b2bCompany?.status;
-  const accountType = getAccountType(userProfile, b2bCompany);
-  const isApprovedB2B = accountType === 'b2b_approved';
-  const isPendingB2B = accountType === 'b2b_pending';
-  const isRejectedB2B = accountType === 'b2b_rejected';
-  const hasB2BContext = Boolean(b2bCompany);
-  const activeSubscription = userProfile?.active_subscription;
-  const isPremium = ['active', 'trialing'].includes(activeSubscription?.status);
-  const hasFastDelivery = isPremium && activeSubscription?.metadata?.fast_delivery === true;
+  const isApprovedB2B = isB2BUser(userProfile, b2bCompany);
   const location = useLocation();
   const dispatch = useDispatch();
 
@@ -76,18 +65,6 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    let active = true;
-    if (isApprovedB2B) return;
-    subscriptionService.list().then(({ subscriptions = [] }) => {
-      if (!active) return;
-      const current = subscriptions.find((item) => ['active', 'trialing'].includes(item.status)) || null;
-      dispatch(updateUserProfile({ active_subscription: current }));
-    }).catch(() => {});
-    return () => { active = false; };
-  }, [dispatch, isAuthenticated, isApprovedB2B]);
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -210,7 +187,7 @@ const Navbar = () => {
                         <p className="text-sm font-semibold truncate">{userProfile?.name || userProfile?.email || 'User'}</p>
                       </div>
 
-                      {isApprovedB2B ? (
+                      {isApprovedB2B && (
                         <div className="px-3 py-2 mx-1 my-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40">
                           <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
                             <Building2 size={14} className="shrink-0" />
@@ -220,34 +197,7 @@ const Navbar = () => {
                             {b2bCompany.company_name}
                           </p>
                         </div>
-                      ) : isPendingB2B ? (
-                        <div className="px-3 py-2 mx-1 my-1 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 text-xs font-bold text-amber-700 dark:text-amber-300">
-                          B2B Pending Approval
-                        </div>
-                      ) : isRejectedB2B ? (
-                        <div className="px-3 py-2 mx-1 my-1 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 text-xs font-bold text-red-700 dark:text-red-300">
-                          B2B Application Rejected
-                        </div>
-                      ) : isPremium ? (
-                        <div className="px-3 py-2 mx-1 my-1 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border border-amber-200 dark:border-amber-700/50 flex items-center gap-2">
-                          <Sparkles size={14} className="text-amber-500 shrink-0" />
-                          <span className="text-xs font-bold text-amber-700 dark:text-amber-300 leading-tight">
-                            ✨ Premium Member
-                          </span>
-                          {hasFastDelivery && <span className="text-[10px] text-amber-600 dark:text-amber-400 ml-auto font-medium whitespace-nowrap">
-                            <Zap size={10} className="inline mr-0.5" />Fast Delivery
-                          </span>}
-                        </div>
-                      ) : !hasB2BContext ? (
-                        <button
-                          onClick={() => { setIsProfileOpen(false); navigate('/dashboard/subscriptions'); }}
-                          className="w-full flex items-center gap-2 px-3 py-2.5 mx-1 my-1 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-700/50 hover:from-amber-100 hover:to-orange-100 dark:hover:from-amber-800/30 dark:hover:to-orange-800/30 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm font-semibold text-amber-800 dark:text-amber-200"
-                        >
-                          <Sparkles size={16} className="text-amber-500 shrink-0" />
-                          <span>🚀 Upgrade to Premium</span>
-                        </button>
-                      ) : null}
-
+                      )}
                       <Link to="/profile" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-3 py-2 hover:bg-stone-50 dark:hover:bg-slate-700 rounded-lg text-sm transition-colors">
                         <Settings size={16} /> Profile Settings
                       </Link>
@@ -324,3 +274,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
   Building2,
   ArrowRight,
@@ -25,9 +25,9 @@ import { loginFailure, loginSuccess, authStart, authResolved } from '../redux/au
 import { setUserProfile } from '../redux/userSlice';
 import { mapCustomerToProfile } from '../utils/customerProfile';
 import { b2bApi } from '../services/b2bApi';
+import { applyCustomerTokenToApiClient } from '../services/apiClient';
 import useToast from '../hooks/useToast';
 
-const B2B_LOGIN_ACTION_TOKEN = 'b2b-login-submit';
 const RATE_LIMIT_MESSAGE = 'System security delay active. Resetting connection pipeline, please wait 15 seconds.';
 
 const getAuthErrorStatus = (error) => (
@@ -105,13 +105,11 @@ const B2BLogin = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { showToast } = useToast();
-  const { isAuthenticated } = useSelector((state) => state.auth);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
-  const [loginActionToken, setLoginActionToken] = useState(null);
 
   // Post-login company check state
   const [checkingCompany, setCheckingCompany] = useState(false);
@@ -120,12 +118,12 @@ const B2BLogin = () => {
   const companyCheckInFlight = useRef(false);
   const submitInFlight = useRef(false);
 
-  const checkAfterLogin = useCallback(async (actionToken) => {
-    if (actionToken !== B2B_LOGIN_ACTION_TOKEN) return;
+  const checkAfterLogin = useCallback(async () => {
     if (companyCheckInFlight.current) return;
     companyCheckInFlight.current = true;
     setCheckingCompany(true);
     try {
+      b2bApi.clearCompanyCache();
       const res = await b2bApi.getCompany({ forceRefresh: true });
       const c = res?.company ?? null;
       setCompany(c);
@@ -158,19 +156,6 @@ const B2BLogin = () => {
     }
   }, [navigate, showToast]);
 
-  // Only run the post-login handshake after this component creates a real submit action token.
-  useEffect(() => {
-    if (
-      loginActionToken === B2B_LOGIN_ACTION_TOKEN
-      && isAuthenticated
-      && !checkingCompany
-      && !companyCheckDone
-      && !companyCheckInFlight.current
-    ) {
-      checkAfterLogin(loginActionToken);
-    }
-  }, [isAuthenticated, checkingCompany, companyCheckDone, loginActionToken, checkAfterLogin]);
-
   const handleLogin = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -181,21 +166,27 @@ const B2BLogin = () => {
     }
     submitInFlight.current = true;
     setFormError('');
-    setLoginActionToken(B2B_LOGIN_ACTION_TOKEN);
 
     dispatch(authStart());
 
     try {
       const authResponse = await authService.login(email, password);
+      const token = authResponse?.token;
+      if (!token) {
+        throw new Error('Login succeeded but no customer token was returned.');
+      }
+
+      applyCustomerTokenToApiClient(token);
+
       const profileData = await authService.getCurrentCustomer();
       const customer = profileData.customer;
-      dispatch(loginSuccess({ token: authResponse?.token, user: customer }));
+      dispatch(loginSuccess({ token, user: customer }));
       dispatch(setUserProfile(mapCustomerToProfile(customer)));
       dispatch(authResolved());
       showToast('Welcome back! 🌿', 'success');
 
       // Check company status immediately
-      await checkAfterLogin(B2B_LOGIN_ACTION_TOKEN);
+      await checkAfterLogin();
     } catch (error) {
       const message = getLoginErrorMessage(error);
       setFormError(message);

@@ -124,10 +124,9 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 //
 //  PRICING CONTEXT BINDING:
 //    The pricing calculation requires currency_code and region_id to be
-//    explicitly bound. If the client does not supply them in the request
-//    body, the handler falls back to the active customer context metadata
-//    or the first available region/currency. This eliminates the
-//    "Method calculatePrices requires currency_code" validation crash.
+//    explicitly bound. If the client does not supply them, the handler falls
+//    back to the authenticated customer's default region tracking attributes
+//    to prevent the calculatePrices crash entirely.
 //
 //  Request body:
 //    {

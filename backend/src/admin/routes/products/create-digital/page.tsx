@@ -124,35 +124,81 @@ const CreateDigitalProductPage = () => {
 
     setLoading(true)
 
-    const form = new FormData()
-    form.set("file", file)
-    form.set("title", title.trim())
-    form.set("description", description.trim())
-    form.set("handle", handle.trim())
-    // Set prices for each currency
-    for (const price of prices) {
-      if (price.value && parseFloat(price.value) > 0) {
-        const key = `price_${price.currency_code}`
-        form.set(key, price.value)
-      }
-    }
-    form.set("version", version)
-    form.set("download_limit", downloadLimit)
-    form.set("download_expiry_days", downloadExpiryDays)
-    form.set("license_required", String(licenseRequired))
-    form.set("release_notes", releaseNotes.trim())
-
     try {
-      const response = await fetch("/admin/products/digital", {
+      // ── Step 1: Upload file to Medusa Admin Upload API ──
+      const uploadForm = new FormData()
+      uploadForm.set("file", file)
+
+      const uploadRes = await fetch("/admin/uploads", {
         method: "POST",
         credentials: "include",
-        body: form,
+        body: uploadForm,
       })
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.message || "Failed to create digital product")
+
+      const uploadData = await uploadRes.json()
+      if (!uploadRes.ok) {
+        throw new Error(uploadData.message || "Failed to upload file")
+      }
+
+      // Medusa returns an array of uploaded files
+      const uploadedFile = Array.isArray(uploadData.uploads) ? uploadData.uploads[0] : uploadData
+      const storageKey = uploadedFile?.url || uploadedFile?.key || uploadedFile?.path
+      if (!storageKey) {
+        throw new Error("File uploaded but no storage key returned")
+      }
+
+      // ── Step 2: Build multi-currency prices array ──
+      const pricesPayload = prices
+        .filter(p => p.value && parseFloat(p.value) > 0)
+        .map(p => ({
+          currency_code: p.currency_code,
+          amount: Math.round(parseFloat(p.value) * 100), // convert to cents
+        }))
+
+      if (!pricesPayload.length) {
+        throw new Error("At least one price is required")
+      }
+
+      // ── Step 3: Create product with digital asset metadata ──
+      const productPayload = {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        handle: handle.trim() || undefined,
+        is_digital_product: true,
+        variants: [
+          {
+            title: "Default",
+            manage_inventory: false,
+            prices: pricesPayload,
+            metadata: {
+              digital_asset_key: storageKey,
+              file_name: file.name,
+              mime_type: file.type || "application/octet-stream",
+              file_size: file.size,
+              version: version || "1.0.0",
+              download_limit: parseInt(downloadLimit, 10) || 5,
+              download_expiry_days: parseInt(downloadExpiryDays, 10) || 365,
+              license_required: Boolean(licenseRequired),
+              release_notes: releaseNotes.trim() || undefined,
+            },
+          },
+        ],
+      }
+
+      const productRes = await fetch("/admin/products", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(productPayload),
+      })
+
+      const productData = await productRes.json()
+      if (!productRes.ok) {
+        throw new Error(productData.message || "Failed to create digital product")
+      }
 
       toast.success("Digital product published", {
-        description: data.product?.title || title,
+        description: productData.product?.title || title,
       })
 
       // Reset form

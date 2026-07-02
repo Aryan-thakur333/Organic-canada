@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils"
 import { DIGITAL_ASSET_MODULE } from "../../../../modules/digital-asset"
@@ -12,7 +11,7 @@ const STORAGE_DIR = path.join(process.cwd(), "uploads", "digital")
  *
  * Secure download endpoint that serves digital asset files.
  * Authorization: Customer must own the order, payment must be captured.
- * 
+ *
  * Supports two modes:
  * 1. DigitalOrderDownload ID (dld_xxx) - from /store/orders/downloads
  * 2. Asset ID with order_id query param - direct asset reference
@@ -33,7 +32,6 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
     // ── Determine asset info and validation ──
-    let assetId: string
     let orderLookupId: string
     let storageKey: string | null = null
     let fileName: string = "download"
@@ -45,7 +43,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     const isOrderDownload = id.startsWith("dld_")
 
     if (isOrderDownload) {
-      // Mode 1: DigitalOrderDownload record
+      // Mode 1: DigitalOrderDownload record (preferred - created proactively by order-placed subscriber)
       const downloadRecord = await digitalAssetService.retrieveDigitalOrderDownload(id).catch(() => null)
       if (!downloadRecord) {
         return res.status(404).json({ message: "Download record not found." })
@@ -81,51 +79,61 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
       // Get metadata for file info
       const recordMeta = downloadRecord.metadata || {}
-      storageKey = recordMeta.storage_key || null
-      fileName = recordMeta.file_name || "download"
-      mimeType = recordMeta.mime_type || "application/octet-stream"
-      fileSize = recordMeta.file_size || 0
+      storageKey = recordMeta.storage_key as string | undefined || null
+      fileName = recordMeta.file_name as string || "download"
+      mimeType = recordMeta.mime_type as string || "application/octet-stream"
+      fileSize = Number(recordMeta.file_size) || 0
 
       // If no storage_key in metadata, try to get it from the linked asset
       if (!storageKey && downloadRecord.digital_asset_id) {
-        const asset = await digitalAssetService.retrieveDigitalAsset(downloadRecord.digital_asset_id).catch(() => null)
-        if (asset) {
-          storageKey = asset.secure_s3_key
-          fileName = asset.file_name || fileName
-          mimeType = asset.mime_type || mimeType
-          fileSize = asset.file_size || fileSize
+        try {
+          const asset = await digitalAssetService.retrieveDigitalAsset(downloadRecord.digital_asset_id)
+          if (asset) {
+            storageKey = asset.secure_s3_key
+            fileName = asset.file_name || fileName
+            mimeType = asset.mime_type || mimeType
+            fileSize = asset.file_size || fileSize
+          }
+        } catch {
+          // continue with existing data
         }
       }
 
       // Verify order payment status
-      const { data: orders } = await query.graph({
+      const { data: orders } = (await query.graph({
         entity: "order",
         fields: ["id", "status", "payment_status", "customer_id"],
         filters: { id: orderLookupId },
-      })
-      const order = orders?.[0]
-      if (!order) return res.status(404).json({ message: "Associated order not found." })
-      if (order.customer_id !== customerId) return res.status(403).json({ message: "This order does not belong to you." })
+      })) as any
+      const order = orders?.[0] as any
+      if (!order) {
+        return res.status(404).json({ message: "Associated order not found." })
+      }
+      if (order.customer_id !== customerId) {
+        return res.status(403).json({ message: "This order does not belong to you." })
+      }
 
       const isPaid = ["captured", "partially_refunded", "paid"].includes(order.payment_status || "")
       if (!isPaid && order.status !== "completed") {
         return res.status(403).json({ message: "Payment must be completed before downloading." })
       }
-
     } else if (orderId) {
-      // Mode 2: Asset ID with order_id query param
-      assetId = id
+      // Mode 2: Legacy support - Asset ID with order_id query param
       orderLookupId = orderId
 
       // Verify order belongs to customer and is paid
-      const { data: orders } = await query.graph({
+      const { data: orders } = (await query.graph({
         entity: "order",
         fields: ["id", "status", "payment_status", "customer_id", "items.*"],
         filters: { id: orderLookupId },
-      })
-      const order = orders?.[0]
-      if (!order) return res.status(404).json({ message: "Order not found." })
-      if (order.customer_id !== customerId) return res.status(403).json({ message: "This order does not belong to you." })
+      })) as any
+      const order = orders?.[0] as any
+      if (!order) {
+        return res.status(404).json({ message: "Order not found." })
+      }
+      if (order.customer_id !== customerId) {
+        return res.status(403).json({ message: "This order does not belong to you." })
+      }
 
       const isPaid = ["captured", "partially_refunded", "paid"].includes(order.payment_status || "")
       if (!isPaid && order.status !== "completed") {
@@ -133,7 +141,8 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       }
 
       // Find the digital item in the order items
-      const digitalItem = (order.items || []).find((item: any) => {
+      const items: any[] = order.items || []
+      const digitalItem = items.find((item: any) => {
         const meta = item.metadata || {}
         return meta.is_digital === true || meta.is_digital === "true"
       })
@@ -145,8 +154,8 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       // Extract storage_key from line item metadata or product metadata
       const itemMeta = digitalItem.metadata || {}
       const assets = itemMeta.download_assets || []
-      const matchedAsset = assets.find((a: any) => a.id === assetId || a.id === `asset_${assetId}`)
-      
+      const matchedAsset = assets.find((a: any) => a.id === id || a.id === `asset_${id}`)
+
       if (matchedAsset?.storage_key) {
         storageKey = matchedAsset.storage_key
         fileName = matchedAsset.filename || "download"
@@ -154,16 +163,16 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         fileSize = matchedAsset.size || 0
       } else {
         // Try to find from product metadata
-        const { data: products } = await query.graph({
+        const { data: products } = (await query.graph({
           entity: "product",
           fields: ["id", "metadata"],
           filters: { id: digitalItem.product_id },
-        })
+        })) as any
         const product = products?.[0]
         if (product) {
           const productMeta = product.metadata || {}
           const productAssets = productMeta.download_assets || []
-          const productAsset = productAssets.find((a: any) => a.id === assetId || a.id === `asset_${assetId}`)
+          const productAsset = productAssets.find((a: any) => a.id === id || a.id === `asset_${id}`)
           if (productAsset?.storage_key) {
             storageKey = productAsset.storage_key
             fileName = productAsset.filename || "download"
@@ -173,7 +182,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         }
       }
 
-      // Also check for existing download record to decrement
+      // Check for existing download record to decrement
       const existingDownload = await digitalAssetService.listDigitalOrderDownloads(
         { order_id: orderLookupId, product_id: digitalItem.product_id, customer_id: customerId },
         { take: 1 }
@@ -206,29 +215,28 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       return res.status(404).json({ message: "The requested file is no longer available on the server." })
     }
 
-    // Determine the file to send
-    const fileBuffer = fs.readFileSync(filePath)
     const stat = fs.statSync(filePath)
 
-    // Update download tracking
+    // Update download tracking BEFORE streaming to prevent race conditions
     try {
       if (downloadRecordId) {
         await digitalAssetService.updateDigitalOrderDownloads({
           id: downloadRecordId,
           remaining_downloads: Math.max(0, remainingDownloads - 1),
-          download_count: (remainingDownloads > 0 ? 1 : 0),
+          download_count: 1,
           last_downloaded_at: new Date(),
         })
       } else if (orderId) {
-        // Try to find or create a download record for this order
-        const { data: orders } = await query.graph({
+        // Legacy: create a download record on first download
+        const { data: orders } = (await query.graph({
           entity: "order",
           fields: ["id", "customer_id", "items.*"],
           filters: { id: orderId },
-        })
-        const order = orders?.[0]
+        })) as any
+        const order = orders?.[0] as any
         if (order) {
-          const digitalItem = (order.items || []).find((item: any) => {
+          const items: any[] = order.items || []
+          const digitalItem = items.find((item: any) => {
             const meta = item.metadata || {}
             return meta.is_digital === true || meta.is_digital === "true"
           })
@@ -240,7 +248,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
               product_id: digitalItem.product_id,
               customer_id: customerId,
               digital_asset_id: null,
-              remaining_downloads: Math.max(0, (itemMeta.download_limit || 5) - 1),
+              remaining_downloads: Math.max(0, (Number(itemMeta.download_limit) || 5) - 1),
               download_count: 1,
               expires_at: itemMeta.expires_at ? new Date(itemMeta.expires_at) : null,
               is_active: true,
@@ -262,21 +270,45 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       // Don't block the download for tracking errors
     }
 
-    // Stream the file to the client
+    // Stream the file to the client using a ReadStream for memory efficiency
+    const readStream = fs.createReadStream(filePath)
+
     res.setHeader("Content-Type", mimeType)
     res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`)
     res.setHeader("Content-Length", stat.size)
     res.setHeader("X-Remaining-Downloads", String(Math.max(0, remainingDownloads - 1)))
-    res.end(fileBuffer)
+    res.setHeader("Cache-Control", "private, no-cache, no-store, must-revalidate")
+    res.setHeader("Pragma", "no-cache")
+    res.setHeader("Expires", "0")
 
+    // Pipe the file stream to the response
+    readStream.pipe(res)
+
+    // Handle client disconnect: abort the read stream to prevent resource leaks
+    res.on("close", () => {
+      readStream.destroy()
+    })
+
+    // Handle stream errors gracefully — destroy the stream to release resources
+    readStream.on("error", (streamErr) => {
+      console.error("[Download] Stream error:", streamErr)
+      readStream.destroy()
+      if (!res.headersSent) {
+        return res.status(500).json({ message: "Failed to stream download file." })
+      }
+      res.end()
+    })
   } catch (error: any) {
     if (
-      error.type === MedusaError.Types.NOT_FOUND ||
-      error.message?.includes("not found")
+      MedusaError.Types &&
+      (error.type === MedusaError.Types.NOT_FOUND ||
+        error.message?.includes("not found"))
     ) {
       return res.status(404).json({ message: "Download not found." })
     }
     console.error("[Download] Error:", error)
-    return res.status(500).json({ message: "Failed to process download." })
+    if (!res.headersSent) {
+      return res.status(500).json({ message: "Failed to process download." })
+    }
   }
 }

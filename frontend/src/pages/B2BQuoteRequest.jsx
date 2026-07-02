@@ -25,7 +25,7 @@ import MobileNav from '../components/MobileNav';
 import Button from '../components/common/Button';
 import { b2bApi } from '../services/b2bApi';
 import useToast from '../hooks/useToast';
-import { resolveDefaultRegionId } from '../lib/medusa/regions';
+import { resolveDefaultRegionContext } from '../lib/medusa/regions';
 import { normalizeProductList } from '../lib/medusa/normalize';
 import { getB2BVariantPrice } from '../utils/b2bPricing';
 import { extractB2BProducts } from '../utils/b2bProductsResponse';
@@ -79,8 +79,6 @@ const getPurchasableVariant = (product, selectedVariant = null) => {
 const getQuoteUnitPrice = (variant) => (
   getB2BVariantPrice(variant) ?? variant?.prices?.[0]?.amount ?? 0
 );
-
-// Real B2B catalog products are fetched on mount and populated dynamically.
 
 // ── Component ──────────────────────────────────────────────────────────────
 
@@ -138,12 +136,12 @@ const B2BQuoteRequest = () => {
     (async () => {
       try {
         setCatalogLoading(true);
-        const regionId = await resolveDefaultRegionId();
-        if (!regionId) return;
+        const pricingContext = await resolveDefaultRegionContext();
+        if (!pricingContext?.region_id || !pricingContext?.currency_code) return;
         const res = await b2bApi.getB2BProducts({
           limit: 100,
-          region_id: regionId,
-          currency_code: 'cad',
+          region_id: pricingContext.region_id,
+          currency_code: pricingContext.currency_code,
         });
         if (controller.signal.aborted) return;
         setCatalogProducts(normalizeProductList(extractB2BProducts(res)));
@@ -235,6 +233,16 @@ const B2BQuoteRequest = () => {
 
     setSubmitting(true);
     try {
+      // ── Dynamic Quote Request Pricing Context Configuration ───────────
+      // Explicitly attach currency_code and region_id to the POST payload
+      // to prevent "Method calculatePrices requires currency_code" crash.
+      const pricingContext = await resolveDefaultRegionContext();
+
+      if (!pricingContext?.region_id || !pricingContext?.currency_code) {
+        showToast('Unable to resolve your checkout region for quote pricing. Please refresh and try again.', 'error');
+        return;
+      }
+      
       const payload = {
         items: filteredItems.map((item) => ({
           product_id: item.product_id,
@@ -243,6 +251,8 @@ const B2BQuoteRequest = () => {
           note: item.title ? `Product: ${item.title}${item.sku ? ` (SKU: ${item.sku})` : ''}${item.unit_price ? ` at ${fmtPrice(item.unit_price)}/unit` : ''}` : undefined,
         })),
         buyer_note: notes.trim() || undefined,
+        currency_code: pricingContext.currency_code,
+        region_id: pricingContext.region_id,
       };
 
       const res = await b2bApi.submitQuote(payload);

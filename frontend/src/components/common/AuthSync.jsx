@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { authService } from '../../services/medusa/authService';
 import { loginSuccess, authResolved } from '../../redux/authSlice';
@@ -6,54 +6,67 @@ import { setUserProfile } from '../../redux/userSlice';
 import { clearCustomerToken, getCustomerToken } from '../../services/medusa/tokenStorage';
 import { mapCustomerToProfile } from '../../utils/customerProfile';
 
+function isCanceled(error) {
+  return Boolean(
+    error?.name === 'AbortError' ||
+    error?.name === 'CanceledError' ||
+    error?.code === 'ERR_CANCELED' ||
+    error?.message === 'canceled' ||
+    String(error?.message || '').toLowerCase().includes('aborted')
+  );
+}
+
 /**
- * AuthSync — Restores Medusa session on app mount.
+ * Restores the Medusa customer session once on app startup.
  *
- * Checks medusa_customer_token and fetches /store/customers/me.
- * If valid → updates Redux state. If stale → clears the token.
- *
- * No Firebase listener needed — Firebase popup login handles its own sync
- * via firebaseAuthService.syncWithMedusa().
+ * Route guards read auth.authResolved, so they wait until this check has
+ * either restored Redux auth state or confirmed there is no usable token.
  */
 const AuthSync = () => {
   const dispatch = useDispatch();
   const { isAuthenticated, authResolved: isResolved } = useSelector(
     (state) => state.auth
   );
-  const syncLock = useRef(false);
 
   useEffect(() => {
-    // Already authenticated or already resolved → nothing to do
-    if (isAuthenticated || isResolved) return;
+    if (isAuthenticated || isResolved) return undefined;
+
+    const controller = new AbortController();
+    let mounted = true;
 
     const restoreSession = async () => {
-      if (syncLock.current) return;
-      syncLock.current = true;
-
-      const hasToken = getCustomerToken();
-      if (!hasToken) {
-        dispatch(authResolved());
+      const tokenAtStart = getCustomerToken();
+      if (!tokenAtStart) {
+        if (mounted) dispatch(authResolved());
         return;
       }
 
       try {
-        const { customer } = await authService.getCurrentCustomer();
+        const response = await authService.getCurrentCustomer({
+          signal: controller.signal,
+        });
+        const customer = response?.customer;
         if (customer) {
-          dispatch(loginSuccess({ user: customer }));
-          dispatch(
-            setUserProfile(mapCustomerToProfile(customer))
-          );
+          dispatch(loginSuccess({ token: tokenAtStart, user: customer }));
+          dispatch(setUserProfile(mapCustomerToProfile(customer)));
         }
-      } catch {
-        // Token is stale or invalid — clean up silently
-        clearCustomerToken();
+      } catch (error) {
+        const tokenStillMatches = getCustomerToken() === tokenAtStart;
+        if (!isCanceled(error) && error?.response?.status === 401 && tokenStillMatches) {
+          clearCustomerToken();
+        }
       } finally {
-        syncLock.current = false;
-        dispatch(authResolved());
+        if (mounted) {
+          dispatch(authResolved());
+        }
       }
     };
 
     restoreSession();
+    return () => {
+      mounted = false;
+      controller.abort();
+    };
   }, [dispatch, isAuthenticated, isResolved]);
 
   return null;

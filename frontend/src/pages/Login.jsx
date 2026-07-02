@@ -79,12 +79,12 @@ const Login = () => {
           error.code = "SELLER_ACCOUNT";
           throw error;
         }
-        await authService.login(formData.email, formData.password);
+        const authResponse = await authService.login(formData.email, formData.password);
 
         const profileData = await authService.getCurrentCustomer();
         const customer = profileData.customer;
 
-        dispatch(loginSuccess({ user: customer }));
+        dispatch(loginSuccess({ token: authResponse?.token, user: customer }));
 
         dispatch(
           setUserProfile(mapCustomerToProfile(customer))
@@ -96,7 +96,7 @@ const Login = () => {
       }
 
       if (mode === "register") {
-        const { customer } = await authService.register({
+        const { token, customer } = await authService.register({
           email: formData.email,
           password: formData.password,
           first_name: formData.first_name,
@@ -104,7 +104,7 @@ const Login = () => {
         });
 
         // Auto-login: update Redux state so the user is immediately authenticated
-        dispatch(loginSuccess({ user: customer }));
+        dispatch(loginSuccess({ token, user: customer }));
 
         dispatch(
           setUserProfile(mapCustomerToProfile(customer))

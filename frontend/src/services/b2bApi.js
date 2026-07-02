@@ -1,5 +1,6 @@
 import apiClient from "./apiClient";
 import { authService } from "./medusa/authService";
+import { getCustomerToken } from "./medusa/tokenStorage";
 
 const COMPANY_CACHE_TTL_MS = 60_000;
 const B2B_SESSION_CACHE_TTL_MS = 60_000;
@@ -68,16 +69,44 @@ function isApprovedB2BCompany(company) {
   return APPROVED_B2B_STATUSES.has(company?.status);
 }
 
+function authRequiredError() {
+  const error = new Error("B2B company lookup requires a customer token.");
+  error.code = "AUTH_REQUIRED";
+  return error;
+}
+
 function getCompany({ signal, forceRefresh = false } = {}) {
+  if (signal?.aborted) {
+    return Promise.reject(new DOMException("Request aborted", "AbortError"));
+  }
+
+  const token = getCustomerToken();
+  if (!token) {
+    return Promise.reject(authRequiredError());
+  }
+
   const now = Date.now();
 
   if (!forceRefresh && companyCache && companyCache.expiresAt > now) {
     return Promise.resolve(companyCache.data);
   }
 
+  if (forceRefresh) {
+    companyCache = null;
+    companyInFlight = null;
+  }
+
   if (!companyInFlight) {
-    companyInFlight = apiClient
-      .get("/store/b2b/company", { __skipRetry: true, signal, withCredentials: true })
+    let request;
+    request = apiClient
+      .get("/store/b2b/company", {
+        __skipRetry: true,
+        signal,
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
       .then((data) => {
         companyCache = {
           data,
@@ -92,22 +121,35 @@ function getCompany({ signal, forceRefresh = false } = {}) {
         throw error;
       })
       .finally(() => {
-        companyInFlight = null;
+        if (companyInFlight === request) {
+          companyInFlight = null;
+        }
       });
+    companyInFlight = request;
   }
 
   return waitForRequest(companyInFlight, signal);
 }
 
 function hydrateB2BSession({ signal, forceRefresh = false } = {}) {
+  if (signal?.aborted) {
+    return Promise.reject(new DOMException("Request aborted", "AbortError"));
+  }
+
   const now = Date.now();
 
   if (!forceRefresh && b2bSessionCache && b2bSessionCache.expiresAt > now) {
     return Promise.resolve(b2bSessionCache.data);
   }
 
+  if (forceRefresh) {
+    b2bSessionCache = null;
+    b2bSessionInFlight = null;
+  }
+
   if (!b2bSessionInFlight) {
-    b2bSessionInFlight = (async () => {
+    let request;
+    request = (async () => {
       const customerResponse = await authService.getCurrentCustomer({ signal });
       const customer = normalizeCustomer(customerResponse);
       const customerCompany = extractCompanyFromCustomer(customer);
@@ -146,8 +188,11 @@ function hydrateB2BSession({ signal, forceRefresh = false } = {}) {
         throw error;
       })
       .finally(() => {
-        b2bSessionInFlight = null;
+        if (b2bSessionInFlight === request) {
+          b2bSessionInFlight = null;
+        }
       });
+    b2bSessionInFlight = request;
   }
 
   return waitForRequest(b2bSessionInFlight, signal);
@@ -190,12 +235,20 @@ export const b2bApi = {
    *
    * @param {{
    *   items: Array<{ product_id: string, variant_id: string, quantity: number, note?: string }>,
-   *   buyer_note?: string
+   *   buyer_note?: string,
+   *   currency_code: string,
+   *   region_id: string
    * }} payload
    * @returns {Promise<{ message: string, quote: { id: string, status: string } }>}
    */
-  submitQuote: (payload) => apiClient.post("/store/b2b/quotes", payload),
-  createQuote: (payload) => apiClient.post("/store/b2b/quotes", payload),
+  submitQuote: (payload) => apiClient.post("/store/b2b/quotes", payload, {
+    __skipRetry: true,
+    withCredentials: true,
+  }),
+  createQuote: (payload) => apiClient.post("/store/b2b/quotes", payload, {
+    __skipRetry: true,
+    withCredentials: true,
+  }),
 
   /**
    * GET /store/b2b/quotes

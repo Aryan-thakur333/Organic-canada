@@ -3,6 +3,7 @@ import { Modules } from "@medusajs/framework/utils"
 import { VENDOR_MODULE } from "../modules/vendor"
 import { SUBSCRIPTION_MODULE } from "../modules/subscription"
 import { B2B_MODULE } from "../modules/b2b"
+import { DIGITAL_ASSET_MODULE } from "../modules/digital-asset"
 import { getStripeClient } from "../lib/stripe-client"
 import { splitOrderWorkflow } from "../workflows/split-order-workflow"
 
@@ -335,6 +336,133 @@ export default async function orderPlacedSubscriptionCreator({
         name: "subscription.activated",
         data: { id: sub.id, customer_email: sub.customer_email, plan: sub.plan },
       })
+    }
+
+    // ── DIGITAL DOWNLOAD RECORD CREATION ────────────────────────────────
+    // For digital items in the order, proactively create DigitalOrderDownload records
+    // so customers can access their downloads immediately without lazy-creation on first download.
+    try {
+      const digitalItems = (order.items || []).filter((item: any) => {
+        const meta = item.metadata || {}
+        const variantMeta = item.variant?.metadata || {}
+        return meta.is_digital === true ||
+               meta.is_digital === "true" ||
+               variantMeta.is_digital === true ||
+               variantMeta.is_digital === "true"
+      })
+
+      if (digitalItems.length > 0 && order.customer_id) {
+        const digitalAssetService: any = container.resolve(DIGITAL_ASSET_MODULE)
+
+        for (const item of digitalItems) {
+          const meta = item.metadata || {}
+          const itemTitle = item.title || "Digital Download"
+
+          // Calculate expiry based on order date + download_expiry_days
+          const expiryDays = Number(meta.download_expiry_days) || 365
+          const expiresAt = new Date()
+          expiresAt.setDate(expiresAt.getDate() + expiryDays)
+
+          // Resolve storage_key from item metadata or product metadata
+          let storageKey = meta.storage_key || null
+          let fileName = meta.file_name || itemTitle
+          let mimeType = meta.mime_type || "application/octet-stream"
+          let fileSize = Number(meta.file_size) || 0
+          let digitalAssetId: string | null = null
+          const downloadLimit = Math.max(0, Number(meta.download_limit) || 5)
+
+          // Try to find the DigitalAsset record for this variant
+          if (item.variant_id) {
+            try {
+              const { data: variants } = await query.graph({
+                entity: "variant",
+                fields: [
+                  "id",
+                  "metadata",
+                  "product.id",
+                  "product.metadata",
+                  "product.digital_asset.id",
+                  "product.digital_asset.secure_s3_key",
+                  "product.digital_asset.file_name",
+                  "product.digital_asset.mime_type",
+                  "product.digital_asset.file_size",
+                ],
+                filters: { id: item.variant_id },
+              })
+              const variant = variants?.[0]
+              const variantMeta = variant?.metadata || {}
+              const productMeta = variant?.product?.metadata || {}
+
+              // Get storage info - check variant metadata first, then product metadata, then linked assets
+              if (!storageKey) {
+                storageKey = variantMeta.storage_key || productMeta.storage_key || null
+              }
+              if (!fileName) {
+                fileName = variantMeta.file_name || productMeta.file_name || itemTitle
+              }
+              if (mimeType === "application/octet-stream") {
+                mimeType = variantMeta.mime_type || productMeta.mime_type || mimeType
+              }
+              if (!fileSize) {
+                fileSize = Number(variantMeta.file_size || productMeta.file_size) || 0
+              }
+
+              // Get the digital asset link from the product
+              const linkedAssets = (variant?.product as any)?.digital_asset
+              const linkedAsset = Array.isArray(linkedAssets) ? linkedAssets[0] : linkedAssets
+              if (linkedAsset?.id) {
+                digitalAssetId = linkedAsset.id
+                if (!storageKey) storageKey = linkedAsset.secure_s3_key
+                if (!fileName || fileName === itemTitle) fileName = linkedAsset.file_name || fileName
+                if (mimeType === "application/octet-stream") mimeType = linkedAsset.mime_type || mimeType
+                if (!fileSize) fileSize = linkedAsset.file_size || 0
+              }
+            } catch {
+              // Non-fatal: continue with metadata fallback
+            }
+          }
+
+          // Check if download record already exists for this order + product
+          const existing = await digitalAssetService.listDigitalOrderDownloads(
+            { order_id: orderId, product_id: item.product_id, customer_id: order.customer_id },
+            { take: 1 }
+          )
+
+          if (!existing?.length) {
+            await digitalAssetService.createDigitalOrderDownloads({
+              order_id: orderId,
+              line_item_id: item.id,
+              product_id: item.product_id,
+              customer_id: order.customer_id,
+              digital_asset_id: digitalAssetId,
+              remaining_downloads: downloadLimit,
+              download_count: 0,
+              license_key: null,
+              expires_at: expiresAt,
+              is_active: true,
+              metadata: {
+                title: itemTitle,
+                is_digital: true,
+                version: meta.version || "1.0.0",
+                file_name: fileName,
+                mime_type: mimeType,
+                file_size: fileSize,
+                storage_key: storageKey || null,
+                download_limit: downloadLimit,
+                download_expiry_days: expiryDays,
+              },
+            })
+
+            console.log(
+              `[OrderPlaced] Created digital download record for order ${orderId}, ` +
+              `item: ${itemTitle}, product: ${item.product_id}`
+            )
+          }
+        }
+      }
+    } catch (digitalErr: any) {
+      // Non-fatal: download record creation should not block order processing
+      console.error(`[OrderPlaced] Failed to create digital download records:`, digitalErr.message)
     }
 
     // --- VENDOR LINKAGE LOGIC ---

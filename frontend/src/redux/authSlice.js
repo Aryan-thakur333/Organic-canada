@@ -26,6 +26,7 @@ const authSlice = createSlice({
       state.error = null;
       state.otpSent = false;
       state.phone = "";
+      state.authResolved = true;
     },
     otpSent: (state, action) => {
       state.loading = false;
@@ -45,6 +46,7 @@ const authSlice = createSlice({
       state.error = null;
     },
     authResolved: (state) => {
+      state.loading = false;
       state.authResolved = true;
     },
   },

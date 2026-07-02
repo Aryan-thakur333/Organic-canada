@@ -27,6 +27,8 @@ import Button from "../components/common/Button";
 import { fetchCustomerOrders } from "../services/apiClient";
 import { subscriptionService } from "../services/medusa/subscriptionService";
 import useToast from "../hooks/useToast";
+import useB2BCompany from "../hooks/useB2BCompany";
+import { isB2BUser } from "../utils/accountType";
 
 const money = (cents) =>
   new Intl.NumberFormat("en-US", {
@@ -59,7 +61,10 @@ export default function CustomerDashboard() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const { user } = useSelector((state) => state.auth);
+  const userProfile = useSelector((state) => state.user?.profile);
   const { items: wishlistItems } = useSelector((state) => state.wishlist);
+  const { company: b2bCompany } = useB2BCompany();
+  const isApprovedB2B = isB2BUser(userProfile || user, b2bCompany);
 
   const [orders, setOrders] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
@@ -493,45 +498,46 @@ export default function CustomerDashboard() {
                   )}
                 </motion.div>
 
-                {/* B2B Card */}
-                <motion.div
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-white dark:bg-slate-800 border border-stone-100 dark:border-slate-700 rounded-[2rem] p-6 shadow-sm"
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                      <Building2 size={18} />
+                {isApprovedB2B && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-white dark:bg-slate-800 border border-stone-100 dark:border-slate-700 rounded-[2rem] p-6 shadow-sm"
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                        <Building2 size={18} />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black uppercase tracking-widest text-text-primary">
+                          B2B Wholesale
+                        </h4>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-black uppercase tracking-widest text-text-primary">
-                        B2B Wholesale
-                      </h4>
+                    <p className="text-xs text-text-secondary font-medium mb-4 leading-relaxed">
+                      Access bulk pricing, submit quote requests, and manage your company account.
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="flex-1 gap-1 text-[10px] font-black uppercase tracking-wider"
+                        onClick={() => navigate("/b2b/request-quote")}
+                      >
+                        New Quote
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="flex-1 gap-1 text-[10px] font-black uppercase tracking-wider"
+                        onClick={() => navigate("/account/b2b-quotes")}
+                      >
+                        History
+                      </Button>
                     </div>
-                  </div>
-                  <p className="text-xs text-text-secondary font-medium mb-4 leading-relaxed">
-                    Access bulk pricing, submit quote requests, and manage your company account.
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="flex-1 gap-1 text-[10px] font-black uppercase tracking-wider"
-                      onClick={() => navigate("/b2b/request-quote")}
-                    >
-                      New Quote
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="flex-1 gap-1 text-[10px] font-black uppercase tracking-wider"
-                      onClick={() => navigate("/account/b2b-quotes")}
-                    >
-                      History
-                    </Button>
-                  </div>
-                </motion.div>
+                  </motion.div>
+                )}
 
                 {/* Total Spent */}
                 {stats.totalSpent > 0 && (
