@@ -1,5 +1,16 @@
+import { RouteConfig } from "@medusajs/admin-shared"
+import { Plus } from "@medusajs/icons"
 import { Button, Container, Heading, Input, Label, Text, Textarea, Badge, toast } from "@medusajs/ui"
 import { FormEvent, useState, useEffect } from "react"
+
+// This config explicitly registers the link into the Extensions sidebar navigation tree
+export const config: RouteConfig = {
+  link: {
+    label: "Add Digital Product",
+    icon: Plus,
+  },
+}
+
 
 interface PriceField {
   currency_code: string

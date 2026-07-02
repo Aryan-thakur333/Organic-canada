@@ -300,7 +300,10 @@ export default async function orderPlacedSubscriptionCreator({
     }
 
     for (const item of subscriptionItems) {
-      const plan = (item?.metadata?.subscription_plan as string) || "monthly"
+      // subscriptionItems is derived from order.items and item can be nullable at type level
+      if (!item) continue
+
+      const plan = (item.metadata?.subscription_plan as string) || "monthly"
       const days = planDays[plan] || 30
       const nextBillingDate = new Date()
       nextBillingDate.setDate(nextBillingDate.getDate() + days)
