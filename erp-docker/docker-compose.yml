@@ -1,0 +1,71 @@
+services:
+  odoo-db:
+    image: postgres:16
+    container_name: eatsie-odoo-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+    networks:
+      - eatsie-erp-network
+
+  odoo:
+    image: odoo:18
+    container_name: eatsie-odoo
+    restart: unless-stopped
+
+    depends_on:
+      odoo-db:
+        condition: service_healthy
+
+    ports:
+      - "8069:8069"
+
+    environment:
+      HOST: ${ODOO_HOST}
+      PORT: ${ODOO_PORT}
+      USER: ${ODOO_USER}
+      PASSWORD: ${ODOO_PASSWORD}
+
+    volumes:
+      - ./odoo-data:/var/lib/odoo
+      - ./addons:/mnt/extra-addons
+      - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
+
+    command:
+      - odoo
+      - --config=/etc/odoo/odoo.conf
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8069/web/database/selector', timeout=5)\""
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 40s
+
+    networks:
+      - eatsie-erp-network
+
+networks:
+  eatsie-erp-network:
+    driver: bridge

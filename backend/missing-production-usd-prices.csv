@@ -1,0 +1,42 @@
+product_id,product_title,product_status,product_type,variant_id,variant_title,cad_amount,usd_amount,currency_code,classification,action,notes
+prod_01KVSFB71XDNGFJN01RH3C2G1M,Organic Apples,published,physical,variant_01KVSFB75GZJ4N0B9SY6BXDTZC,Standard,499,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB7BAX6R5GFXKKCC4CYHX,Fresh Bananas,published,physical,variant_01KVSFB7CD3CVS9WN4SCVE9YXT,Standard,299,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB7DRWS2W3RZ6PEWEJV29,Red Strawberries,published,physical,variant_01KVSFB7EKARSRMJ14F2T30WPN,Standard,699,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB7FQRQPT7HHHQTS0D9QA,Green Grapes,published,physical,variant_01KVSFB7GDJ405F2JQJ8A68700,Standard,599,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB7HK2723G4QTVR3DBP0S,Sweet Mangoes,published,physical,variant_01KVSFB7JCCZ0V3E7Q7JQPAYGW,Standard,799,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB7KH3MAADTC8FXDNB7K9,Organic Carrots,published,physical,variant_01KVSFB7M7DJ2NQP1MRFC161ZP,Standard,399,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB7NFW3HA28BEMYCHVFRJ,Fresh Broccoli,published,physical,variant_01KVSFB7PMVBDKJ5NHD9CQQ5NX,Standard,449,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB7REXCQRQ06W82C4610V,Green Spinach,published,physical,variant_01KVSFB7SC8G5X8ZGN2TAPHTPG,Standard,499,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB7VJMJVD821ZFVYN9FWV,Red Tomatoes,published,physical,variant_01KVSFB7WSVC6Y3C0E24ZSP890,Standard,399,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB7Z7ZARK3KPZCNNGCFN8,Organic Potatoes,published,physical,variant_01KVSFB80MDTP8T8R6Z7GB0CQN,Standard,549,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB82HYD8N48WG7XQGKWBW,Organic Milk,published,physical,variant_01KVSFB83K91ZD462YSQSFPK8C,Standard,649,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB85A4E8Z4E4F7ZX8E2SW,Greek Yogurt,published,physical,variant_01KVSFB86BTEA7ZEZ2M01STJYG,Standard,599,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB87RKDRSY8HR988M0Z9K,Cheddar Cheese,published,physical,variant_01KVSFB88CG0FGKBQTG2KNBZE8,Standard,799,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB8A3QK5WZV03MTMEAHPD,Fresh Butter,published,physical,variant_01KVSFB8B6VM0SCQ8NFQZRC239,Standard,549,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB8CFN04MJA0CDQ8Y3QZX,Paneer Block,published,physical,variant_01KVSFB8D6X5V3ZFD2N7NXRYY5,Standard,699,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB8ENFV01KZE8AYE46CJB,Whole Wheat Bread,published,physical,variant_01KVSFB8FGBH5QYY47W48PZY7B,Standard,499,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB8GJWSH1JMXG0XPG2F6N,Croissant,published,physical,variant_01KVSFB8HDHXQHA4PKSS9PQ89A,Standard,349,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB8JPGQQ7QE235C4QDZX0,Sourdough Loaf,published,physical,variant_01KVSFB8K8SQ0PERBD5HNEJE6M,Standard,699,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB8M7AVMZ6888SSSYQE5K,Muffins Pack,published,physical,variant_01KVSFB8MVTVENGRRVN6V61TQN,Standard,899,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB8NSZ67XN9G17BJJ1W38,Organic Cookies,published,physical,variant_01KVSFB8PAKFQGF5B8VM9DCSFJ,Standard,649,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB8QBJ9M95V6E0DFZWHBV,Chicken Breast,published,physical,variant_01KVSFB8R0M148Z5PHK7597K2E,Standard,1299,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB8S2F4YXNV9BAKSNB9M2,Lamb Chops,published,physical,variant_01KVSFB8STSXDM303M3W7B1C6A,Standard,1899,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB8V27PTZ08274047AXD9,Turkey Slices,published,physical,variant_01KVSFB8VPBD68YJKXTHQMNQ8W,Standard,1099,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB8WPTXN2GCYBZ5XH4RH6,Beef Steak,published,physical,variant_01KVSFB8X9WW94FBJDVM4J4VFH,Standard,2299,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB8YFCM952E63E8F4955Z,Chicken Sausages,published,physical,variant_01KVSFB8Z51WWP1W03QSDBY8N3,Standard,999,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB913BBP6JV700C09QV5D,Salmon Fillet,published,physical,variant_01KVSFB92CWGYZ3A6S6EMXP6BE,Standard,1999,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB94BJ8CSBH3WSE47JY4N,Fresh Prawns,published,physical,variant_01KVSFB95KV4BKPP4JT3WD2MRP,Standard,1699,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB97WZ9DA9P6VRTKVQAFF,Tuna Steak,published,physical,variant_01KVSFB992JJ928VFRNB422JQ9,Standard,1899,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB9B2AF16KR0X5JE0C3WV,Crab Meat,published,physical,variant_01KVSFB9C5W5C0347WGB5RNS4Y,Standard,2199,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSFB9E75M66XRVS6N0XS6ZW,White Fish Fillet,published,physical,variant_01KVSFB9F81ZZM6H5SSK61WGBN,Standard,1499,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSPT0255E9PQS0FJZ94MPSR,Papaya,published,physical,variant_01KVSPT08VCN1E9D4CYYGQBG3Q,Standard,699,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSPZAPBTBRDSZHTRVCYXW6Z,Papaya Pack 2015cd,published,physical,variant_01KVSPZAVZKYRRNKJJXMB3VJH0,Small,499,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSPZAPBTBRDSZHTRVCYXW6Z,Papaya Pack 2015cd,published,physical,variant_01KVSPZAW0S335JX2KXGD7NEQJ,Large,899,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSQ48867BV7ZNMYB7CFZX75,Papaya Final a90dd3,published,physical,variant_01KVSQ48EZAJH0KY9XVS2ZZ7BA,Standard,799,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSQ9RMC9VY464EF61WVPZE2,Papaya Link 1a8db7,published,physical,variant_01KVSQ9RXKQWZBH7AK4VK7PTSV,Standard,899,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSQZ00MWS1S3T7FYJJC0VXK,Papaya Link Array b9f928,published,physical,variant_01KVSQZ04ZZ120JMVMPCQ0PYQJ,Standard,999,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVSZH979HQY5NNJS0BCC8Y7Q,papaya,published,physical,variant_01KVSZH9M19J7GWF1M8TV5D5ZZ,Standard,600,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVW0YM6H0HYPRV73MKDJZWDX,Pineapple,published,physical,variant_01KVW0YMR5Q4X2P1H9QVJ0W6XK,Standard,900,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KVW221QD90ZE1Y069Z8VB2J4,Pineapple,published,physical,variant_01KVW221YN1BGRD3G66J4KSJTQ,Standard,700,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KWW11N9K4XYTK17K7DKTSBX0,Organic OIL,published,physical,variant_01KWW11NCJY9SGGGPJ5D7WB4FR,Standard,2500,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price
+prod_01KXJNH57CMPRBEVGSAMB30EMF,chocolate,published,physical,variant_01KXJNH5ASR8XNZ9QSW29B8SJ7,Standard,2200,,usd,PRODUCTION_STOREFRONT,REVIEW,Legitimate physical storefront item missing USD price

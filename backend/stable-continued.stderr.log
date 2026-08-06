@@ -1,0 +1,18 @@
+npm warn Unknown project config "public-hoist-pattern". This will stop working in the next major version of npm.
+(node:3396) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+══════════════════════════════════════════════════════
+  ⚠️  LOCAL ONLY: fake Redis is enabled. Do not use this mode in production.
+══════════════════════════════════════════════════════
+
+[medusa-config] Stripe is disabled: STRIPE_API_KEY is not configured. COD remains available.
+- Creating server
+√ Server is ready on port: 9000 – 11649ms
+{"event":"http_request","request_id":"ms21vm1obi5vh4","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":1}
+{"event":"http_request","request_id":"ms21vmvi0audzu","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":1}
+{"event":"http_request","request_id":"ms21wg2j9edv84","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":2}
+{"event":"http_request","request_id":"ms21wgvts6wd8s","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":1}
+{"event":"http_request","request_id":"ms21xt5iiwez4g","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":1}
+{"event":"http_request","request_id":"ms21xtzgrgmhjb","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":1}
+{"event":"http_request","request_id":"ms21y00zwuccd9","method":"GET","path":"/.well-known/appspecific/com.chrome.devtools.json","status":404,"duration_ms":2}

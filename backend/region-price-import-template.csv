@@ -1,0 +1,3 @@
+product_id,product_title,variant_id,variant_title,currency_code,amount,action
+prod_01J12345,Organic Apple,variant_01J12345,Single Apple,usd,150,CREATE
+prod_01J12345,Organic Apple,variant_01J12345,Single Apple,cad,180,SKIP

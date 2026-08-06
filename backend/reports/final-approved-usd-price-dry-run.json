@@ -1,0 +1,19 @@
+{
+  "status": "NOT_RUN_NO_APPROVED_ROWS",
+  "approvedRowsExamined": 0,
+  "variantsMatched": 0,
+  "priceSetsFound": 0,
+  "priceSetsNeedingCreation": 0,
+  "usdPricesToCreate": 0,
+  "rowsSkipped": 64,
+  "rowsRejected": 0,
+  "existingUsdPricesPreserved": 0,
+  "cadPricesPreserved": 64,
+  "estimatedUsaEligibleProductCountAfterImport": 15,
+  "databaseWrites": 0,
+  "cadPricesChanged": 0,
+  "existingValidUsdPricesChanged": 0,
+  "productsChanged": 0,
+  "inventoryChanged": 0,
+  "plannedCreates": []
+}

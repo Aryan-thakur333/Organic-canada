@@ -1,0 +1,25 @@
+npm warn Unknown project config "public-hoist-pattern". This will stop working in the next major version of npm.
+(node:14204) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+══════════════════════════════════════════════════════
+  ⚠️  LOCAL ONLY: fake Redis is enabled. Do not use this mode in production.
+══════════════════════════════════════════════════════
+
+[medusa-config] Stripe is disabled: STRIPE_API_KEY is not configured. COD remains available.
+- Creating server
+√ Server is ready on port: 9000 – 6427ms
+{"event":"http_request","request_id":"ms21hcruq0160d","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":2}
+{"event":"http_request","request_id":"ms21hdl2mv2ulr","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":1}
+{"event":"http_request","request_id":"ms21if84yi7g0l","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":1}
+{"event":"http_request","request_id":"ms21ig26vjcdm6","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":1}
+{"event":"http_request","request_id":"ms21j2maauovpt","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":3}
+{"event":"http_request","request_id":"ms21j2sd5m8ndb","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":2}
+{"event":"http_request","request_id":"ms21j3h5er2k31","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":1}
+{"event":"http_request","request_id":"ms21j3mfpo49r4","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":1}
+{"event":"http_request","request_id":"ms21km1aqog1kb","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":1}
+{"event":"http_request","request_id":"ms21km7k6u0q6p","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":2}
+{"event":"http_request","request_id":"ms21kmyc20nfip","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":2}
+{"event":"http_request","request_id":"ms21knqt0bdi7o","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":1}
+{"event":"http_request","request_id":"ms21op0chfwprm","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":1}
+{"event":"http_request","request_id":"ms21opu4nhdhtd","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":1}

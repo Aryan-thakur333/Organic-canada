@@ -1,0 +1,6 @@
+.env
+postgres-data/
+odoo-data/
+backups/*.sql
+backups/*.dump
+backups/*.tar

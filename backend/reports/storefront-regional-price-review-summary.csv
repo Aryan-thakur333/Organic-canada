@@ -1,0 +1,7 @@
+review_group,product_count,variant_count,missing_usd_count,missing_cad_count,high_usd_count,high_cad_count,approved_count,pending_count
+MISSING_BOTH,5,5,5,5,0,0,0,5
+MISSING_USD,63,64,64,0,0,55,0,64
+MISSING_CAD,0,0,0,0,0,0,0,0
+HIGH_VALUE_REVIEW,8,8,0,0,8,8,0,8
+VALID_BOTH,7,23,0,0,0,0,0,23
+NO_ACTIVE_VARIANT,2,0,2,2,0,0,0,2

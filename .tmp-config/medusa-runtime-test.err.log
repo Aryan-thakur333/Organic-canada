@@ -1,0 +1,59 @@
+- Creating server
+√ Server is ready on port: 9000 – 6519ms
+[Admin B2B Quotes] List error: AwilixResolutionError: Could not resolve 'b2bQuoteService'.
+
+Resolution path: b2bQuoteService
+    at resolve (D:\eatsie-project\backend\node_modules\awilix\src\container.ts:497:15)
+    at Object.get (D:\eatsie-project\backend\node_modules\awilix\src\container.ts:269:52)
+    at CompanyService.methodImplementation (D:\eatsie-project\backend\node_modules\@medusajs\utils\src\modules-sdk\medusa-service.ts:240:59)
+    at CompanyService.descriptor.value (D:\eatsie-project\backend\node_modules\@medusajs\utils\src\modules-sdk\decorators\inject-into-context.ts:27:29)
+    at CompanyService.descriptor.value (D:\eatsie-project\backend\node_modules\@medusajs\utils\src\modules-sdk\decorators\emit-events.ts:26:37)
+    at CompanyService.descriptor.value [as listAndCountQuotes] (D:\eatsie-project\backend\node_modules\@medusajs\utils\src\modules-sdk\decorators\inject-manager.ts:65:29)
+    at GET (D:\eatsie-project\backend\src\api\admin\b2b-quotes\route.ts:47:54)
+    at GET (D:\eatsie-project\backend\node_modules\@medusajs\framework\src\http\utils\wrap-handler.ts:27:20)
+    at Layer.handle [as handle_request] (D:\eatsie-project\backend\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\eatsie-project\backend\node_modules\express\lib\router\route.js:149:13)
+Admin list subscriptions error: TableNotFoundException: select "s0".* from "subscription" as "s0" where "s0"."deleted_at" is null order by "s0"."created_at" desc - relation "subscription" does not exist
+    at PostgreSqlExceptionConverter.convertException (D:\eatsie-project\backend\node_modules\@mikro-orm\postgresql\PostgreSqlExceptionConverter.js:44:24)
+    at PostgreSqlDriver.convertException (D:\eatsie-project\backend\node_modules\@mikro-orm\core\drivers\DatabaseDriver.js:360:54)
+    at D:\eatsie-project\backend\node_modules\@mikro-orm\core\drivers\DatabaseDriver.js:364:24
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async PostgreSqlDriver.find (D:\eatsie-project\backend\node_modules\@mikro-orm\knex\AbstractSqlDriver.js:72:24)
+    at async SqlEntityManager.find (D:\eatsie-project\backend\node_modules\@mikro-orm\core\EntityManager.js:147:25)
+    at async MikroOrmAbstractBaseRepository_.find (D:\eatsie-project\backend\node_modules\@medusajs\utils\src\dal\mikro-orm\mikro-orm-repository.ts:480:15)
+    at async AbstractService_.list (D:\eatsie-project\backend\node_modules\@medusajs\utils\src\modules-sdk\medusa-internal-service.ts:230:14)
+    at async SubscriptionModuleService.methodImplementation (D:\eatsie-project\backend\node_modules\@medusajs\utils\src\modules-sdk\medusa-service.ts:225:26)
+    at async SubscriptionModuleService.descriptor.value (D:\eatsie-project\backend\node_modules\@medusajs\utils\src\modules-sdk\decorators\inject-into-context.ts:27:14)
+
+    at parseErrorMessage (D:\eatsie-project\backend\node_modules\pg-protocol\src\parser.ts:394:9)
+    at Parser.handlePacket (D:\eatsie-project\backend\node_modules\pg-protocol\src\parser.ts:212:19)
+    at Parser.parse (D:\eatsie-project\backend\node_modules\pg-protocol\src\parser.ts:105:30)
+    at Socket.<anonymous> (D:\eatsie-project\backend\node_modules\pg-protocol\src\index.ts:7:48)
+    at Socket.emit (node:events:507:28)
+    at Socket.emit (node:domain:489:12)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Socket.Readable.push (node:internal/streams/readable:390:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:189:23) {
+  code: '42P01',
+  errno: undefined,
+  sqlState: undefined,
+  sqlMessage: undefined,
+  errmsg: undefined,
+  length: 111,
+  severity: 'ERROR',
+  detail: undefined,
+  hint: undefined,
+  position: '20',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1469',
+  routine: 'parserOpenTable'
+}

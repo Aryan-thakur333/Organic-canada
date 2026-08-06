@@ -1,0 +1,12 @@
+{
+  "totalRows": 64,
+  "approvedRows": 0,
+  "needsReviewRows": 64,
+  "invalidRows": 0,
+  "duplicateRows": 0,
+  "alreadyPricedRows": 0,
+  "excludedProducts": 54,
+  "issues": [],
+  "moneyUnit": "major",
+  "validForLiveImport": false
+}

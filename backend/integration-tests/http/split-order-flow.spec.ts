@@ -1,6 +1,7 @@
 import { medusaIntegrationTestRunner } from "@medusajs/test-utils"
 import { splitOrderWorkflow } from "../../src/workflows/split-order-workflow"
 import type { SplitOrderWorkflowInput } from "../../src/workflows/split-order-workflow"
+import { createAndLoginAdmin, registerAndApproveVendor } from "../helpers/integration-auth"
 
 jest.setTimeout(120 * 1000)
 
@@ -17,59 +18,48 @@ jest.setTimeout(120 * 1000)
 medusaIntegrationTestRunner({
   inApp: true,
   env: {},
-  testSuite: ({ api, adminHeaders, container }) => {
+  testSuite: ({ api, adminHeaders, container, getContainer }) => {
     // ── Helpers ──────────────────────────────────────────────────────────
 
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
 
-    async function registerAndApproveVendor(storeName: string) {
-      const email = `split-vendor-${storeName}-${uid()}@eatsie.test`
-      const regRes = await api.post("/vendor/register").send({
-        name: storeName,
-        store_name: storeName,
-        email,
-        password: "SplitVendor123!",
-      })
-      const vendorId = regRes.body.vendor.id
-
-      await api
-        .post(`/admin/vendors/${vendorId}/approve`)
-        .set(adminHeaders.headers)
-        .expect(200)
-
-      const loginRes = await api.post("/vendor/login").send({ email, password: "SplitVendor123!" })
-      return { id: vendorId, email: loginRes.body.vendor.email, token: loginRes.body.token }
-    }
-
-    const vendorAuth = (token: string) => ({ Authorization: `Bearer ${token}` })
-
     // ── Shared data ──────────────────────────────────────────────────────
 
-    let vendorA: { id: string; email: string; token: string }
-    let vendorB: { id: string; email: string; token: string }
+    let vendorA: { id: string; email: string; token: string; headers: Record<string, string> }
+    let vendorB: { id: string; email: string; token: string; headers: Record<string, string> }
     let vendorAProductId: string
     let vendorAVariantId: string
     let vendorBProductId: string
     let vendorBVariantId: string
+    let adminAuth: { email: string; token: string; headers: Record<string, string> }
 
     beforeAll(async () => {
-      vendorA = await registerAndApproveVendor("SplitVendorA")
-      vendorB = await registerAndApproveVendor("SplitVendorB")
+      const activeContainer = getContainer()
+      adminAuth = await createAndLoginAdmin(activeContainer, api)
+
+      vendorA = await registerAndApproveVendor(activeContainer, api, "SplitVendorA", adminAuth.headers)
+      vendorB = await registerAndApproveVendor(activeContainer, api, "SplitVendorB", adminAuth.headers)
 
       // Create products for both vendors
-      const prodResA = await api
-        .post("/vendor/products")
-        .set(vendorAuth(vendorA.token))
-        .send({ title: `Split Test A ${uid()}`, price: 19.99 })
-      vendorAProductId = prodResA.body.product.id
-      vendorAVariantId = prodResA.body.product.variants?.[0]?.id
+      const prodResA = await api.post("/vendor/products", {
+        title: `Split Test A ${uid()}`,
+        price: 19.99,
+      }, {
+        headers: vendorA.headers,
+        validateStatus: () => true,
+      })
+      vendorAProductId = prodResA.data.product.id
+      vendorAVariantId = prodResA.data.product.variants?.[0]?.id
 
-      const prodResB = await api
-        .post("/vendor/products")
-        .set(vendorAuth(vendorB.token))
-        .send({ title: `Split Test B ${uid()}`, price: 29.99 })
-      vendorBProductId = prodResB.body.product.id
-      vendorBVariantId = prodResB.body.product.variants?.[0]?.id
+      const prodResB = await api.post("/vendor/products", {
+        title: `Split Test B ${uid()}`,
+        price: 29.99,
+      }, {
+        headers: vendorB.headers,
+        validateStatus: () => true,
+      })
+      vendorBProductId = prodResB.data.product.id
+      vendorBVariantId = prodResB.data.product.variants?.[0]?.id
     })
 
     // ═════════════════════════════════════════════════════════════════════

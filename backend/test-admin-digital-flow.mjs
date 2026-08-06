@@ -19,8 +19,8 @@
  */
 
 const BASE = process.env.MEDUSA_BACKEND_URL || "http://localhost:9000"
-const TEST_EMAIL = `admin-test-${Date.now()}@eatsie.test`
-const TEST_PASSWORD = "DigitaT3st!"
+const TEST_EMAIL = "admin@eatsie.com"
+const TEST_PASSWORD = "Password123!"
 
 // ── Coloured logging ────────────────────────────────────────────────────────
 

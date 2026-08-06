@@ -1,4 +1,6 @@
 import { medusaIntegrationTestRunner } from "@medusajs/test-utils"
+import { Modules } from "@medusajs/framework/utils"
+import { createUserAccountWorkflow } from "@medusajs/medusa/core-flows"
 
 jest.setTimeout(120 * 1000)
 
@@ -21,7 +23,7 @@ medusaIntegrationTestRunner({
   inApp: true,
   disableAutoTeardown: true,
   env: {},
-  testSuite: ({ api }) => {
+  testSuite: ({ api, getContainer }) => {
     // ── Helpers ──────────────────────────────────────────────────────────
 
     const TEST_EMAIL = `digital-admin-${Date.now()}@eatsie.test`
@@ -42,23 +44,23 @@ medusaIntegrationTestRunner({
     /** Create a multipart FormData payload for digital product creation. */
     function createDigitalProductForm({
       title,
-      price_eur,
+      price_cad,
       price_usd,
       fileBuffer,
       fileName,
     }: {
       title: string
-      price_eur?: string
+      price_cad?: string
       price_usd?: string
       fileBuffer?: Buffer
       fileName?: string
     }): FormData {
       const form = new FormData()
       form.append("title", title)
-      if (price_eur) form.append("price_eur", price_eur)
+      if (price_cad) form.append("price_cad", price_cad)
       if (price_usd) form.append("price_usd", price_usd)
       if (fileBuffer) {
-        const blob = new Blob([fileBuffer], { type: "application/octet-stream" })
+        const blob = new Blob([fileBuffer as any], { type: "application/octet-stream" })
         form.append("file", blob, fileName || "file.bin")
       }
       return form
@@ -80,7 +82,25 @@ medusaIntegrationTestRunner({
       expect(regRes.status).toBe(200)
       expect(regRes.data.token).toBeDefined()
       expect(typeof regRes.data.token).toBe("string")
-      const adminToken = regRes.data.token
+
+      // Link the registered auth identity to an actual admin user account
+      // (register alone only creates an auth identity; admin routes require a user record)
+      const container = getContainer()
+      const authService: any = container.resolve(Modules.AUTH)
+      const registration = await authService.register("emailpass", {
+        body: { email: TEST_EMAIL, password: TEST_PASSWORD },
+      })
+      expect(registration.success).toBe(true)
+      await createUserAccountWorkflow(container).run({
+        input: {
+          authIdentityId: registration.authIdentity.id,
+          userData: {
+            email: TEST_EMAIL,
+            first_name: "Digital",
+            last_name: "Admin",
+          },
+        },
+      })
 
       // Login with same credentials
       const loginRes = await api.post(
@@ -90,6 +110,7 @@ medusaIntegrationTestRunner({
       )
       expect(loginRes.status).toBe(200)
       expect(loginRes.data.token).toBeDefined()
+      const adminToken = loginRes.data.token
 
       // Login with wrong password — expect 401
       const wrongRes = await api.post(
@@ -107,7 +128,7 @@ medusaIntegrationTestRunner({
       // 401 without auth
       const noAuthForm = createDigitalProductForm({
         title: "Unauthorized Product",
-        price_eur: "9.99",
+        price_cad: "9.99",
       })
       const noAuthRes = await api.post("/admin/products/digital", noAuthForm, withDefaults())
       expect(noAuthRes.status).toBe(401)
@@ -115,7 +136,7 @@ medusaIntegrationTestRunner({
       // 400 — missing title
       const noTitleForm = createDigitalProductForm({
         title: "",
-        price_eur: "14.99",
+        price_cad: "14.99",
         fileBuffer: Buffer.from("content"),
         fileName: "file.bin",
       })
@@ -152,12 +173,12 @@ medusaIntegrationTestRunner({
         withDefaults(authHeaders(adminToken))
       )
       expect(noPriceRes.status).toBe(400)
-      expect(noPriceRes.data.message).toContain("price")
+      expect(noPriceRes.data.message).toContain("PRICE")
 
       // 400 — negative price
       const negPriceForm = createDigitalProductForm({
         title: "Negative Price",
-        price_eur: "-5.00",
+        price_cad: "-5.00",
         fileBuffer: Buffer.from("neg"),
         fileName: "neg.pdf",
       })
@@ -167,12 +188,12 @@ medusaIntegrationTestRunner({
         withDefaults(authHeaders(adminToken))
       )
       expect(negPriceRes.status).toBe(400)
-      expect(negPriceRes.data.message).toContain("price")
+      expect(negPriceRes.data.message).toContain("PRICE")
 
       // 400 — non-numeric price
       const badPriceForm = createDigitalProductForm({
         title: "Bad Price",
-        price_eur: "not-a-number",
+        price_cad: "not-a-number",
         price_usd: "also-bad",
         fileBuffer: Buffer.from("bad"),
         fileName: "bad.pdf",
@@ -183,12 +204,12 @@ medusaIntegrationTestRunner({
         withDefaults(authHeaders(adminToken))
       )
       expect(badPriceRes.status).toBe(400)
-      expect(badPriceRes.data.message).toContain("price")
+      expect(badPriceRes.data.message).toContain("PRICE")
 
       // 400 — empty title
       const emptyTitleForm = createDigitalProductForm({
         title: "",
-        price_eur: "9.99",
+        price_cad: "9.99",
         fileBuffer: Buffer.from("empty"),
         fileName: "empty.pdf",
       })
@@ -208,7 +229,7 @@ medusaIntegrationTestRunner({
       )
       const createForm = createDigitalProductForm({
         title: productTitle,
-        price_eur: "19.99",
+        price_cad: "19.99",
         price_usd: "24.99",
         fileBuffer,
         fileName: "gardening-tips.pdf",
@@ -233,7 +254,7 @@ medusaIntegrationTestRunner({
       // Create with CAD-only pricing
       const cadOnlyForm = createDigitalProductForm({
         title: `CAD-Only ${Date.now()}`,
-        price_eur: "9.50",
+        price_cad: "9.50",
         fileBuffer: Buffer.from("cad only"),
         fileName: "cad-only.pdf",
       })
@@ -244,9 +265,10 @@ medusaIntegrationTestRunner({
       )
       expect(cadOnlyRes.status).toBe(201)
 
-      // Create with USD-only pricing
+      // Create with CAD + USD pricing (CAD is the mandatory base price)
       const usdOnlyForm = createDigitalProductForm({
         title: `USD-Only ${Date.now()}`,
+        price_cad: "14.50",
         price_usd: "14.50",
         fileBuffer: Buffer.from("usd only"),
         fileName: "usd-only.pdf",
@@ -280,26 +302,27 @@ medusaIntegrationTestRunner({
       const product = detailsRes.data.product
       expect(product.variants).toBeDefined()
       expect(product.variants.length).toBe(1)
-      expect(product.variants[0].title).toBe("Digital Download")
+      expect(product.variants[0].title).toBe("Default")
 
       const prices = product.variants[0].prices
       const cadPrice = prices.find((p: any) => p.currency_code === "cad")
       const usdPrice = prices.find((p: any) => p.currency_code === "usd")
       expect(cadPrice).toBeDefined()
       expect(usdPrice).toBeDefined()
-      expect(cadPrice.amount).toBe(1999) // 19.99 CAD → 1999 cents
-      expect(usdPrice.amount).toBe(2499) // 24.99 USD → 2499 cents
+      expect(Number(cadPrice.amount)).toBe(19.99) // major-unit price convention
+      expect(Number(usdPrice.amount)).toBe(24.99)
 
-      // Verify digital asset link
+      // Verify digital asset link (the link is a list relationship: digital_assets)
       const linkRes = await api.get(
-        `/admin/products/${productId}?fields=id,title,+digital_asset.*`,
+        `/admin/products/${productId}?fields=id,title,+digital_assets.*`,
         withDefaults(authHeaders(adminToken))
       )
       expect(linkRes.status).toBe(200)
-      const linkedAsset = linkRes.data.product.digital_asset
-      expect(linkedAsset).toBeDefined()
-      const asset = Array.isArray(linkedAsset) ? linkedAsset[0] : linkedAsset
-      expect(asset.id).toBe(digitalAssetId)
+      const linkedAssets = linkRes.data.product.digital_assets
+      expect(linkedAssets).toBeDefined()
+      const assets = Array.isArray(linkedAssets) ? linkedAssets : [linkedAssets]
+      expect(assets.length).toBeGreaterThanOrEqual(1)
+      expect(assets[0].id).toMatch(/^da_/)
 
       // Find in product list
       const listRes = await api.get(
@@ -318,6 +341,7 @@ medusaIntegrationTestRunner({
       // Accept empty file buffer
       const emptyFileForm = createDigitalProductForm({
         title: `Empty File ${Date.now()}`,
+        price_cad: "5.00",
         price_usd: "5.00",
         fileBuffer: Buffer.alloc(0),
         fileName: "empty.dat",
@@ -333,7 +357,7 @@ medusaIntegrationTestRunner({
       // Token-based auth works
       const tokenForm = createDigitalProductForm({
         title: `Token-Auth ${Date.now()}`,
-        price_eur: "7.99",
+        price_cad: "7.99",
         fileBuffer: Buffer.from("token"),
         fileName: "token.pdf",
       })

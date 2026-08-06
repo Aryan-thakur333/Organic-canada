@@ -1,0 +1,2 @@
+product_id,variant_id,inventory_item_id,stock_location_id,current_stocked_quantity,current_reserved_quantity,current_available_quantity,approved_stocked_quantity,approval_status,approved_by,approval_reference,snapshot_updated_at,notes
+prod_01KXJNH57CMPRBEVGSAMB30EMF,variant_01KXJNH5ASR8XNZ9QSW29B8SJ7,iitem_01KXJNH5BSHCM5PZ4K8V4ZXMY6,sloc_01KYMKWP1EHT3QGWQH4YQ81PCZ,0,0,0,20,APPROVED,Aryan Thakur,USA-POS-CHOCO-INV-001,2026-07-29T08:59:53.277Z,Merchant-approved USA stocked quantity

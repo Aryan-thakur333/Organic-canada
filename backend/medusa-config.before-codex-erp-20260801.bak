@@ -1,0 +1,554 @@
+﻿import {
+  loadEnv,
+  defineConfig,
+  Modules,
+} from "@medusajs/framework/utils"
+
+import {
+  resolveAdminCookieOptions,
+} from "./src/lib/admin-cookie-options"
+
+loadEnv(
+  process.env.NODE_ENV || "development",
+  process.cwd()
+)
+
+const skipEnvCheck =
+  process.env.MEDUSA_SKIP_ENV_CHECK === "true"
+
+const stripeConfigured = Boolean(
+  process.env.STRIPE_API_KEY
+)
+
+const paypalConfigured = Boolean(
+  process.env.PAYPAL_CLIENT_ID &&
+  process.env.PAYPAL_CLIENT_SECRET
+)
+
+const redisUrl =
+  process.env.REDIS_URL?.trim()
+
+const redisTls =
+  process.env.REDIS_TLS === "true"
+
+const redisPrefix =
+  process.env.REDIS_PREFIX?.trim() || "eatsie"
+
+if (
+  redisTls &&
+  redisUrl &&
+  !redisUrl.toLowerCase().startsWith("rediss://")
+) {
+  throw new Error(
+    "[medusa-config] REDIS_TLS=true requires a rediss:// REDIS_URL"
+  )
+}
+
+if (!/^[a-zA-Z0-9:_-]+$/.test(redisPrefix)) {
+  throw new Error(
+    "[medusa-config] REDIS_PREFIX may contain only letters, numbers, colon, underscore, and hyphen"
+  )
+}
+
+const REQUIRED_ENV = [
+  "DATABASE_URL",
+  "JWT_SECRET",
+  "COOKIE_SECRET",
+  "STORE_CORS",
+  "ADMIN_CORS",
+  "AUTH_CORS",
+  "MEDUSA_BACKEND_URL",
+] as const
+
+const isLocalStable =
+  process.env.EATSIE_LOCAL_STABLE === "true" &&
+  process.env.EATSIE_RUNTIME_MODE ===
+    "local-stable" &&
+  process.env.EATSIE_ALLOW_FAKE_REDIS ===
+    "true"
+
+if (!skipEnvCheck) {
+  const isRedisRequired =
+    process.env.NODE_ENV === "production" &&
+    !isLocalStable
+
+  const productionRequired =
+    isRedisRequired ? ["REDIS_URL"] : []
+
+  const missing = [
+    ...REQUIRED_ENV,
+    ...productionRequired,
+  ].filter(
+    (key) => !process.env[key]?.trim()
+  )
+
+  if (missing.length) {
+    throw new Error(
+      `[medusa-config] Missing required environment variables: ${missing.join(", ")}`
+    )
+  }
+
+  if (isLocalStable) {
+    console.warn(
+      "\nâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•"
+    )
+    console.warn(
+      "  âš ï¸  LOCAL ONLY: fake Redis is enabled. Do not use this mode in production."
+    )
+    console.warn(
+      "â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n"
+    )
+  }
+
+  const secretsToCheck: {
+    key: string
+    value: string | undefined
+  }[] = [
+    {
+      key: "JWT_SECRET",
+      value: process.env.JWT_SECRET,
+    },
+    {
+      key: "COOKIE_SECRET",
+      value: process.env.COOKIE_SECRET,
+    },
+  ]
+
+  for (
+    const { key, value } of secretsToCheck
+  ) {
+    if (value && value.length < 32) {
+      console.error(
+        `[medusa-config] âŒ ${key} is only ${value.length} characters long (minimum 32 required).`
+      )
+
+      console.error(
+        `[medusa-config] Run: node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`
+      )
+
+      throw new Error(
+        `[medusa-config] ${key} must contain at least 32 characters (found ${value.length})`
+      )
+    }
+  }
+
+  if (!stripeConfigured) {
+    console.warn(
+      "[medusa-config] Stripe is disabled: STRIPE_API_KEY is not configured. COD remains available."
+    )
+  } else if (
+    !process.env.STRIPE_WEBHOOK_SECRET
+  ) {
+    console.warn(
+      "[medusa-config] Stripe webhook verification is disabled: STRIPE_WEBHOOK_SECRET is missing."
+    )
+  }
+
+  if (!paypalConfigured) {
+    console.warn(
+      "[medusa-config] PayPal is disabled: PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET is missing. COD remains available."
+    )
+  }
+}
+
+export default defineConfig({
+  projectConfig: {
+    databaseUrl:
+      process.env.DATABASE_URL || "",
+
+    databaseDriverOptions:
+      process.env.DATABASE_SSL === "true"
+        ? {
+            connection: {
+              ssl: {
+                rejectUnauthorized:
+                  process.env
+                    .DATABASE_SSL_REJECT_UNAUTHORIZED !==
+                  "false",
+              },
+            },
+          }
+        : undefined,
+
+    redisUrl,
+
+    http: {
+      storeCors:
+        process.env.STORE_CORS || "",
+
+      adminCors:
+        process.env.ADMIN_CORS || "",
+
+      authCors:
+        process.env.AUTH_CORS || "",
+
+      jwtSecret:
+        process.env.JWT_SECRET || "",
+
+      cookieSecret:
+        process.env.COOKIE_SECRET || "",
+    },
+
+    cookieOptions:
+      resolveAdminCookieOptions({
+        backendUrl:
+          process.env.MEDUSA_BACKEND_URL,
+
+        isLocalStable,
+
+        nodeEnv:
+          process.env.NODE_ENV,
+      }),
+  },
+
+  admin: {
+    backendUrl:
+      process.env.MEDUSA_BACKEND_URL,
+  },
+
+  modules: {
+    ...(
+      redisUrl
+        ? {
+            [Modules.CACHE]: {
+              resolve:
+                "@medusajs/cache-redis",
+
+              options: {
+                redisUrl,
+
+                namespace:
+                  `${redisPrefix}:cache:`,
+
+                redisOptions: {
+                  connectTimeout: 5000,
+                },
+              },
+            },
+
+            [Modules.EVENT_BUS]: {
+              resolve:
+                "@medusajs/event-bus-redis",
+
+              options: {
+                redisUrl,
+
+                queueName:
+                  `${redisPrefix}:events`,
+
+                redisOptions: {
+                  connectTimeout: 5000,
+                },
+
+                workerOptions: {
+                  concurrency: 5,
+                },
+
+                jobOptions: {
+                  attempts: 5,
+
+                  backoff: {
+                    type: "exponential",
+                    delay: 1000,
+                  },
+
+                  removeOnComplete: {
+                    age: 86400,
+                    count: 10000,
+                  },
+
+                  removeOnFail: {
+                    age: 604800,
+                    count: 50000,
+                  },
+                },
+              },
+            },
+
+            [Modules.WORKFLOW_ENGINE]: {
+              resolve:
+                "@medusajs/workflow-engine-redis",
+
+              options: {
+                redisUrl,
+
+                queueName:
+                  `${redisPrefix}:workflows`,
+
+                jobQueueName:
+                  `${redisPrefix}:workflow-jobs`,
+
+                redisOptions: {
+                  connectTimeout: 5000,
+                },
+
+                workerOptions: {
+                  concurrency: 5,
+                },
+              },
+            },
+
+            [Modules.LOCKING]: {
+              resolve:
+                "@medusajs/locking",
+
+              options: {
+                providers: [
+                  {
+                    resolve:
+                      "@medusajs/locking-redis",
+
+                    id: "locking-redis",
+
+                    is_default: true,
+
+                    options: {
+                      redisUrl,
+
+                      namespace:
+                        `${redisPrefix}:lock:`,
+
+                      redisOptions: {
+                        connectTimeout: 5000,
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          }
+        : {}
+    ),
+
+    auth: {
+      resolve:
+        "@medusajs/medusa/auth",
+
+      options: {
+        providers: [
+          {
+            resolve:
+              "@medusajs/medusa/auth-emailpass",
+
+            id: "emailpass",
+          },
+
+          {
+            resolve:
+              "./src/modules/firebase-auth",
+
+            id: "firebase",
+
+            options: {
+              projectId:
+                process.env
+                  .FIREBASE_PROJECT_ID ||
+                "organic-canada-2512b",
+
+              clientEmail:
+                process.env
+                  .FIREBASE_CLIENT_EMAIL,
+
+              privateKey:
+                process.env
+                  .FIREBASE_PRIVATE_KEY,
+            },
+          },
+        ],
+      },
+    },
+
+    payment: {
+      resolve: "@medusajs/payment",
+
+      options: {
+        providers: [
+          {
+            resolve:
+              "./src/modules/pos-cash-payment",
+
+            id: "cash",
+          },
+
+          ...(
+            stripeConfigured
+              ? [
+                  {
+                    resolve:
+                      "@medusajs/payment-stripe",
+
+                    id: "stripe",
+
+                    options: {
+                      apiKey:
+                        process.env
+                          .STRIPE_API_KEY,
+
+                      capture:
+                        process.env
+                          .STRIPE_CAPTURE
+                          ?.toLowerCase() !==
+                        "false",
+
+                      webhookSecret:
+                        process.env
+                          .STRIPE_WEBHOOK_SECRET,
+                    },
+                  },
+                ]
+              : []
+          ),
+
+          ...(
+            paypalConfigured
+              ? [
+                  {
+                    resolve:
+                      "@alphabite/medusa-paypal/providers/paypal",
+
+                    id: "paypal",
+
+                    options: {
+                      clientId:
+                        process.env
+                          .PAYPAL_CLIENT_ID,
+
+                      clientSecret:
+                        process.env
+                          .PAYPAL_CLIENT_SECRET,
+
+                      isSandbox:
+                        process.env
+                          .PAYPAL_ENV
+                          ?.toLowerCase() ===
+                          "sandbox" ||
+                        process.env
+                          .PAYPAL_IS_SANDBOX ===
+                          "true",
+
+                      webhookId:
+                        process.env
+                          .PAYPAL_WEBHOOK_ID,
+
+                      includeShippingData:
+                        true,
+
+                      includeCustomerData:
+                        true,
+                    },
+                  },
+                ]
+              : []
+          ),
+        ],
+      },
+    },
+
+    vendor: {
+      resolve:
+        "./src/modules/vendor",
+    },
+
+    subscription: {
+      resolve:
+        "./src/modules/subscription",
+    },
+
+    b2b: {
+      resolve:
+        "./src/modules/b2b",
+    },
+
+    bundle: {
+      resolve:
+        "./src/modules/bundle",
+
+      definition: {
+        isQueryable: true,
+      },
+    },
+
+    digitalAsset: {
+      resolve:
+        "./src/modules/digital-asset",
+
+      definition: {
+        isQueryable: true,
+      },
+    },
+
+    personalization: {
+      resolve:
+        "./src/modules/personalization",
+    },
+
+    commission: {
+      resolve:
+        "./src/modules/commission",
+    },
+
+    marketplace: {
+      resolve:
+        "./src/modules/marketplace",
+    },
+
+    pricingManagement: {
+      resolve:
+        "./src/modules/pricing-management",
+    },
+
+    oms: {
+      resolve:
+        "./src/modules/oms",
+
+      definition: {
+        isQueryable: true,
+      },
+    },
+
+    pos: {
+      resolve:
+        "./src/modules/pos",
+
+      definition: {
+        isQueryable: true,
+      },
+    },
+
+    erp: {
+      resolve:
+        "./src/modules/erp",
+
+      options: {
+        enabled:
+          process.env.ERP_ENABLED ===
+          "true",
+
+        provider:
+          process.env.ERP_PROVIDER ||
+          "odoo",
+
+        baseUrl:
+          process.env.ERP_BASE_URL ||
+          "http://localhost:8069",
+
+        database:
+          process.env.ERP_DATABASE ||
+          "",
+
+        username:
+          process.env. ||
+          "",
+
+        password:
+          process.env.ERP_PASSWORD ||
+          "",
+
+        timeoutMs: Number(
+          process.env.ERP_TIMEOUT_MS ||
+          10000
+        ),
+      },
+    },
+  },
+})

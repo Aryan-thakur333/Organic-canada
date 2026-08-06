@@ -1,0 +1,44 @@
+   🔐  JWT_SECRET: 50 characters (minimum 32)
+   🔐  COOKIE_SECRET: 49 characters
+   PostgreSQL connection verified
+
+🚀  Starting Medusa on http://localhost:9000
+📡  MEDUSA_BACKEND_URL=http://localhost:9000
+📝  Port saved to .backend-port
+
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    [Watcher] Using standard dev server (restart on file change)
+[32minfo[39m:    [Watcher] Watching filesystem to reload dev server on file change
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    Skipping instrumentation registration. No register function found.
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    No link to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\links. skipped.
+[33mwarn[39m:    Local Event Bus installed. This is not recommended for production.
+[32minfo[39m:    Locking module: Using "in-memory" as default.
+[32minfo[39m:    No workflow to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\workflows. skipped.
+[32minfo[39m:    No subscriber to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\subscribers. skipped.
+[32minfo[39m:    No job to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\jobs. skipped.
+[32minfo[39m:    No job to load from D:\eatsie-project\backend\node_modules\@medusajs\medusa\dist\jobs. skipped.
+[32minfo[39m:    Admin URL → http://localhost:9000/app
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← - (401) - 58.340 ms
+[32mhttp[39m:    POST /admin/products/digital ← - (401) - 2.043 ms
+[32mhttp[39m:    GET /admin/products/undefined ← - (401) - 1.740 ms
+[32minfo[39m:    Publishable API key required in the request header: x-publishable-api-key. You can manage your keys in settings in the dashboard.
+[32mhttp[39m:    GET /store/products/undefined ← - (400) - 2.294 ms
+[32minfo[39m:    Publishable API key required in the request header: x-publishable-api-key. You can manage your keys in settings in the dashboard.
+[32mhttp[39m:    GET /store/downloads/asset_test?order_id=test123 ← - (400) - 2.117 ms
+[32minfo[39m:    Publishable API key required in the request header: x-publishable-api-key. You can manage your keys in settings in the dashboard.
+[32mhttp[39m:    POST /store/customers ← - (400) - 1.286 ms
+[32minfo[39m:    Email should be a string
+[32mhttp[39m:    POST /auth/customer/emailpass ← - (401) - 3.304 ms
+[32minfo[39m:    Publishable API key required in the request header: x-publishable-api-key. You can manage your keys in settings in the dashboard.
+[32mhttp[39m:    GET /store/customers/me/downloads ← - (400) - 1.497 ms
+[32minfo[39m:    Publishable API key required in the request header: x-publishable-api-key. You can manage your keys in settings in the dashboard.
+[32mhttp[39m:    GET /store/customers/me/downloads ← - (400) - 0.951 ms
+[32minfo[39m:    Publishable API key required in the request header: x-publishable-api-key. You can manage your keys in settings in the dashboard.
+[32mhttp[39m:    GET /store/products?limit=1 ← - (400) - 0.837 ms
+[32minfo[39m:    Publishable API key required in the request header: x-publishable-api-key. You can manage your keys in settings in the dashboard.
+[32mhttp[39m:    GET /store/regions ← - (400) - 1.397 ms
+[32mhttp[39m:    GET /uploads/digital/test.pdf ← - (404) - 1.585 ms

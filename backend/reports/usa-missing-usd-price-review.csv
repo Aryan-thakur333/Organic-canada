@@ -1,0 +1,63 @@
+product_id,product_handle,product_title,variant_id,variant_title,sku,current_cad_amount,current_cad_currency,existing_usd_amount,proposed_usd_amount,proposal_source,review_status,validation_error,notes
+prod_01KVN02PJ0TEWPZ721K4BC6XT7,final-1782042414-mqnq1lpn,Final 1782042414,variant_01KVN02PMQNA2VAB5Z7RZ4HW9X,Standard,,1999,cad,2,2,none_available,NEEDS_REVIEW,,USD Price successfully imported.
+prod_01KVSFB7BAX6R5GFXKKCC4CYHX,fresh-bananas,Fresh Bananas,variant_01KVSFB7CD3CVS9WN4SCVE9YXT,Standard,EATSIE-FRESH-BANANAS,299,cad,9,9,none_available,NEEDS_REVIEW,,USD Price successfully imported.
+prod_01KVSFB7DRWS2W3RZ6PEWEJV29,red-strawberries,Red Strawberries,variant_01KVSFB7EKARSRMJ14F2T30WPN,Standard,EATSIE-RED-STRAWBERRIES,699,cad,19,19,none_available,NEEDS_REVIEW,,USD Price successfully imported.
+prod_01KVSFB7FQRQPT7HHHQTS0D9QA,green-grapes,Green Grapes,variant_01KVSFB7GDJ405F2JQJ8A68700,Standard,EATSIE-GREEN-GRAPES,599,cad,49,49,none_available,NEEDS_REVIEW,,USD Price successfully imported.
+prod_01KVSFB7HK2723G4QTVR3DBP0S,sweet-mangoes,Sweet Mangoes,variant_01KVSFB7JCCZ0V3E7Q7JQPAYGW,Standard,EATSIE-SWEET-MANGOES,799,cad,99,99,none_available,NEEDS_REVIEW,,USD Price successfully imported.
+prod_01KVSFB7REXCQRQ06W82C4610V,green-spinach,Green Spinach,variant_01KVSFB7SC8G5X8ZGN2TAPHTPG,Standard,EATSIE-GREEN-SPINACH,499,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB7VJMJVD821ZFVYN9FWV,red-tomatoes,Red Tomatoes,variant_01KVSFB7WSVC6Y3C0E24ZSP890,Standard,EATSIE-RED-TOMATOES,399,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB7Z7ZARK3KPZCNNGCFN8,organic-potatoes,Organic Potatoes,variant_01KVSFB80MDTP8T8R6Z7GB0CQN,Standard,EATSIE-ORGANIC-POTATOES,549,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB82HYD8N48WG7XQGKWBW,organic-milk,Organic Milk,variant_01KVSFB83K91ZD462YSQSFPK8C,Standard,EATSIE-ORGANIC-MILK,649,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB85A4E8Z4E4F7ZX8E2SW,greek-yogurt,Greek Yogurt,variant_01KVSFB86BTEA7ZEZ2M01STJYG,Standard,EATSIE-GREEK-YOGURT,599,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB87RKDRSY8HR988M0Z9K,cheddar-cheese,Cheddar Cheese,variant_01KVSFB88CG0FGKBQTG2KNBZE8,Standard,EATSIE-CHEDDAR-CHEESE,799,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB8A3QK5WZV03MTMEAHPD,fresh-butter,Fresh Butter,variant_01KVSFB8B6VM0SCQ8NFQZRC239,Standard,EATSIE-FRESH-BUTTER,549,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB8CFN04MJA0CDQ8Y3QZX,paneer-block,Paneer Block,variant_01KVSFB8D6X5V3ZFD2N7NXRYY5,Standard,EATSIE-PANEER-BLOCK,699,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB8ENFV01KZE8AYE46CJB,whole-wheat-bread,Whole Wheat Bread,variant_01KVSFB8FGBH5QYY47W48PZY7B,Standard,EATSIE-WHOLE-WHEAT-BREAD,499,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB8GJWSH1JMXG0XPG2F6N,croissant,Croissant,variant_01KVSFB8HDHXQHA4PKSS9PQ89A,Standard,EATSIE-CROISSANT,349,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB8JPGQQ7QE235C4QDZX0,sourdough-loaf,Sourdough Loaf,variant_01KVSFB8K8SQ0PERBD5HNEJE6M,Standard,EATSIE-SOURDOUGH-LOAF,699,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB8M7AVMZ6888SSSYQE5K,muffins-pack,Muffins Pack,variant_01KVSFB8MVTVENGRRVN6V61TQN,Standard,EATSIE-MUFFINS-PACK,899,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB8NSZ67XN9G17BJJ1W38,organic-cookies,Organic Cookies,variant_01KVSFB8PAKFQGF5B8VM9DCSFJ,Standard,EATSIE-ORGANIC-COOKIES,649,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB8QBJ9M95V6E0DFZWHBV,chicken-breast,Chicken Breast,variant_01KVSFB8R0M148Z5PHK7597K2E,Standard,EATSIE-CHICKEN-BREAST,1299,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB8S2F4YXNV9BAKSNB9M2,lamb-chops,Lamb Chops,variant_01KVSFB8STSXDM303M3W7B1C6A,Standard,EATSIE-LAMB-CHOPS,1899,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB8V27PTZ08274047AXD9,turkey-slices,Turkey Slices,variant_01KVSFB8VPBD68YJKXTHQMNQ8W,Standard,EATSIE-TURKEY-SLICES,1099,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB8WPTXN2GCYBZ5XH4RH6,beef-steak,Beef Steak,variant_01KVSFB8X9WW94FBJDVM4J4VFH,Standard,EATSIE-BEEF-STEAK,2299,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB8YFCM952E63E8F4955Z,chicken-sausages,Chicken Sausages,variant_01KVSFB8Z51WWP1W03QSDBY8N3,Standard,EATSIE-CHICKEN-SAUSAGES,999,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB913BBP6JV700C09QV5D,salmon-fillet,Salmon Fillet,variant_01KVSFB92CWGYZ3A6S6EMXP6BE,Standard,EATSIE-SALMON-FILLET,1999,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB94BJ8CSBH3WSE47JY4N,fresh-prawns,Fresh Prawns,variant_01KVSFB95KV4BKPP4JT3WD2MRP,Standard,EATSIE-FRESH-PRAWNS,1699,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB97WZ9DA9P6VRTKVQAFF,tuna-steak,Tuna Steak,variant_01KVSFB992JJ928VFRNB422JQ9,Standard,EATSIE-TUNA-STEAK,1899,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB9B2AF16KR0X5JE0C3WV,crab-meat,Crab Meat,variant_01KVSFB9C5W5C0347WGB5RNS4Y,Standard,EATSIE-CRAB-MEAT,2199,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSFB9E75M66XRVS6N0XS6ZW,white-fish-fillet,White Fish Fillet,variant_01KVSFB9F81ZZM6H5SSK61WGBN,Standard,EATSIE-WHITE-FISH-FILLET,1499,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSPT0255E9PQS0FJZ94MPSR,papaya-mqqc55q3,Papaya,variant_01KVSPT08VCN1E9D4CYYGQBG3Q,Standard,PAPAYA-VERIFY,699,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSPZAPBTBRDSZHTRVCYXW6Z,papaya-pack-2015cd-mqqc8whq,Papaya Pack 2015cd,variant_01KVSPZAVZKYRRNKJJXMB3VJH0,Small,PAP-S-a3a2,499,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSPZAPBTBRDSZHTRVCYXW6Z,papaya-pack-2015cd-mqqc8whq,Papaya Pack 2015cd,variant_01KVSPZAW0S335JX2KXGD7NEQJ,Large,PAP-L-ea15,899,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSQ48867BV7ZNMYB7CFZX75,papaya-final-a90dd3-mqqccd0y,Papaya Final a90dd3,variant_01KVSQ48EZAJH0KY9XVS2ZZ7BA,Standard,PAPAYA-FINAL-04c9,799,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSQ9RMC9VY464EF61WVPZE2,papaya-link-1a8db7-mqqcg8cz,Papaya Link 1a8db7,variant_01KVSQ9RXKQWZBH7AK4VK7PTSV,Standard,PAPAYA-LINK-638d,899,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSQZ00MWS1S3T7FYJJC0VXK,papaya-link-array-b9f928-mqqcv56k,Papaya Link Array b9f928,variant_01KVSQZ04ZZ120JMVMPCQ0PYQJ,Standard,PAPAYA-ARRAY-dbca,999,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSR6H141CJWVP91R4T3TD8E,papaya-vendor-smoke-dc9962-mqqd0fm9,Papaya Vendor Smoke dc9962,variant_01KVSR6H59F57ED9M0GRE24BNJ,Standard,PAP-SMOKE-dc9962,999,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVSZH979HQY5NNJS0BCC8Y7Q,papaya-mqqhlb57,papaya,variant_01KVSZH9M19J7GWF1M8TV5D5ZZ,Standard,VENDOR-mqqhlb5x-1,600,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVW0YM6H0HYPRV73MKDJZWDX,pineapple-mqrmfj25,Pineapple,variant_01KVW0YMR5Q4X2P1H9QVJ0W6XK,Standard,VENDOR-mqrmfj31-1,900,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVW221QD90ZE1Y069Z8VB2J4,pineapple-mqrn4er9,Pineapple,variant_01KVW221YN1BGRD3G66J4KSJTQ,Standard,VENDOR-mqrn4ern-1,700,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVW5WN2X0EWHYJ4SGGCA7XNP,thekua-mqrpiime,Thekua,variant_01KVW5WNE5G5M7Z46PKGYH3Y5X,Standard,VENDOR-mqrpiio4-1,2000,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KVWF8FG3R20YF227VBX4RJKS,thekua-mqrvd3g1,Thekua,variant_01KVWF8FWA0H73XJWWDZX63PDD,Standard,VENDOR-mqrvd3ga-1,2000,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWHSBEPFGTCBKNAQACQYZHJR,master-class-notes-mr3p6vni,master class notes,variant_01KWHSBERK2DJ0DNPQR3NYZ9BY,Digital Download,DIGITAL-1783008443073,1700,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWHT1K6NX18YED89NZPCEPD2,master-class-book-mr3pmfgr,master class book,variant_01KWHT1K91GCQTENK2204MYG41,Digital Download,DIGITAL-1783009168591,999,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWHV6ZPSQJ28CN6X8T3JE4BA,anaana-mr3qcouf,anaana,variant_01KWHV6ZRNCK5WTHEX10JPM6FZ,Digital Download,DIGITAL-1783010393804,196,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWHZ0X6CHGKHYZH4Z1A6XHT8,master-class-of-chatgpt-mr3sqbi6,master class of chatgpt,variant_01KWHZ0X8N97ZVTCZBK0BGHJF8,Digital Download,DIGITAL-1783014388928,900,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWHZN4Q2FW2Z78K1SG8SGD4E,abcd-mr3t4j4n,abcd,variant_01KWHZN4S3PZZGADF85XSCYAG4,Digital Download,DIGITAL-1783015051996,9897,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWJ0NRWG4CAMH6V1RF25FB3X,kdksks-mr3trg5b,kdksks,variant_01KWJ0NRYQB2W72NVMCCT49KGK,Digital Download,DIGITAL-1783016121219,23395,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWKVPT51K2TP2M0K8WZ19GSS,ssff-mr4um6j0,ssff,variant_01KWKVPT86GTB2DBN1DBT1HN95,Digital Download,DIGITAL-MR4UM6J0,9000,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWMAM00WTB7B5P6AJ799RYTC,codex-digital-upload-verification-mr53xbma,Codex Digital Upload Verification,variant_01KWMAM042JP42Y1AX94QRR9V7,Digital Download,DIGITAL-MR53XBMA,2000,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWMDFGBBCVK7DC7K1JZCMTJM,abcdefg-mr55plcv,abcdefg,variant_01KWMDFGDF085SGFC0E8A8CAF4,Digital Download,DIGITAL-MR55PLCV,2900,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWMFJENJQ0CADDKAPZ142MZA,organic-book-mr570m1x,organic book,variant_01KWMFJES8MX8JS58Q6MB35Q1G,Digital Download,DIGITAL-MR570M1X,4995,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWNTYHP4K6NRYXGCT9FY4SYG,prince-product-mr5y3ika,prince product,variant_01KWNTYHSJSMRRQVD3MRJ2T4AT,Digital Download,DIGITAL-MR5Y3IKA,2899,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWPXVTWMG9C90F0WCQGWAPFT,first-product-mr6jw808,first product,variant_01KWPXVTYE8QNG3R2AMFXZ9BQ0,Digital Download,DIGITAL-MR6JW808,8900,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWPYVVN6WMB545K1QD48G368,first-product-mr6kipp4,first product,variant_01KWPYVVQ4P3AQX6MV1D529JFC,Digital Download,DIGITAL-MR6KIPP4,5897,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWPZ751172E2TJGVJD9KNTKA,1-st-product-mr6kqn8a,1 st product,variant_01KWPZ751Z4X6NS0CQGPY3YS9N,Digital Download,DIGITAL-MR6KQN8A,6000,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWQ0QFX7S61WFT27SVRE6RMK,first-e-book-mr6lolgc,First E Book,variant_01KWQ0QFYM01DK8EHXM9ADFW3B,Digital Download,DIGITAL-MR6LOLGC,8898,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWQ1KPJ353283BZV8W23TE03,2nd-book-mr6m8enl,2nd book,variant_01KWQ1KPM3PSW0M8R6VD1SR9G1,Digital Download,DIGITAL-MR6M8ENL,9000,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWQ1NW3DSVAZ40HWKGZ3G8ZG,3rd-book-mr6m9xlw,3rd book,variant_01KWQ1NW4DCTQZMDVYQJSSJ1PN,Digital Download,DIGITAL-MR6M9XLW,1998,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWQ33JKCZM29X376W8YPMYX5,kmdcdlka-mr6n615p,kmdcdlka,variant_01KWQ33JNZJQKPXJQBG9YD9TA3,Digital Download,DIGITAL-MR6N615P,779400,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWQ48V3QXBHNKJ3WW92VXHPB,open-ebbbok-mr6nw7e2,open ebbbok,variant_01KWQ48V5KTFPFVGKB8H7PD2S4,Digital Download,DIGITAL-MR6NW7E2,8694,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWQ57CSJQ1VBVF7BTTYSEDRY,physics-book-mr6ohnvo,physics book,variant_01KWQ57CVG1FJEREF9QRNT7T47,Digital Download,DIGITAL-MR6OHNVO,9000,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWW0QKYEEXVQEKWXXME70BSX,organic-oil-20260706205845-mr9dkmgn,ORGANIC OIL 20260706205845,variant_01KWW0QM4SQPZ5RZKAFAFGETBZ,Standard,OIL-20260706205845,1000,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required
+prod_01KWW0R7M8TYHQJMQTWRQ6FXPZ,decimal-oil-20260706205906-mr9dl20k,DECIMAL OIL 20260706205906,variant_01KWW0R7NT0T4WR9WM88ATBPTR,Standard,DEC-20260706205906,599,cad,,,none_available,NEEDS_REVIEW,,Merchant USD price required

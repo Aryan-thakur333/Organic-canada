@@ -1,0 +1,1243 @@
+
+> backend@0.0.1 dev
+> node scripts/start-dev.js
+
+   🔐  JWT_SECRET: 50 characters (minimum 32)
+   🔐  COOKIE_SECRET: 49 characters
+   PostgreSQL connection verified
+   [MARKETPLACE_SCHEMA_DATABASE] medusa-backend (Schema: public, User: postgres)
+   🔧 Automatically running marketplace schema repair...
+[MARKETPLACE_REPAIR_START] Starting standalone schema repair...
+[MARKETPLACE_REPAIR_DATABASE] medusa-backend (Schema: public, User: postgres)
+[MARKETPLACE_REPAIR_TABLE_OK] vendor_order
+[MARKETPLACE_REPAIR_TABLE_OK] vendor_order_item
+[MARKETPLACE_REPAIR_TABLE_OK] vendor_order_activity
+[MARKETPLACE_REPAIR_TABLE_OK] vendor_earning
+[MARKETPLACE_REPAIR_TABLES_OK] All 4 tables created/verified
+[MARKETPLACE_SCHEMA_TABLE_OK] vendor_order
+[MARKETPLACE_SCHEMA_TABLE_OK] vendor_order_item
+[MARKETPLACE_SCHEMA_TABLE_OK] vendor_order_activity
+[MARKETPLACE_SCHEMA_TABLE_OK] vendor_earning
+[MARKETPLACE_SCHEMA_OK] Schema repair successful ✓
+[MARKETPLACE_REPAIR_DONE]
+   ✅ [MARKETPLACE_SCHEMA_OK] Verified to_regclass('public.vendor_order') exists
+
+🚀  Starting Medusa on http://localhost:9000
+📡  MEDUSA_BACKEND_URL=http://localhost:9000
+📝  Port saved to .backend-port
+
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    [Watcher] Using standard dev server (restart on file change)
+[32minfo[39m:    [Watcher] Watching filesystem to reload dev server on file change
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    Skipping instrumentation registration. No register function found.
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    No link to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\links. skipped.
+[33mwarn[39m:    Local Event Bus installed. This is not recommended for production.
+[32minfo[39m:    Locking module: Using "in-memory" as default.
+[32minfo[39m:    No workflow to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\workflows. skipped.
+[32minfo[39m:    No subscriber to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\subscribers. skipped.
+[32minfo[39m:    No job to load from D:\eatsie-project\backend\node_modules\@medusajs\medusa\dist\jobs. skipped.
+[32minfo[39m:    No job to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\jobs. skipped.
+[32minfo[39m:    Admin URL → http://localhost:9000/app
+[32minfo[39m:    [Watcher] created reports\source-runtime-import-audit.md created: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:217:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 24008,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\api\vendor\orders\[id]\_shared.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 11288,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\api\vendor\orders\[id]\_shared.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 24784,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] created reports\typescript-diagnostics-before.txt created: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:217:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 9352,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified reports\typescript-diagnostics-before.txt modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 2604,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\api\vendor\orders\[id]\_shared.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 25712,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\subscribers\order-placed.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 23808,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\api\__tests__\stripe-webhook.unit.spec.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 952,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] created reports\typescript-diagnostics-remaining-89.txt created: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:217:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 1668,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified reports\typescript-diagnostics-remaining-89.txt modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 19484,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\approve-usd-price-csv.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 11160,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\backfill-vendor-orders.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 13376,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\backfill-vendor-orders.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 25176,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\capture-regional-qa-counts.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 7796,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\prepare-storefront-regional-price-merchant-review.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 26192,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\report-duplicate-product-review.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 2644,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\export-missing-region-prices.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 24128,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\generate-production-usd-price-csv.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 3784,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\import-region-prices.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 18108,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\prepare-usd-prices.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 24640,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\export-missing-region-prices.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 20044,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\generate-production-usd-price-csv.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 12304,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\lib\catalog-cleanup.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 1956,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\lib\regenerate-merchant-regional-prices-csv.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 2092,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\debug-b2b-order-payment.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 8472,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\setup-vendor-stock-location.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 12844,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\import-region-prices.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 7032,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\setup-usa-region.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 24328,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\report-suspicious-cad-prices.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 25516,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\validate-storefront-regional-price-merchant-review.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 3700,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\repair-current-vendor-order-inventory.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 24304,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\repair-current-vendor-order-inventory.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 18232,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\repair-current-vendor-order-inventory.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 26536,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified jest.config.js modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 14776,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified jest.config.js modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 11104,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\lib\__tests__\storefront-catalog-classification.unit.spec.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 9340,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\lib\__tests__\regenerate-merchant-regional-prices-csv.unit.spec.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 26876,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\lib\__tests__\storefront-regional-price-review.unit.spec.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 16688,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\classify-storefront-catalog.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 768,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\classify-storefront-catalog.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 26736,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\lib\regenerate-merchant-regional-prices-csv.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 17132 /F /T
+ERROR: The process "17132" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 12364,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 31 37 31 33 32 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+server
+Error: Command failed: taskkill /PID 5608 /F /T
+ERROR: The process "5608" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 35 36 30 38 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 408,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 35 36 30 38 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\lib\__tests__\regenerate-merchant-regional-prices-csv.unit.spec.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 5608 /F /T
+ERROR: The process "5608" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 35 36 30 38 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 26056,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 35 36 30 38 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\lib\__tests__\storefront-regional-price-review.unit.spec.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 5608 /F /T
+ERROR: The process "5608" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 35 36 30 38 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 24972,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 35 36 30 38 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\lib\__tests__\storefront-regional-price-review.unit.spec.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 5608 /F /T
+ERROR: The process "5608" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 35 36 30 38 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 24580,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 35 36 30 38 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\classify-storefront-catalog.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 5608 /F /T
+ERROR: The process "5608" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 35 36 30 38 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 26860,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 35 36 30 38 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\lib\regenerate-merchant-regional-prices-csv.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 5608 /F /T
+ERROR: The process "5608" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 35 36 30 38 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 16268,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 35 36 30 38 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\scripts\lib\regenerate-merchant-regional-prices-csv.ts modified: restarting dev server
+Error: Command failed: taskkill /PID 5608 /F /T
+ERROR: The process "5608" not found.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 35 36 30 38 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+  ],
+  pid: 26632,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 54 68 65 20 70 72 6f 63 65 73 73 20 22 35 36 30 38 22 20 6e 6f 74 20 66 6f 75 6e 64 2e 0d 0a>
+}

@@ -1,0 +1,2283 @@
+{
+  "reviewCsv": "reports/usa-missing-usd-price-review.csv",
+  "totalRows": 64,
+  "rowsAutoApprovedFromVerifiedSource": 0,
+  "rowsStillNeedingMerchantReview": 64,
+  "rejectedSourceMatches": 102,
+  "rejectedRowsWithSourceMatches": 64,
+  "ambiguousMatches": 0,
+  "duplicateRows": 0,
+  "invalidRows": 0,
+  "priceUnit": "major",
+  "sourceFilesUsed": [],
+  "approvedMatches": [],
+  "rejectedMatches": [
+    {
+      "row": {
+        "row_number": "2",
+        "product_id": "prod_01KVN02PJ0TEWPZ721K4BC6XT7",
+        "product_handle": "final-1782042414-mqnq1lpn",
+        "product_title": "Final 1782042414",
+        "variant_id": "variant_01KVN02PMQNA2VAB5Z7RZ4HW9X",
+        "variant_title": "Standard",
+        "sku": "",
+        "current_cad_amount": "1999",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 8,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "3",
+        "product_id": "prod_01KVSFB7BAX6R5GFXKKCC4CYHX",
+        "product_handle": "fresh-bananas",
+        "product_title": "Fresh Bananas",
+        "variant_id": "variant_01KVSFB7CD3CVS9WN4SCVE9YXT",
+        "variant_title": "Standard",
+        "sku": "EATSIE-FRESH-BANANAS",
+        "current_cad_amount": "299",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 3,
+          "amount": "199",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 24,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "4",
+        "product_id": "prod_01KVSFB7DRWS2W3RZ6PEWEJV29",
+        "product_handle": "red-strawberries",
+        "product_title": "Red Strawberries",
+        "variant_id": "variant_01KVSFB7EKARSRMJ14F2T30WPN",
+        "variant_title": "Standard",
+        "sku": "EATSIE-RED-STRAWBERRIES",
+        "current_cad_amount": "699",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 4,
+          "amount": "499",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 34,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "5",
+        "product_id": "prod_01KVSFB7FQRQPT7HHHQTS0D9QA",
+        "product_handle": "green-grapes",
+        "product_title": "Green Grapes",
+        "variant_id": "variant_01KVSFB7GDJ405F2JQJ8A68700",
+        "variant_title": "Standard",
+        "sku": "EATSIE-GREEN-GRAPES",
+        "current_cad_amount": "599",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 5,
+          "amount": "399",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 25,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "6",
+        "product_id": "prod_01KVSFB7HK2723G4QTVR3DBP0S",
+        "product_handle": "sweet-mangoes",
+        "product_title": "Sweet Mangoes",
+        "variant_id": "variant_01KVSFB7JCCZ0V3E7Q7JQPAYGW",
+        "variant_title": "Standard",
+        "sku": "EATSIE-SWEET-MANGOES",
+        "current_cad_amount": "799",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 6,
+          "amount": "599",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 35,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "7",
+        "product_id": "prod_01KVSFB7KH3MAADTC8FXDNB7K9",
+        "product_handle": "organic-carrots",
+        "product_title": "Organic Carrots",
+        "variant_id": "variant_01KVSFB7M7DJ2NQP1MRFC161ZP",
+        "variant_title": "Standard",
+        "sku": "EATSIE-ORGANIC-CARROTS",
+        "current_cad_amount": "399",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 7,
+          "amount": "299",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 48,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "8",
+        "product_id": "prod_01KVSFB7NFW3HA28BEMYCHVFRJ",
+        "product_handle": "fresh-broccoli",
+        "product_title": "Fresh Broccoli",
+        "variant_id": "variant_01KVSFB7PMVBDKJ5NHD9CQQ5NX",
+        "variant_title": "Standard",
+        "sku": "EATSIE-FRESH-BROCCOLI",
+        "current_cad_amount": "449",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 8,
+          "amount": "299",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 46,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "9",
+        "product_id": "prod_01KVSFB7REXCQRQ06W82C4610V",
+        "product_handle": "green-spinach",
+        "product_title": "Green Spinach",
+        "variant_id": "variant_01KVSFB7SC8G5X8ZGN2TAPHTPG",
+        "variant_title": "Standard",
+        "sku": "EATSIE-GREEN-SPINACH",
+        "current_cad_amount": "499",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 9,
+          "amount": "399",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 47,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "10",
+        "product_id": "prod_01KVSFB7VJMJVD821ZFVYN9FWV",
+        "product_handle": "red-tomatoes",
+        "product_title": "Red Tomatoes",
+        "variant_id": "variant_01KVSFB7WSVC6Y3C0E24ZSP890",
+        "variant_title": "Standard",
+        "sku": "EATSIE-RED-TOMATOES",
+        "current_cad_amount": "399",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 10,
+          "amount": "299",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 50,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "11",
+        "product_id": "prod_01KVSFB7Z7ZARK3KPZCNNGCFN8",
+        "product_handle": "organic-potatoes",
+        "product_title": "Organic Potatoes",
+        "variant_id": "variant_01KVSFB80MDTP8T8R6Z7GB0CQN",
+        "variant_title": "Standard",
+        "sku": "EATSIE-ORGANIC-POTATOES",
+        "current_cad_amount": "549",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 11,
+          "amount": "399",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 49,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "12",
+        "product_id": "prod_01KVSFB82HYD8N48WG7XQGKWBW",
+        "product_handle": "organic-milk",
+        "product_title": "Organic Milk",
+        "variant_id": "variant_01KVSFB83K91ZD462YSQSFPK8C",
+        "variant_title": "Standard",
+        "sku": "EATSIE-ORGANIC-MILK",
+        "current_cad_amount": "649",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 12,
+          "amount": "499",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 22,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "13",
+        "product_id": "prod_01KVSFB85A4E8Z4E4F7ZX8E2SW",
+        "product_handle": "greek-yogurt",
+        "product_title": "Greek Yogurt",
+        "variant_id": "variant_01KVSFB86BTEA7ZEZ2M01STJYG",
+        "variant_title": "Standard",
+        "sku": "EATSIE-GREEK-YOGURT",
+        "current_cad_amount": "599",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 13,
+          "amount": "399",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 21,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "14",
+        "product_id": "prod_01KVSFB87RKDRSY8HR988M0Z9K",
+        "product_handle": "cheddar-cheese",
+        "product_title": "Cheddar Cheese",
+        "variant_id": "variant_01KVSFB88CG0FGKBQTG2KNBZE8",
+        "variant_title": "Standard",
+        "sku": "EATSIE-CHEDDAR-CHEESE",
+        "current_cad_amount": "799",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 14,
+          "amount": "599",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 19,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "15",
+        "product_id": "prod_01KVSFB8A3QK5WZV03MTMEAHPD",
+        "product_handle": "fresh-butter",
+        "product_title": "Fresh Butter",
+        "variant_id": "variant_01KVSFB8B6VM0SCQ8NFQZRC239",
+        "variant_title": "Standard",
+        "sku": "EATSIE-FRESH-BUTTER",
+        "current_cad_amount": "549",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 15,
+          "amount": "399",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 20,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "16",
+        "product_id": "prod_01KVSFB8CFN04MJA0CDQ8Y3QZX",
+        "product_handle": "paneer-block",
+        "product_title": "Paneer Block",
+        "variant_id": "variant_01KVSFB8D6X5V3ZFD2N7NXRYY5",
+        "variant_title": "Standard",
+        "sku": "EATSIE-PANEER-BLOCK",
+        "current_cad_amount": "699",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 16,
+          "amount": "499",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 23,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "17",
+        "product_id": "prod_01KVSFB8ENFV01KZE8AYE46CJB",
+        "product_handle": "whole-wheat-bread",
+        "product_title": "Whole Wheat Bread",
+        "variant_id": "variant_01KVSFB8FGBH5QYY47W48PZY7B",
+        "variant_title": "Standard",
+        "sku": "EATSIE-WHOLE-WHEAT-BREAD",
+        "current_cad_amount": "499",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 17,
+          "amount": "399",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 18,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "18",
+        "product_id": "prod_01KVSFB8GJWSH1JMXG0XPG2F6N",
+        "product_handle": "croissant",
+        "product_title": "Croissant",
+        "variant_id": "variant_01KVSFB8HDHXQHA4PKSS9PQ89A",
+        "variant_title": "Standard",
+        "sku": "EATSIE-CROISSANT",
+        "current_cad_amount": "349",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 18,
+          "amount": "299",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 12,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "19",
+        "product_id": "prod_01KVSFB8JPGQQ7QE235C4QDZX0",
+        "product_handle": "sourdough-loaf",
+        "product_title": "Sourdough Loaf",
+        "variant_id": "variant_01KVSFB8K8SQ0PERBD5HNEJE6M",
+        "variant_title": "Standard",
+        "sku": "EATSIE-SOURDOUGH-LOAF",
+        "current_cad_amount": "699",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 19,
+          "amount": "499",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 15,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "20",
+        "product_id": "prod_01KVSFB8M7AVMZ6888SSSYQE5K",
+        "product_handle": "muffins-pack",
+        "product_title": "Muffins Pack",
+        "variant_id": "variant_01KVSFB8MVTVENGRRVN6V61TQN",
+        "variant_title": "Standard",
+        "sku": "EATSIE-MUFFINS-PACK",
+        "current_cad_amount": "899",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 20,
+          "amount": "699",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 13,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "21",
+        "product_id": "prod_01KVSFB8NSZ67XN9G17BJJ1W38",
+        "product_handle": "organic-cookies",
+        "product_title": "Organic Cookies",
+        "variant_id": "variant_01KVSFB8PAKFQGF5B8VM9DCSFJ",
+        "variant_title": "Standard",
+        "sku": "EATSIE-ORGANIC-COOKIES",
+        "current_cad_amount": "649",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 21,
+          "amount": "499",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 14,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "22",
+        "product_id": "prod_01KVSFB8QBJ9M95V6E0DFZWHBV",
+        "product_handle": "chicken-breast",
+        "product_title": "Chicken Breast",
+        "variant_id": "variant_01KVSFB8R0M148Z5PHK7597K2E",
+        "variant_title": "Standard",
+        "sku": "EATSIE-CHICKEN-BREAST",
+        "current_cad_amount": "1299",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 22,
+          "amount": "899",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 37,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "23",
+        "product_id": "prod_01KVSFB8S2F4YXNV9BAKSNB9M2",
+        "product_handle": "lamb-chops",
+        "product_title": "Lamb Chops",
+        "variant_id": "variant_01KVSFB8STSXDM303M3W7B1C6A",
+        "variant_title": "Standard",
+        "sku": "EATSIE-LAMB-CHOPS",
+        "current_cad_amount": "1899",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 23,
+          "amount": "1399",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 39,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "24",
+        "product_id": "prod_01KVSFB8V27PTZ08274047AXD9",
+        "product_handle": "turkey-slices",
+        "product_title": "Turkey Slices",
+        "variant_id": "variant_01KVSFB8VPBD68YJKXTHQMNQ8W",
+        "variant_title": "Standard",
+        "sku": "EATSIE-TURKEY-SLICES",
+        "current_cad_amount": "1099",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 24,
+          "amount": "799",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 40,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "25",
+        "product_id": "prod_01KVSFB8WPTXN2GCYBZ5XH4RH6",
+        "product_handle": "beef-steak",
+        "product_title": "Beef Steak",
+        "variant_id": "variant_01KVSFB8X9WW94FBJDVM4J4VFH",
+        "variant_title": "Standard",
+        "sku": "EATSIE-BEEF-STEAK",
+        "current_cad_amount": "2299",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 25,
+          "amount": "1699",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 36,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "26",
+        "product_id": "prod_01KVSFB8YFCM952E63E8F4955Z",
+        "product_handle": "chicken-sausages",
+        "product_title": "Chicken Sausages",
+        "variant_id": "variant_01KVSFB8Z51WWP1W03QSDBY8N3",
+        "variant_title": "Standard",
+        "sku": "EATSIE-CHICKEN-SAUSAGES",
+        "current_cad_amount": "999",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 26,
+          "amount": "699",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 38,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "27",
+        "product_id": "prod_01KVSFB913BBP6JV700C09QV5D",
+        "product_handle": "salmon-fillet",
+        "product_title": "Salmon Fillet",
+        "variant_id": "variant_01KVSFB92CWGYZ3A6S6EMXP6BE",
+        "variant_title": "Standard",
+        "sku": "EATSIE-SALMON-FILLET",
+        "current_cad_amount": "1999",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 27,
+          "amount": "1499",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 43,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "28",
+        "product_id": "prod_01KVSFB94BJ8CSBH3WSE47JY4N",
+        "product_handle": "fresh-prawns",
+        "product_title": "Fresh Prawns",
+        "variant_id": "variant_01KVSFB95KV4BKPP4JT3WD2MRP",
+        "variant_title": "Standard",
+        "sku": "EATSIE-FRESH-PRAWNS",
+        "current_cad_amount": "1699",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 28,
+          "amount": "1199",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 42,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "29",
+        "product_id": "prod_01KVSFB97WZ9DA9P6VRTKVQAFF",
+        "product_handle": "tuna-steak",
+        "product_title": "Tuna Steak",
+        "variant_id": "variant_01KVSFB992JJ928VFRNB422JQ9",
+        "variant_title": "Standard",
+        "sku": "EATSIE-TUNA-STEAK",
+        "current_cad_amount": "1899",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 29,
+          "amount": "1399",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 44,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "30",
+        "product_id": "prod_01KVSFB9B2AF16KR0X5JE0C3WV",
+        "product_handle": "crab-meat",
+        "product_title": "Crab Meat",
+        "variant_id": "variant_01KVSFB9C5W5C0347WGB5RNS4Y",
+        "variant_title": "Standard",
+        "sku": "EATSIE-CRAB-MEAT",
+        "current_cad_amount": "2199",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 30,
+          "amount": "1599",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 41,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "31",
+        "product_id": "prod_01KVSFB9E75M66XRVS6N0XS6ZW",
+        "product_handle": "white-fish-fillet",
+        "product_title": "White Fish Fillet",
+        "variant_id": "variant_01KVSFB9F81ZZM6H5SSK61WGBN",
+        "variant_title": "Standard",
+        "sku": "EATSIE-WHITE-FISH-FILLET",
+        "current_cad_amount": "1499",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 31,
+          "amount": "1099",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 45,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "32",
+        "product_id": "prod_01KVSPT0255E9PQS0FJZ94MPSR",
+        "product_handle": "papaya-mqqc55q3",
+        "product_title": "Papaya",
+        "variant_id": "variant_01KVSPT08VCN1E9D4CYYGQBG3Q",
+        "variant_title": "Standard",
+        "sku": "PAPAYA-VERIFY",
+        "current_cad_amount": "699",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 32,
+          "amount": "499",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 26,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "33",
+        "product_id": "prod_01KVSPZAPBTBRDSZHTRVCYXW6Z",
+        "product_handle": "papaya-pack-2015cd-mqqc8whq",
+        "product_title": "Papaya Pack 2015cd",
+        "variant_id": "variant_01KVSPZAVZKYRRNKJJXMB3VJH0",
+        "variant_title": "Small",
+        "sku": "PAP-S-a3a2",
+        "current_cad_amount": "499",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 33,
+          "amount": "399",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 11,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "34",
+        "product_id": "prod_01KVSPZAPBTBRDSZHTRVCYXW6Z",
+        "product_handle": "papaya-pack-2015cd-mqqc8whq",
+        "product_title": "Papaya Pack 2015cd",
+        "variant_id": "variant_01KVSPZAW0S335JX2KXGD7NEQJ",
+        "variant_title": "Large",
+        "sku": "PAP-L-ea15",
+        "current_cad_amount": "899",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 34,
+          "amount": "699",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 10,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "35",
+        "product_id": "prod_01KVSQ48867BV7ZNMYB7CFZX75",
+        "product_handle": "papaya-final-a90dd3-mqqccd0y",
+        "product_title": "Papaya Final a90dd3",
+        "variant_id": "variant_01KVSQ48EZAJH0KY9XVS2ZZ7BA",
+        "variant_title": "Standard",
+        "sku": "PAPAYA-FINAL-04c9",
+        "current_cad_amount": "799",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 35,
+          "amount": "599",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 28,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "36",
+        "product_id": "prod_01KVSQ9RMC9VY464EF61WVPZE2",
+        "product_handle": "papaya-link-1a8db7-mqqcg8cz",
+        "product_title": "Papaya Link 1a8db7",
+        "variant_id": "variant_01KVSQ9RXKQWZBH7AK4VK7PTSV",
+        "variant_title": "Standard",
+        "sku": "PAPAYA-LINK-638d",
+        "current_cad_amount": "899",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 36,
+          "amount": "699",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 29,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "37",
+        "product_id": "prod_01KVSQZ00MWS1S3T7FYJJC0VXK",
+        "product_handle": "papaya-link-array-b9f928-mqqcv56k",
+        "product_title": "Papaya Link Array b9f928",
+        "variant_id": "variant_01KVSQZ04ZZ120JMVMPCQ0PYQJ",
+        "variant_title": "Standard",
+        "sku": "PAPAYA-ARRAY-dbca",
+        "current_cad_amount": "999",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 37,
+          "amount": "699",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 30,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "38",
+        "product_id": "prod_01KVSR6H141CJWVP91R4T3TD8E",
+        "product_handle": "papaya-vendor-smoke-dc9962-mqqd0fm9",
+        "product_title": "Papaya Vendor Smoke dc9962",
+        "variant_id": "variant_01KVSR6H59F57ED9M0GRE24BNJ",
+        "variant_title": "Standard",
+        "sku": "PAP-SMOKE-dc9962",
+        "current_cad_amount": "999",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 31,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "39",
+        "product_id": "prod_01KVSZH979HQY5NNJS0BCC8Y7Q",
+        "product_handle": "papaya-mqqhlb57",
+        "product_title": "papaya",
+        "variant_id": "variant_01KVSZH9M19J7GWF1M8TV5D5ZZ",
+        "variant_title": "Standard",
+        "sku": "VENDOR-mqqhlb5x-1",
+        "current_cad_amount": "600",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 38,
+          "amount": "399",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 27,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "40",
+        "product_id": "prod_01KVW0YM6H0HYPRV73MKDJZWDX",
+        "product_handle": "pineapple-mqrmfj25",
+        "product_title": "Pineapple",
+        "variant_id": "variant_01KVW0YMR5Q4X2P1H9QVJ0W6XK",
+        "variant_title": "Standard",
+        "sku": "VENDOR-mqrmfj31-1",
+        "current_cad_amount": "900",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 39,
+          "amount": "699",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 32,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "41",
+        "product_id": "prod_01KVW221QD90ZE1Y069Z8VB2J4",
+        "product_handle": "pineapple-mqrn4er9",
+        "product_title": "Pineapple",
+        "variant_id": "variant_01KVW221YN1BGRD3G66J4KSJTQ",
+        "variant_title": "Standard",
+        "sku": "VENDOR-mqrn4ern-1",
+        "current_cad_amount": "700",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reviewed-production-usd-prices.csv",
+          "sourceRow": 40,
+          "amount": "499",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "reviewed conversion source is not an approved major-unit merchant source for this CSV"
+        },
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 33,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "42",
+        "product_id": "prod_01KVW5WN2X0EWHYJ4SGGCA7XNP",
+        "product_handle": "thekua-mqrpiime",
+        "product_title": "Thekua",
+        "variant_id": "variant_01KVW5WNE5G5M7Z46PKGYH3Y5X",
+        "variant_title": "Standard",
+        "sku": "VENDOR-mqrpiio4-1",
+        "current_cad_amount": "2000",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 16,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "43",
+        "product_id": "prod_01KVWF8FG3R20YF227VBX4RJKS",
+        "product_handle": "thekua-mqrvd3g1",
+        "product_title": "Thekua",
+        "variant_id": "variant_01KVWF8FWA0H73XJWWDZX63PDD",
+        "variant_title": "Standard",
+        "sku": "VENDOR-mqrvd3ga-1",
+        "current_cad_amount": "2000",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 17,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "44",
+        "product_id": "prod_01KWHSBEPFGTCBKNAQACQYZHJR",
+        "product_handle": "master-class-notes-mr3p6vni",
+        "product_title": "master class notes",
+        "variant_id": "variant_01KWHSBERK2DJ0DNPQR3NYZ9BY",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-1783008443073",
+        "current_cad_amount": "1700",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 64,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "45",
+        "product_id": "prod_01KWHT1K6NX18YED89NZPCEPD2",
+        "product_handle": "master-class-book-mr3pmfgr",
+        "product_title": "master class book",
+        "variant_id": "variant_01KWHT1K91GCQTENK2204MYG41",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-1783009168591",
+        "current_cad_amount": "999",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 63,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "46",
+        "product_id": "prod_01KWHV6ZPSQJ28CN6X8T3JE4BA",
+        "product_handle": "anaana-mr3qcouf",
+        "product_title": "anaana",
+        "variant_id": "variant_01KWHV6ZRNCK5WTHEX10JPM6FZ",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-1783010393804",
+        "current_cad_amount": "196",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 56,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "47",
+        "product_id": "prod_01KWHZ0X6CHGKHYZH4Z1A6XHT8",
+        "product_handle": "master-class-of-chatgpt-mr3sqbi6",
+        "product_title": "master class of chatgpt",
+        "variant_id": "variant_01KWHZ0X8N97ZVTCZBK0BGHJF8",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-1783014388928",
+        "current_cad_amount": "900",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 65,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "48",
+        "product_id": "prod_01KWHZN4Q2FW2Z78K1SG8SGD4E",
+        "product_handle": "abcd-mr3t4j4n",
+        "product_title": "abcd",
+        "variant_id": "variant_01KWHZN4S3PZZGADF85XSCYAG4",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-1783015051996",
+        "current_cad_amount": "9897",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 54,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "49",
+        "product_id": "prod_01KWJ0NRWG4CAMH6V1RF25FB3X",
+        "product_handle": "kdksks-mr3trg5b",
+        "product_title": "kdksks",
+        "variant_id": "variant_01KWJ0NRYQB2W72NVMCCT49KGK",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-1783016121219",
+        "current_cad_amount": "23395",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 61,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "50",
+        "product_id": "prod_01KWKVPT51K2TP2M0K8WZ19GSS",
+        "product_handle": "ssff-mr4um6j0",
+        "product_title": "ssff",
+        "variant_id": "variant_01KWKVPT86GTB2DBN1DBT1HN95",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-MR4UM6J0",
+        "current_cad_amount": "9000",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 70,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "51",
+        "product_id": "prod_01KWMAM00WTB7B5P6AJ799RYTC",
+        "product_handle": "codex-digital-upload-verification-mr53xbma",
+        "product_title": "Codex Digital Upload Verification",
+        "variant_id": "variant_01KWMAM042JP42Y1AX94QRR9V7",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-MR53XBMA",
+        "current_cad_amount": "2000",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 57,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "52",
+        "product_id": "prod_01KWMDFGBBCVK7DC7K1JZCMTJM",
+        "product_handle": "abcdefg-mr55plcv",
+        "product_title": "abcdefg",
+        "variant_id": "variant_01KWMDFGDF085SGFC0E8A8CAF4",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-MR55PLCV",
+        "current_cad_amount": "2900",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 55,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "53",
+        "product_id": "prod_01KWMFJENJQ0CADDKAPZ142MZA",
+        "product_handle": "organic-book-mr570m1x",
+        "product_title": "organic book",
+        "variant_id": "variant_01KWMFJES8MX8JS58Q6MB35Q1G",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-MR570M1X",
+        "current_cad_amount": "4995",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 67,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "54",
+        "product_id": "prod_01KWNTYHP4K6NRYXGCT9FY4SYG",
+        "product_handle": "prince-product-mr5y3ika",
+        "product_title": "prince product",
+        "variant_id": "variant_01KWNTYHSJSMRRQVD3MRJ2T4AT",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-MR5Y3IKA",
+        "current_cad_amount": "2899",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 69,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "55",
+        "product_id": "prod_01KWPXVTWMG9C90F0WCQGWAPFT",
+        "product_handle": "first-product-mr6jw808",
+        "product_title": "first product",
+        "variant_id": "variant_01KWPXVTYE8QNG3R2AMFXZ9BQ0",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-MR6JW808",
+        "current_cad_amount": "8900",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 59,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "56",
+        "product_id": "prod_01KWPYVVN6WMB545K1QD48G368",
+        "product_handle": "first-product-mr6kipp4",
+        "product_title": "first product",
+        "variant_id": "variant_01KWPYVVQ4P3AQX6MV1D529JFC",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-MR6KIPP4",
+        "current_cad_amount": "5897",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 60,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "57",
+        "product_id": "prod_01KWPZ751172E2TJGVJD9KNTKA",
+        "product_handle": "1-st-product-mr6kqn8a",
+        "product_title": "1 st product",
+        "variant_id": "variant_01KWPZ751Z4X6NS0CQGPY3YS9N",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-MR6KQN8A",
+        "current_cad_amount": "6000",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 51,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "58",
+        "product_id": "prod_01KWQ0QFX7S61WFT27SVRE6RMK",
+        "product_handle": "first-e-book-mr6lolgc",
+        "product_title": "First E Book",
+        "variant_id": "variant_01KWQ0QFYM01DK8EHXM9ADFW3B",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-MR6LOLGC",
+        "current_cad_amount": "8898",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 58,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "59",
+        "product_id": "prod_01KWQ1KPJ353283BZV8W23TE03",
+        "product_handle": "2nd-book-mr6m8enl",
+        "product_title": "2nd book",
+        "variant_id": "variant_01KWQ1KPM3PSW0M8R6VD1SR9G1",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-MR6M8ENL",
+        "current_cad_amount": "9000",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 52,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "60",
+        "product_id": "prod_01KWQ1NW3DSVAZ40HWKGZ3G8ZG",
+        "product_handle": "3rd-book-mr6m9xlw",
+        "product_title": "3rd book",
+        "variant_id": "variant_01KWQ1NW4DCTQZMDVYQJSSJ1PN",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-MR6M9XLW",
+        "current_cad_amount": "1998",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 53,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "61",
+        "product_id": "prod_01KWQ33JKCZM29X376W8YPMYX5",
+        "product_handle": "kmdcdlka-mr6n615p",
+        "product_title": "kmdcdlka",
+        "variant_id": "variant_01KWQ33JNZJQKPXJQBG9YD9TA3",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-MR6N615P",
+        "current_cad_amount": "779400",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 62,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "62",
+        "product_id": "prod_01KWQ48V3QXBHNKJ3WW92VXHPB",
+        "product_handle": "open-ebbbok-mr6nw7e2",
+        "product_title": "open ebbbok",
+        "variant_id": "variant_01KWQ48V5KTFPFVGKB8H7PD2S4",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-MR6NW7E2",
+        "current_cad_amount": "8694",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 66,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "63",
+        "product_id": "prod_01KWQ57CSJQ1VBVF7BTTYSEDRY",
+        "product_handle": "physics-book-mr6ohnvo",
+        "product_title": "physics book",
+        "variant_id": "variant_01KWQ57CVG1FJEREF9QRNT7T47",
+        "variant_title": "Digital Download",
+        "sku": "DIGITAL-MR6OHNVO",
+        "current_cad_amount": "9000",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 68,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "64",
+        "product_id": "prod_01KWW0QKYEEXVQEKWXXME70BSX",
+        "product_handle": "organic-oil-20260706205845-mr9dkmgn",
+        "product_title": "ORGANIC OIL 20260706205845",
+        "variant_id": "variant_01KWW0QM4SQPZ5RZKAFAFGETBZ",
+        "variant_title": "Standard",
+        "sku": "OIL-20260706205845",
+        "current_cad_amount": "1000",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 9,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    },
+    {
+      "row": {
+        "row_number": "65",
+        "product_id": "prod_01KWW0R7M8TYHQJMQTWRQ6FXPZ",
+        "product_handle": "decimal-oil-20260706205906-mr9dl20k",
+        "product_title": "DECIMAL OIL 20260706205906",
+        "variant_id": "variant_01KWW0R7NT0T4WR9WM88ATBPTR",
+        "variant_title": "Standard",
+        "sku": "DEC-20260706205906",
+        "current_cad_amount": "599",
+        "current_cad_currency": "cad",
+        "existing_usd_amount": "",
+        "proposed_usd_amount": "",
+        "proposal_source": "none_available",
+        "review_status": "NEEDS_REVIEW",
+        "validation_error": "",
+        "notes": "Merchant USD price required"
+      },
+      "matches": [
+        {
+          "sourceFile": "reports/storefront-regional-price-merchant-review.csv",
+          "sourceRow": 7,
+          "amount": "",
+          "matchMethod": "variant_id",
+          "confidence": "rejected",
+          "validationResult": "REJECTED",
+          "reason": "merchant review rows are not marked approved"
+        }
+      ]
+    }
+  ],
+  "ambiguousMatchDetails": [],
+  "duplicateVariantIds": [],
+  "invalidRowDetails": [],
+  "liveImportExecuted": false,
+  "businessDataWrites": 0
+}

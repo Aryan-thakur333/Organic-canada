@@ -1,0 +1,13 @@
+{
+  "totalRows": 64,
+  "approvedRows": 0,
+  "needsReviewRows": 64,
+  "rejectedRows": 0,
+  "invalidRows": 0,
+  "duplicateRows": 0,
+  "alreadyPricedRows": 0,
+  "approvedTotalAmountCount": 0,
+  "detectedPriceUnit": "major",
+  "validationErrorsByRow": [],
+  "validForImport": false
+}

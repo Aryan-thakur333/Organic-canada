@@ -1,0 +1,14 @@
+npm warn Unknown project config "public-hoist-pattern". This will stop working in the next major version of npm.
+(node:33492) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+══════════════════════════════════════════════════════
+  ⚠️  LOCAL ONLY: fake Redis is enabled. Do not use this mode in production.
+══════════════════════════════════════════════════════
+
+[medusa-config] Stripe is disabled: STRIPE_API_KEY is not configured. COD remains available.
+Warning: connect.session() MemoryStore is not
+designed for a production environment, as it will leak
+memory, and will not scale past a single process.
+{"event":"http_request","request_id":"ms396hdsn7nniy","method":"GET","path":"/store/customers/me","status":401,"duration_ms":10,"rate_limit_remaining":59}
+{"event":"http_request","request_id":"ms39b86jl8myg4","method":"GET","path":"/admin/feature-flags","status":401,"duration_ms":1}

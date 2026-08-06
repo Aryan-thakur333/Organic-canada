@@ -1,0 +1,2 @@
+product_id,variant_id,inventory_item_id,stock_location_id,current_stocked_quantity,current_reserved_quantity,current_available_quantity,proposed_stocked_quantity,approved,notes
+prod_01KVSFB71XDNGFJN01RH3C2G1M,variant_01KVSFB75GZJ4N0B9SY6BXDTZC,,,,,,,,false,Awaiting read-only inventory diagnosis and merchant approval

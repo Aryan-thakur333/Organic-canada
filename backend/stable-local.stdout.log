@@ -1,0 +1,73 @@
+
+> backend@0.0.1 admin:stable:local
+> node scripts/start-stable.js --local
+
+
+══════════════════════════════════════════════════════
+  EATSIE MEDUSA v2 — STABLE ADMIN START
+══════════════════════════════════════════════════════
+  Mode: LOCAL STABLE (fake Redis allowed)
+  Admin: http://localhost:9000/app
+  Flags: --local
+
+  ✅  Project validated: D:\eatsie-project\backend
+  ✅  Auth secrets loaded from project .env (values not logged)
+  ⚠️   LOCAL ONLY: fake Redis is enabled. Do not use this mode in production.
+  ✅  Loaded existing validated Admin Build ID: eatsie_build_1785083950256_kpsdg7
+
+══════════════════════════════════════════════════════
+  STARTING MEDUSA (STABLE MODE — NO VITE HMR)
+══════════════════════════════════════════════════════
+  ▶  Running: medusa start on port 9000
+  ▶  Admin URL: http://localhost:9000/app
+  ▶  Health:    http://localhost:9000/health
+
+  ℹ️  STABLE MODE: Admin assets are pre-built.
+     No ephemeral Vite HMR port is used.
+     Preferred for pricing approvals and live import operations.
+
+  ▶  Copying .env to .medusa/server/.env...
+  ✅  .env copied
+  ▶  Waiting for backend health check at http://localhost:9000/health...
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    Skipping instrumentation registration. No register function found.
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    No link to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\links. skipped.
+[33mwarn[39m:    Local Event Bus installed. This is not recommended for production.
+[32minfo[39m:    Locking module: Using "in-memory" as default.
+[32minfo[39m:    No workflow to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\workflows. skipped.
+[32minfo[39m:    No subscriber to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\subscribers. skipped.
+[32minfo[39m:    No job to load from D:\eatsie-project\backend\node_modules\@medusajs\medusa\dist\jobs. skipped.
+[32minfo[39m:    No job to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\jobs. skipped.
+  ✅  Backend is healthy! (attempt 10)
+  ▶  Verifying served Admin HTML at http://localhost:9000/app/...
+  ✅  Stable Admin production assets verified successfully (no Vite HMR runtime detected)
+{"level":"http","client_ip":"::1","request_id":"f1b7ed82-1e23-43a1-bde3-b255c462c7d0","http_version":"1.1","method":"GET","path":"/app/","status":200,"response_size":"581","request_size":0,"duration":1.364,"referrer":"-","timestamp":"2026-07-26T16:41:12.236Z"}
+  ▶  Verifying served Build Metadata at http://localhost:9000/app/eatsie-build.json...
+{"level":"http","client_ip":"::1","request_id":"e81ce089-b947-4c38-9316-a8dd806d1ee2","http_version":"1.1","method":"GET","path":"/app/eatsie-build.json","status":200,"response_size":116,"request_size":0,"duration":4.115,"referrer":"-","timestamp":"2026-07-26T16:41:12.243Z"}
+  ✅  Served Build ID matches derived Build ID: eatsie_build_1785083950256_kpsdg7
+{"level":"http","client_ip":"::1","request_id":"73a2d71a-e7ce-4b35-93c5-0e93e5a316ff","http_version":"1.1","method":"GET","path":"/app","status":200,"response_size":"581","request_size":0,"duration":0.887,"referrer":"-","user_agent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8875","timestamp":"2026-07-26T16:42:00.105Z"}
+{"level":"http","client_ip":"::1","request_id":"1b942f31-0f37-4653-a9ee-cd86f0b1f360","http_version":"1.1","method":"GET","path":"/app/eatsie-build.json","status":200,"response_size":116,"request_size":0,"duration":2.716,"referrer":"-","user_agent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8875","timestamp":"2026-07-26T16:42:00.124Z"}
+{"level":"http","client_ip":"::1","request_id":"74e4196b-a347-4881-bc19-e8c7df174d31","http_version":"1.1","method":"GET","path":"/app","status":200,"response_size":"581","request_size":0,"duration":1.25,"referrer":"-","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:43.596Z"}
+{"level":"http","client_ip":"::1","request_id":"14df9030-ea63-4a32-b3e1-0f0a35249d32","http_version":"1.1","method":"GET","path":"/app/assets/index-knpkFFQ8.css","status":200,"response_size":0,"request_size":0,"duration":9.676,"referrer":"http://localhost:9000/app","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:43.723Z"}
+{"level":"http","client_ip":"::1","request_id":"27f9defd-9639-4c27-800b-86351d2da107","http_version":"1.1","method":"GET","path":"/app/assets/index-CUXhx8rM.js","status":200,"response_size":0,"request_size":0,"duration":9.286,"referrer":"http://localhost:9000/app","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:44.174Z"}
+{"level":"http","client_ip":"::1","request_id":"92ec0eac-1ee7-4d7c-9947-42c3fd7be71f","http_version":"1.1","method":"GET","path":"/app/assets/home-KFQGXKRT-Cd3Fvi-b.js","status":200,"response_size":174,"request_size":0,"duration":2.743,"referrer":"http://localhost:9000/app/assets/index-CUXhx8rM.js","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:44.782Z"}
+{"level":"http","client_ip":"::1","request_id":"4ea43d24-4e15-480a-8f12-6762f7134895","http_version":"1.1","method":"GET","path":"/admin/feature-flags","status":401,"response_size":"26","request_size":0,"duration":3.562,"referrer":"http://localhost:9000/app","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:44.797Z"}
+{"level":"http","client_ip":"::1","request_id":"20176901-e26f-4a33-a532-277e52c43291","http_version":"1.1","method":"GET","path":"/admin/users/me","status":401,"response_size":"26","request_size":0,"duration":2.557,"referrer":"http://localhost:9000/app","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:44.818Z"}
+{"level":"http","client_ip":"::1","request_id":"c64cff59-fede-43a2-a238-26a2f929dbcb","http_version":"1.1","method":"GET","path":"/admin/feature-flags","status":401,"response_size":"26","request_size":0,"duration":0.712,"referrer":"http://localhost:9000/app","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:45.823Z"}
+{"level":"http","client_ip":"::1","request_id":"56b8032b-3c4a-4d1e-90a1-9f721e54f484","http_version":"1.1","method":"GET","path":"/admin/users/me","status":401,"response_size":"26","request_size":0,"duration":0.709,"referrer":"http://localhost:9000/app","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:45.836Z"}
+{"level":"http","client_ip":"::1","request_id":"92aadac8-8ce8-4fe8-adb9-d937bf8c82ce","http_version":"1.1","method":"GET","path":"/app/assets/alert-DVHXMNY5.js","status":200,"response_size":873,"request_size":0,"duration":3.454,"referrer":"http://localhost:9000/app","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:45.850Z"}
+{"level":"http","client_ip":"::1","request_id":"2d466be0-cbeb-4692-bc1b-6f55f6569e6e","http_version":"1.1","method":"GET","path":"/app/assets/chunk-KIIT4BNH-DZ9rAide.js","status":200,"response_size":655,"request_size":0,"duration":5.562,"referrer":"http://localhost:9000/app","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:45.851Z"}
+{"level":"http","client_ip":"::1","request_id":"c8ad6af1-d114-4003-8c22-76d9b9848832","http_version":"1.1","method":"GET","path":"/app/assets/chunk-O333RR6K-BxkOKgTv.js","status":200,"response_size":0,"request_size":0,"duration":4.41,"referrer":"http://localhost:9000/app","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:45.853Z"}
+{"level":"http","client_ip":"::1","request_id":"b90bd38a-34cb-42c6-a504-433736f30ec7","http_version":"1.1","method":"GET","path":"/app/assets/login-TQZ42HKB-DU1PKf-s.js","status":200,"response_size":0,"request_size":0,"duration":5.293,"referrer":"http://localhost:9000/app","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:45.854Z"}
+{"level":"http","client_ip":"::1","request_id":"8f5a50de-7878-45bf-a591-45e6031d403d","http_version":"1.1","method":"GET","path":"/app/assets/index.modern-DOAtt2oT.js","status":200,"response_size":0,"request_size":0,"duration":3.635,"referrer":"http://localhost:9000/app","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:45.857Z"}
+{"level":"http","client_ip":"::1","request_id":"f0dec28d-370e-4678-9a7b-023049cea567","http_version":"1.1","method":"GET","path":"/app/assets/Trans-CskaXQHF.js","status":200,"response_size":0,"request_size":0,"duration":9.868,"referrer":"http://localhost:9000/app","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:45.858Z"}
+{"level":"http","client_ip":"::1","request_id":"1b2009c5-6b28-4b4f-b9a3-dcd527dcb85a","http_version":"1.1","method":"GET","path":"/cloud/auth","status":304,"response_size":0,"request_size":0,"duration":14.007,"referrer":"http://localhost:9000/app/login","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:45.951Z"}
+{"event":"http_request","request_id":"ms210to0j0lr55","method":"GET","path":"/cloud/auth","status":304,"duration_ms":15}
+{"level":"http","client_ip":"::1","request_id":"cb5ab3a5-ac8b-4012-86b3-ea5b46f75f0e","http_version":"1.1","method":"GET","path":"/app/assets/Inter-Regular-CKBOXRQ3-DYjygwQm.ttf","status":200,"response_size":0,"request_size":0,"duration":1.769,"referrer":"http://localhost:9000/app/assets/index-knpkFFQ8.css","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:45.960Z"}
+{"level":"http","client_ip":"::1","request_id":"98bb9615-ea2e-4353-9216-dde723e7af61","http_version":"1.1","method":"GET","path":"/app/assets/Inter-Medium-RUQTUVA3-CKLJZXR2.ttf","status":200,"response_size":0,"request_size":0,"duration":2.736,"referrer":"http://localhost:9000/app/assets/index-knpkFFQ8.css","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T16:42:45.962Z"}
+{"level":"http","client_ip":"::1","request_id":"410aba4a-450f-4bbb-88bc-b0d61f770570","http_version":"1.1","method":"GET","path":"/app/","status":200,"response_size":"581","request_size":0,"duration":0.96,"referrer":"-","timestamp":"2026-07-26T16:43:24.087Z"}
+{"level":"http","client_ip":"::1","request_id":"fe76dc6a-eb96-45e2-bbf1-cf5f97b7105e","http_version":"1.1","method":"GET","path":"/app/eatsie-build.json","status":200,"response_size":116,"request_size":0,"duration":4.11,"referrer":"-","timestamp":"2026-07-26T16:43:24.098Z"}
+{"level":"http","client_ip":"::1","request_id":"fae4f534-f407-4f22-841b-fb67e6d4517b","http_version":"1.1","method":"GET","path":"/app/","status":200,"response_size":"581","request_size":0,"duration":0.393,"referrer":"-","timestamp":"2026-07-26T16:44:09.120Z"}
+{"level":"http","client_ip":"::1","request_id":"263d47ea-67f1-44ff-a58e-a1cba2a6bec9","http_version":"1.1","method":"GET","path":"/app/eatsie-build.json","status":200,"response_size":116,"request_size":0,"duration":1.426,"referrer":"-","timestamp":"2026-07-26T16:44:09.136Z"}

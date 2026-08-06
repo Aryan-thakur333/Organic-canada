@@ -104,6 +104,31 @@ async function verifyDatabaseConnection() {
     await client.connect()
     await client.query("select 1")
     console.log("   PostgreSQL connection verified")
+
+    // Print current DB context
+    const dbContext = await client.query("SELECT current_database() as db, current_schema() as schema, current_user as user")
+    console.log(`   [MARKETPLACE_SCHEMA_DATABASE] ${dbContext.rows[0].db} (Schema: ${dbContext.rows[0].schema}, User: ${dbContext.rows[0].user})`)
+
+    // Automatically run the marketplace schema repair to guarantee vendor tables exist
+    console.log("   🔧 Automatically running marketplace schema repair...")
+    const { execFileSync } = require("child_process")
+    const backendRoot = path.resolve(__dirname, "..")
+    const repairScript = path.resolve(backendRoot, "src", "scripts", "standalone-repair-schema.js")
+    
+    // Will throw and stop Medusa startup if exit code is non-zero
+    execFileSync(process.execPath, [repairScript], { 
+      stdio: "inherit",
+      cwd: backendRoot,
+      shell: false
+    })
+
+    // Strict validation immediately after repair
+    const regCheck = await client.query("SELECT to_regclass('public.vendor_order') as name")
+    if (!regCheck.rows[0].name) {
+      throw new Error("Repair script succeeded but vendor_order table was not found by to_regclass!")
+    }
+    console.log("   ✅ [MARKETPLACE_SCHEMA_OK] Verified to_regclass('public.vendor_order') exists")
+
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     throw new Error(`PostgreSQL preflight failed: ${message}`)
@@ -232,8 +257,15 @@ function startMedusa(port) {
   console.log(`📡  MEDUSA_BACKEND_URL=${updatedUrl}`)
   console.log(`📝  Port saved to .backend-port\n`)
 
-  // Spawn the Medusa CLI
+  // Medusa's `develop` watcher restarts the server when files are added under
+  // backend/uploads. Digital-product uploads write there during the request, so
+  // preload a small chokidar patch that ignores upload storage.
   const medusaCliPath = require.resolve("@medusajs/cli/cli.js")
+  const watcherPatchPath = path.resolve(__dirname, "patch-medusa-dev-watcher.js").replace(/\\/g, "/")
+  const existingNodeOptions = process.env.NODE_OPTIONS || ""
+  process.env.NODE_OPTIONS = `${existingNodeOptions} --require ${watcherPatchPath}`.trim()
+  process.env.XDG_CONFIG_HOME = path.resolve(__dirname, "..", ".medusa-cli-config")
+
   const child = spawn(process.execPath, [medusaCliPath, "develop"], {
     stdio: "inherit",
     env: process.env,

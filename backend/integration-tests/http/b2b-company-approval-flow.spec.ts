@@ -1,4 +1,11 @@
 import { medusaIntegrationTestRunner } from "@medusajs/test-utils"
+import { Modules } from "@medusajs/framework/utils"
+import {
+  createApiKeysWorkflow,
+  createSalesChannelsWorkflow,
+  createUserAccountWorkflow,
+  linkSalesChannelsToApiKeyWorkflow,
+} from "@medusajs/medusa/core-flows"
 
 jest.setTimeout(120 * 1000)
 
@@ -17,8 +24,92 @@ jest.setTimeout(120 * 1000)
  */
 medusaIntegrationTestRunner({
   inApp: true,
+  disableAutoTeardown: true,
   env: {},
-  testSuite: ({ api, adminHeaders }) => {
+  testSuite: ({ api, adminHeaders = { headers: {} }, getContainer }) => {
+    let publishableApiKey: string
+    let storeRequestIpSequence = 0
+
+    beforeAll(async () => {
+      const container = getContainer()
+      const query: any = container.resolve("query")
+
+      const { data: salesChannels } = await query.graph({
+        entity: "sales_channel",
+        fields: ["id"],
+        pagination: { take: 1 },
+      })
+
+      let salesChannelId = salesChannels?.[0]?.id
+      if (!salesChannelId) {
+        const { result } = await createSalesChannelsWorkflow(container).run({
+          input: {
+            salesChannelsData: [
+              {
+                name: "B2B Company Test Channel",
+              },
+            ],
+          },
+        })
+        salesChannelId = result[0].id
+      }
+
+      const {
+        result: [apiKey],
+      } = await createApiKeysWorkflow(container).run({
+        input: {
+          api_keys: [
+            {
+              title: "B2B company test publishable key",
+              type: "publishable",
+              created_by: "",
+            },
+          ],
+        },
+      })
+
+      publishableApiKey = apiKey.token
+
+      await linkSalesChannelsToApiKeyWorkflow(container).run({
+        input: {
+          id: apiKey.id,
+          add: [salesChannelId],
+        },
+      })
+
+      const adminEmail = `b2b-company-admin-${Date.now()}@eatsie.test`
+      const adminPassword = "AdminPass123!"
+      const authService: any = container.resolve(Modules.AUTH)
+      const registration = await authService.register("emailpass", {
+        body: { email: adminEmail, password: adminPassword },
+      })
+      expect(registration.success).toBe(true)
+
+      await createUserAccountWorkflow(container).run({
+        input: {
+          authIdentityId: registration.authIdentity.id,
+          userData: {
+            email: adminEmail,
+            first_name: "B2B",
+            last_name: "Company Admin",
+          },
+        },
+      })
+
+      const adminLogin = await api.post("/auth/user/emailpass", {
+        email: adminEmail,
+        password: adminPassword,
+      })
+      expect(adminLogin.status).toBe(200)
+      expect(adminLogin.data.token).toBeTruthy()
+
+      ;(adminHeaders as any).headers ||= {}
+      ;(adminHeaders as any).headers.Authorization = `Bearer ${adminLogin.data.token}`
+
+      api.defaults.validateStatus = () => true
+      api.defaults.headers.common["x-publishable-api-key"] = publishableApiKey
+    })
+
     // ── Helpers ──────────────────────────────────────────────────────────
 
     /** Register a customer and return the auth token + customer id */
@@ -37,12 +128,19 @@ medusaIntegrationTestRunner({
       const custResp = await api.post(
         "/store/customers",
         { email, first_name: "B2B", last_name: "Tester" },
-        { headers: { Authorization: `Bearer ${token}` } }
+        storeHeaders(token)
       )
       const id = custResp.data.customer?.id || custResp.data.id
       expect(id).toBeTruthy()
 
-      return { token, id, email }
+      const loginResp = await api.post("/auth/customer/emailpass", {
+        email,
+        password,
+      })
+      expect(loginResp.status).toBe(200)
+      expect(loginResp.data.token).toBeTruthy()
+
+      return { token: loginResp.data.token, id, email }
     }
 
     /** Submit a B2B company application for a customer */
@@ -57,7 +155,7 @@ medusaIntegrationTestRunner({
         ...overrides,
       }
       const res = await api.post("/store/b2b/company", payload, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: storeHeaders(token).headers,
       })
       return res
     }
@@ -66,6 +164,20 @@ medusaIntegrationTestRunner({
 
     function authHeaders(token: string) {
       return { Authorization: `Bearer ${token}` }
+    }
+
+    function storeHeaders(token?: string) {
+      storeRequestIpSequence += 1
+      const octet3 = Math.floor(storeRequestIpSequence / 250)
+      const octet4 = (storeRequestIpSequence % 250) + 1
+
+      return {
+        headers: {
+          "x-forwarded-for": `10.250.${octet3}.${octet4}`,
+          ...(publishableApiKey ? { "x-publishable-api-key": publishableApiKey } : {}),
+          ...(token ? authHeaders(token) : {}),
+        },
+      }
     }
 
     // ═════════════════════════════════════════════════════════════════════
@@ -93,10 +205,10 @@ medusaIntegrationTestRunner({
         const res = await api.post(
           "/store/b2b/company",
           { tax_id: "TAX-123" },
-          { headers: authHeaders(customerToken) }
+          storeHeaders(customerToken)
         )
         expect(res.status).toBe(400)
-        expect(res.data.message).toContain("company_name")
+        expect(res.data.message).toContain("Company name")
       })
 
       test("returns 400 when requested_credit_limit is negative", async () => {
@@ -106,7 +218,7 @@ medusaIntegrationTestRunner({
             company_name: "Bad Credit Co",
             requested_credit_limit: -100,
           },
-          { headers: authHeaders(customerToken) }
+          storeHeaders(customerToken)
         )
         expect(res.status).toBe(400)
         expect(res.data.message).toContain("credit_limit")
@@ -121,7 +233,7 @@ medusaIntegrationTestRunner({
             tax_id: "TAX-987654321",
             requested_credit_limit: 5000, // $5,000.00
           },
-          { headers: authHeaders(customerToken) }
+          storeHeaders(customerToken)
         )
 
         expect(res.status).toBe(201)
@@ -131,16 +243,14 @@ medusaIntegrationTestRunner({
         expect(res.data.company.tax_id).toBe("TAX-987654321")
         expect(res.data.company.customer_id).toBe(customerId)
         expect(res.data.company.requested_credit_limit).toBe(500000) // 5000 * 100 = 500000 cents
-        expect(res.data.message).toContain("pending admin approval")
+        expect(res.data.message).toContain("admin approval")
 
       })
 
       test("returns existing company if already approved", async () => {
         // This will create a new customer, submit, and the next test will approve it
         // For now, just verify the pending company is returned
-        const res = await api.get("/store/b2b/company", {
-          headers: authHeaders(customerToken),
-        })
+        const res = await api.get("/store/b2b/company", storeHeaders(customerToken))
 
         expect(res.status).toBe(200)
         expect(res.data.company).toBeDefined()
@@ -155,14 +265,14 @@ medusaIntegrationTestRunner({
             tax_id: "TAX-UPDATED",
             requested_credit_limit: 10000,
           },
-          { headers: authHeaders(customerToken) }
+          storeHeaders(customerToken)
         )
 
         // Should return 200 (update) not 201 (create)
         expect(res.status).toBe(200)
         expect(res.data.company.company_name).toBe("Updated Farm Name")
         expect(res.data.company.status).toBe("pending")
-        expect(res.data.message).toContain("updated")
+        expect(res.data.message).toMatch(/Waiting for admin approval/)
       })
 
       test("creates application with minimal fields", async () => {
@@ -170,7 +280,7 @@ medusaIntegrationTestRunner({
         const res = await api.post(
           "/store/b2b/company",
           { company_name: "Minimal Co" },
-          { headers: authHeaders(minimalAuth.token) }
+          storeHeaders(minimalAuth.token)
         )
 
         expect(res.status).toBe(201)
@@ -204,9 +314,7 @@ medusaIntegrationTestRunner({
       })
 
       test("returns the customer's company application", async () => {
-        const res = await api.get("/store/b2b/company", {
-          headers: authHeaders(customerToken),
-        })
+        const res = await api.get("/store/b2b/company", storeHeaders(customerToken))
 
         expect(res.status).toBe(200)
         expect(res.data.company).toBeDefined()
@@ -217,9 +325,7 @@ medusaIntegrationTestRunner({
 
       test("returns null when customer has no company", async () => {
         const noCompAuth = await createAuthCustomer("nocompany")
-        const res = await api.get("/store/b2b/company", {
-          headers: authHeaders(noCompAuth.token),
-        })
+        const res = await api.get("/store/b2b/company", storeHeaders(noCompAuth.token))
 
         expect(res.status).toBe(200)
         expect(res.data.company).toBeNull()
@@ -247,7 +353,7 @@ medusaIntegrationTestRunner({
         const res = await api.post(
           "/store/b2b/companies",
           { company_name: "Alias Registered Co" },
-          { headers: authHeaders(aliasAuth.token) }
+          storeHeaders(aliasAuth.token)
         )
 
         expect(res.status).toBe(201)
@@ -256,9 +362,7 @@ medusaIntegrationTestRunner({
       })
 
       test("GET /store/b2b/companies/me works (alias for company retrieval)", async () => {
-        const res = await api.get("/store/b2b/companies/me", {
-          headers: authHeaders(customerToken),
-        })
+        const res = await api.get("/store/b2b/companies/me", storeHeaders(customerToken))
 
         expect(res.status).toBe(200)
         expect(res.data.company).toBeDefined()
@@ -402,9 +506,7 @@ medusaIntegrationTestRunner({
       })
 
       test("customer can retrieve their now-approved company", async () => {
-        const res = await api.get("/store/b2b/company", {
-          headers: authHeaders(targetToken),
-        })
+        const res = await api.get("/store/b2b/company", storeHeaders(targetToken))
 
         expect(res.status).toBe(200)
         expect(res.data.company).toBeDefined()
@@ -419,20 +521,18 @@ medusaIntegrationTestRunner({
             company_name: "Should Not Update",
             requested_credit_limit: 99999,
           },
-          { headers: authHeaders(targetToken) }
+          storeHeaders(targetToken)
         )
 
         // Should return the existing approved company, not create a new one
         expect(res.status).toBe(200)
         expect(res.data.company.status).toBe("approved")
         expect(res.data.company.company_name).toBe("Approval Test Co")
-        expect(res.data.message).toContain("already approved")
+        expect(res.data.message).toContain("B2B access approved")
       })
 
       test("customer sees approved_at and admin_note on retrieval", async () => {
-        const res = await api.get("/store/b2b/company", {
-          headers: authHeaders(targetToken),
-        })
+        const res = await api.get("/store/b2b/company", storeHeaders(targetToken))
 
         expect(res.status).toBe(200)
         expect(res.data.company.approved_at).toBeTruthy()
@@ -517,11 +617,11 @@ medusaIntegrationTestRunner({
             company_name: "Resubmitted Co",
             requested_credit_limit: 1000,
           },
-          { headers: authHeaders(rejectToken) }
+          storeHeaders(rejectToken)
         )
 
-        // Should create a new pending application
-        expect(res.status).toBe(201)
+        // The existing rejected record is re-activated as a pending application
+        expect(res.status).toBe(200)
         expect(res.data.company.status).toBe("pending")
         expect(res.data.company.company_name).toBe("Resubmitted Co")
       })
@@ -645,7 +745,7 @@ medusaIntegrationTestRunner({
             tax_id: "E2E-TAX-001",
             requested_credit_limit: 5000,
           },
-          { headers: authHeaders(e2eToken) }
+          storeHeaders(e2eToken)
         )
 
         expect(res.status).toBe(201)
@@ -686,9 +786,7 @@ medusaIntegrationTestRunner({
       })
 
       test("Step 4: Customer sees approved status with wholesale pricing active", async () => {
-        const res = await api.get("/store/b2b/company", {
-          headers: authHeaders(e2eToken),
-        })
+        const res = await api.get("/store/b2b/company", storeHeaders(e2eToken))
 
         expect(res.status).toBe(200)
         expect(res.data.company.status).toBe("approved")

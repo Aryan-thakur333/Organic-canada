@@ -1,0 +1,540 @@
+
+> backend@0.0.1 dev
+> node scripts/start-dev.js
+
+   🔐  JWT_SECRET: 50 characters (minimum 32)
+   🔐  COOKIE_SECRET: 49 characters
+   PostgreSQL connection verified
+
+🚀  Starting Medusa on http://localhost:9000
+📡  MEDUSA_BACKEND_URL=http://localhost:9000
+📝  Port saved to .backend-port
+
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    [Watcher] Using standard dev server (restart on file change)
+[32minfo[39m:    [Watcher] Watching filesystem to reload dev server on file change
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 298.05ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 352.61ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 297.43ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 249.33ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 314.74ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 526.32ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 475.23ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 232.26ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 183.63ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 178.91ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 170.45ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 177.33ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 188.49ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 173.49ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 170.12ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 184.69ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 184.85ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 192.25ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 173.68ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 175.64ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 155.77ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 165.52ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 185.86ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 202.28ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 224.64ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 228.61ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 197.60ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 243.23ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 307.72ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 219.46ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 213.41ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 180.61ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 197.78ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 211.42ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 174.83ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 178.60ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 182.26ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 184.53ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 210.92ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 236.75ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 236.66ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 173.41ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 177.58ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 187.04ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 206.17ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 178.78ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 179.98ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 230.01ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 195.29ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 208.70ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 203.72ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 201.06ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 174.36ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 231.20ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 181.13ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 196.22ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 175.14ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 144.92ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 174.81ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 167.16ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 167.92ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 184.44ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 166.69ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 147.17ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 149.14ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 166.21ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 175.00ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 169.62ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 186.32ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 167.65ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 153.65ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 146.28ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 174.96ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 171.06ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 166.46ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 176.90ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 161.85ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 161.15ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 180.44ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 168.36ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 213.16ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 194.43ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 173.45ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 142.01ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 169.47ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 168.05ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 164.29ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 171.15ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 178.78ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 155.53ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 150.94ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 171.18ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 171.05ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 159.98ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 188.54ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 171.47ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 157.79ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 146.21ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 165.98ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 170.48ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 170.87ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 181.30ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 166.33ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 142.18ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 149.32ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 167.56ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 169.80ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 175.20ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 187.10ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 155.87ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 145.36ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 167.03ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 172.30ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 165.35ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 192.17ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 176.86ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 146.98ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 138.08ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 174.90ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 165.04ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 163.08ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 188.91ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 158.02ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 147.04ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 156.79ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 168.39ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 171.17ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 184.31ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 185.50ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 175.05ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 158.69ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 165.32ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 184.58ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 204.68ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 222.53ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 210.56ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 182.83ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 204.11ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 192.60ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 220.16ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 209.28ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 175.85ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 164.15ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 200.76ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 200.46ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 203.92ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 198.26ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 174.69ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 160.63ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 176.64ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 163.37ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 163.21ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 187.94ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 169.15ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 151.22ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 168.27ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 170.22ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 170.53ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 186.02ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 187.78ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 170.56ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 173.76ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 201.91ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 216.96ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 188.84ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 212.16ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 170.54ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 193.23ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 217.51ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 279.56ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 433.00ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 361.06ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 380.96ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 249.29ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 262.40ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 287.40ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 242.81ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 202.00ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 183.35ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 210.78ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 170.68ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 176.34ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 178.82ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 166.25ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 184.80ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 183.04ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 149.66ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 171.92ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 180.32ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 170.84ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 188.68ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 170.05ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 146.18ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 150.42ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 166.79ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 178.12ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 177.91ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 205.52ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 162.39ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 152.79ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 173.51ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 179.01ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 162.87ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 185.44ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 162.28ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 143.01ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 202.94ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 184.29ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 224.37ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 208.32ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 227.99ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 231.79ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 259.27ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 206.97ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 233.67ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 195.33ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 263.59ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 287.74ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 237.78ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 219.75ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 240.35ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 165.58ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 153.46ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 164.58ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 219.59ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 223.93ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 254.75ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 229.88ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 209.94ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 216.99ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 220.77ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 226.46ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 168.48ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 163.67ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 187.77ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 167.70ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 211.45ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 192.11ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 158.48ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 154.10ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 178.63ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 166.90ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 185.86ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 183.20ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 155.16ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 143.61ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 173.48ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 240.77ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 236.40ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 249.55ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 221.81ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 225.33ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 235.07ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 228.90ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 261.34ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 250.24ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 242.36ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 220.81ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 234.13ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 301.76ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 301.32ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server
+[32minfo[39m:    [Watcher] Reloaded in 244.14ms
+[32minfo[39m:    [Watcher] modified backend-dev.log modified: restarting dev server

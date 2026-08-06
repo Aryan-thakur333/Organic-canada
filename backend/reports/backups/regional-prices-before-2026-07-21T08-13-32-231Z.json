@@ -1,0 +1,110 @@
+{
+  "backup_timestamp": "2026-07-21T08-13-32-231Z",
+  "records": [
+    {
+      "product_id": "prod_01KXJNH57CMPRBEVGSAMB30EMF",
+      "product_handle": "chocolate-mrly26sk",
+      "product_title": "chocolate",
+      "variant_id": "variant_01KXJNH5ASR8XNZ9QSW29B8SJ7",
+      "variant_title": "Standard",
+      "price_set_id": "pset_01KXJNH5CWVAHEM1T50GHQKYD4",
+      "currency_code": "cad",
+      "current_amount": 2200,
+      "approved_amount": "22",
+      "operation": "CAD_UPDATE",
+      "approval_status": "approved",
+      "backup_timestamp": "2026-07-21T08-13-32-231Z",
+      "original_price_record": {
+        "id": "price_01KXJNH5CW9DTDDKAB4GJX2141",
+        "amount": 2200,
+        "currency_code": "cad",
+        "price_set_id": "pset_01KXJNH5CWVAHEM1T50GHQKYD4"
+      }
+    },
+    {
+      "product_id": "prod_01KXJNH57CMPRBEVGSAMB30EMF",
+      "product_handle": "chocolate-mrly26sk",
+      "product_title": "chocolate",
+      "variant_id": "variant_01KXJNH5ASR8XNZ9QSW29B8SJ7",
+      "variant_title": "Standard",
+      "price_set_id": "pset_01KXJNH5CWVAHEM1T50GHQKYD4",
+      "currency_code": "usd",
+      "current_amount": "",
+      "approved_amount": "16.99",
+      "operation": "USD_CREATE",
+      "approval_status": "approved",
+      "backup_timestamp": "2026-07-21T08-13-32-231Z",
+      "original_price_record": null
+    },
+    {
+      "product_id": "prod_01KVSFB71XDNGFJN01RH3C2G1M",
+      "product_handle": "organic-apples",
+      "product_title": "Organic Apples",
+      "variant_id": "variant_01KVSFB75GZJ4N0B9SY6BXDTZC",
+      "variant_title": "Standard",
+      "price_set_id": "pset_01KVSFB77YEM556Y6A0PQTJJ4Q",
+      "currency_code": "cad",
+      "current_amount": 499,
+      "approved_amount": "4.99",
+      "operation": "CAD_UPDATE",
+      "approval_status": "approved",
+      "backup_timestamp": "2026-07-21T08-13-32-231Z",
+      "original_price_record": {
+        "id": "price_01KVSFB77YZB47QHNEGRE9C2H9",
+        "amount": 499,
+        "currency_code": "cad",
+        "price_set_id": "pset_01KVSFB77YEM556Y6A0PQTJJ4Q"
+      }
+    },
+    {
+      "product_id": "prod_01KVSFB71XDNGFJN01RH3C2G1M",
+      "product_handle": "organic-apples",
+      "product_title": "Organic Apples",
+      "variant_id": "variant_01KVSFB75GZJ4N0B9SY6BXDTZC",
+      "variant_title": "Standard",
+      "price_set_id": "pset_01KVSFB77YEM556Y6A0PQTJJ4Q",
+      "currency_code": "usd",
+      "current_amount": "",
+      "approved_amount": "3.99",
+      "operation": "USD_CREATE",
+      "approval_status": "approved",
+      "backup_timestamp": "2026-07-21T08-13-32-231Z",
+      "original_price_record": null
+    },
+    {
+      "product_id": "prod_01KWW11N9K4XYTK17K7DKTSBX0",
+      "product_handle": "organic-oil-mr9drod0",
+      "product_title": "Organic OIL",
+      "variant_id": "variant_01KWW11NCJY9SGGGPJ5D7WB4FR",
+      "variant_title": "Standard",
+      "price_set_id": "pset_01KWW11NEFZG6YE7XHT4W1GHDE",
+      "currency_code": "cad",
+      "current_amount": 2500,
+      "approved_amount": "25",
+      "operation": "CAD_UPDATE",
+      "approval_status": "approved",
+      "backup_timestamp": "2026-07-21T08-13-32-231Z",
+      "original_price_record": {
+        "id": "price_01KWW11NEF8KE7B2PKENFY94X1",
+        "amount": 2500,
+        "currency_code": "cad",
+        "price_set_id": "pset_01KWW11NEFZG6YE7XHT4W1GHDE"
+      }
+    },
+    {
+      "product_id": "prod_01KWW11N9K4XYTK17K7DKTSBX0",
+      "product_handle": "organic-oil-mr9drod0",
+      "product_title": "Organic OIL",
+      "variant_id": "variant_01KWW11NCJY9SGGGPJ5D7WB4FR",
+      "variant_title": "Standard",
+      "price_set_id": "pset_01KWW11NEFZG6YE7XHT4W1GHDE",
+      "currency_code": "usd",
+      "current_amount": "",
+      "approved_amount": "18.99",
+      "operation": "USD_CREATE",
+      "approval_status": "approved",
+      "backup_timestamp": "2026-07-21T08-13-32-231Z",
+      "original_price_record": null
+    }
+  ]
+}

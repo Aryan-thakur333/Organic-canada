@@ -9,8 +9,24 @@ const checkoutTarget = process.env.VITE_PROXY_CHECKOUT_TARGET || "http://localho
 
 const proxy = {
   "/store": { target: medusaTarget, changeOrigin: true },
-  "/auth": { target: medusaTarget, changeOrigin: true },
-  "/admin": { target: medusaTarget, changeOrigin: true },
+  "/auth": { 
+    target: medusaTarget, 
+    changeOrigin: true,
+    bypass: (req, res, proxyOptions) => {
+      if (req.headers.accept?.includes("html")) {
+        return "/index.html";
+      }
+    }
+  },
+  "/admin": { 
+    target: medusaTarget, 
+    changeOrigin: true,
+    bypass: (req, res, proxyOptions) => {
+      if (req.headers.accept?.includes("html")) {
+        return "/index.html";
+      }
+    }
+  },
   "/static": { target: medusaTarget, changeOrigin: true },
   "/api/v1": {
     target: checkoutTarget,

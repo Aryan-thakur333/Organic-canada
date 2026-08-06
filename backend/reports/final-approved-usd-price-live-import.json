@@ -1,0 +1,42 @@
+{
+  "status": "APPLIED",
+  "import_id": "upi_c843c85a577e00da29e9",
+  "importer_id": "user_01KWREHYP10FNWF3DRSGCH4Q7D",
+  "idempotency_key": "usa-price-import-dry_ms3i4yzu_fc2e2fadb5dd",
+  "dry_run_id": "dry_ms3i4yzu_fc2e2fadb5dd",
+  "validation_fingerprint": "fc2e2fadb5ddc66eda9651a01ae4a943225ac152fac71f9c0360a7bb1af619ff",
+  "timestamp": "2026-07-27T17:36:43.560Z",
+  "requested": 2,
+  "imported": 2,
+  "already_correct": 0,
+  "skipped": 0,
+  "failed": 0,
+  "price_sets_created": 0,
+  "cad_prices_modified": 0,
+  "existing_usd_overwritten": 0,
+  "duplicate_usd_created": 0,
+  "cad_prices_preserved": 2,
+  "business_data_writes": 2,
+  "row_results": [
+    {
+      "product_id": "prod_01KVSFB7KH3MAADTC8FXDNB7K9",
+      "product_title": "Organic Carrots",
+      "variant_id": "variant_01KVSFB7M7DJ2NQP1MRFC161ZP",
+      "sku": "EATSIE-ORGANIC-CARROTS",
+      "requested_usd": 5,
+      "imported_usd": 5,
+      "result": "IMPORTED",
+      "message": "USD price imported in major units."
+    },
+    {
+      "product_id": "prod_01KVSFB7NFW3HA28BEMYCHVFRJ",
+      "product_title": "Fresh Broccoli",
+      "variant_id": "variant_01KVSFB7PMVBDKJ5NHD9CQQ5NX",
+      "sku": "EATSIE-FRESH-BROCCOLI",
+      "requested_usd": 67,
+      "imported_usd": 67,
+      "result": "IMPORTED",
+      "message": "USD price imported in major units."
+    }
+  ]
+}

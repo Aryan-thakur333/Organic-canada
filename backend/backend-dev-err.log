@@ -1,0 +1,2 @@
+npm warn Unknown project config "public-hoist-pattern". This will stop working in the next major version of npm.
+[medusa-config] Stripe webhook verification is disabled: STRIPE_WEBHOOK_SECRET is missing.

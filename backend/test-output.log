@@ -1,0 +1,52 @@
+Starting personalization tests execution...
+
+--- TEST ERROR ---
+Command failed: npx medusa exec ./src/modules/personalization/__tests__/personalization.tests.ts
+npm warn Unknown project config "public-hoist-pattern". This will stop working in the next major version of npm.
+[medusa-config] Stripe webhook verification is disabled: STRIPE_WEBHOOK_SECRET is missing.
+Error: 21 personalization test(s) failed
+    at runPersonalizationTests (D:\eatsie-project\backend\src\modules\personalization\__tests__\personalization.tests.ts:753:11)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async exec (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\exec.ts:57:5)
+
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    Executing script at ./src/modules/personalization/__tests__/personalization.tests.ts...
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    No link to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\links. skipped.
+[33mwarn[39m:    Local Event Bus installed. This is not recommended for production.
+[32minfo[39m:    Locking module: Using "in-memory" as default.
+[32minfo[39m:    No workflow to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\workflows. skipped.
+[32minfo[39m:    No subscriber to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\subscribers. skipped.
+[32minfo[39m:    Personalization tests: 0/21 passed
+[31merror[39m:   Failed personalization tests:
+[31merror[39m:     - Vendor creates template for own personalized product: this.create is not a function
+[31merror[39m:     - Standard product rejects template creation: this.create is not a function
+[31merror[39m:     - Vendor cannot create template for another vendor's product: this.create is not a function
+[31merror[39m:     - Variant must belong to product: this.create is not a function
+[31merror[39m:     - Duplicate field key rejected: this.create is not a function
+[31merror[39m:     - Required field validation fails when missing: this.create is not a function
+[31merror[39m:     - Text max length validation: this.create is not a function
+[31merror[39m:     - Invalid select option rejected: this.create is not a function
+[31merror[39m:     - Checkbox normalized to boolean: this.create is not a function
+[31merror[39m:     - Price adjustment calculated on server: this.create is not a function
+[31merror[39m:     - Publish increments version and generates schema_hash: this.create is not a function
+[31merror[39m:     - Draft template not visible to store route: this.create is not a function
+[31merror[39m:     - Published template visible: this.create is not a function
+[31merror[39m:     - Soft delete preserves historical safety: this.create is not a function
+[31merror[39m:     - Another vendor cannot update template: this.create is not a function
+[31merror[39m:     - Unknown submitted field rejected: this.create is not a function
+[31merror[39m:     - Centralized schema hashing: equal schemas produce equal hashes: Cannot find module 'D:\eatsie-project\backend\src\modules\personalization\utils\schema-hash' imported from D:\eatsie-project\backend\src\modules\personalization\__tests__\personalization.tests.ts
+[31merror[39m:     - Centralized schema hashing: changed fields produce a changed hash: Cannot find module 'D:\eatsie-project\backend\src\modules\personalization\utils\schema-hash' imported from D:\eatsie-project\backend\src\modules\personalization\__tests__\personalization.tests.ts
+[31merror[39m:     - Centralized schema hashing: changed price adjustment changes hash: Cannot find module 'D:\eatsie-project\backend\src\modules\personalization\utils\schema-hash' imported from D:\eatsie-project\backend\src\modules\personalization\__tests__\personalization.tests.ts
+[31merror[39m:     - Centralized schema hashing: changed allowed values changes hash: Cannot find module 'D:\eatsie-project\backend\src\modules\personalization\utils\schema-hash' imported from D:\eatsie-project\backend\src\modules\personalization\__tests__\personalization.tests.ts
+[31merror[39m:     - Centralized schema hashing: reordered equivalent canonical input remains deterministic: Cannot find module 'D:\eatsie-project\backend\src\modules\personalization\utils\schema-hash' imported from D:\eatsie-project\backend\src\modules\personalization\__tests__\personalization.tests.ts
+[31merror[39m:   Error running script
+[31merror[39m:   21 personalization test(s) failed
+
+npm warn Unknown project config "public-hoist-pattern". This will stop working in the next major version of npm.
+[medusa-config] Stripe webhook verification is disabled: STRIPE_WEBHOOK_SECRET is missing.
+Error: 21 personalization test(s) failed
+    at runPersonalizationTests (D:\eatsie-project\backend\src\modules\personalization\__tests__\personalization.tests.ts:753:11)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async exec (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\exec.ts:57:5)
+

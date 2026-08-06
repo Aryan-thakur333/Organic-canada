@@ -1,0 +1,19 @@
+{
+  "import_id": "upi_c843c85a577e00da29e9",
+  "timestamp": "2026-07-27T17:36:43.560Z",
+  "importer_id": "user_01KWREHYP10FNWF3DRSGCH4Q7D",
+  "idempotency_key": "usa-price-import-dry_ms3i4yzu_fc2e2fadb5dd",
+  "dry_run_id": "dry_ms3i4yzu_fc2e2fadb5dd",
+  "validation_fingerprint": "fc2e2fadb5ddc66eda9651a01ae4a943225ac152fac71f9c0360a7bb1af619ff",
+  "requested": 2,
+  "affected_product_ids": [
+    "prod_01KVSFB7KH3MAADTC8FXDNB7K9",
+    "prod_01KVSFB7NFW3HA28BEMYCHVFRJ"
+  ],
+  "affected_variant_ids": [
+    "variant_01KVSFB7M7DJ2NQP1MRFC161ZP",
+    "variant_01KVSFB7PMVBDKJ5NHD9CQQ5NX"
+  ],
+  "cad_prices_preserved": 2,
+  "existing_usd_overwritten": 0
+}

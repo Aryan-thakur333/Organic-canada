@@ -1,0 +1,101 @@
+product_id,product_title,product_handle,variant_id,variant_title,product_type,category,current_usd,current_cad,usd_status,cad_status,review_flags,suggested_usd,suggested_cad,approved_usd,approved_cad,merchant_notes,approved
+prod_01KWM9YN6TNEY78DPM0JAQ5ZY7,Codex Digital Upload Verification,codex-digital-upload-verification-mr53ic40,variant_01KWM9YN9Z155T8HNJQ96YBQHZ,Digital Download,Digital Product,,,,missing,missing,MISSING_USD | MISSING_CAD | NO_PRICE_FOR_ANY_PUBLIC_REGION,,,,,,false
+prod_01KWHRE9CY4M3RS6QETG5HFW6K,e book,e-book-mr3ome75,variant_01KWHRE9KW4BY4VGZVJ9RYDR04,Digital Download,Digital Product,,,,missing,missing,MISSING_USD | MISSING_CAD | NO_PRICE_FOR_ANY_PUBLIC_REGION,,,,,,false
+prod_01KWM7P1BTZPR2T6V6KN7DNAZ9,hacker dock,hacker-dock-mr523bze,variant_01KWM7P1ET83TD8E61VZAPA2C2,Digital Download,Digital Product,,,,missing,missing,MISSING_USD | MISSING_CAD | NO_PRICE_FOR_ANY_PUBLIC_REGION,,,,,,false
+prod_01KWM8ZK4J5N85XC0FA72RSKV3,medusa doc,medusa-doc-mr52winr,variant_01KWM8ZK7M0N53K4XHBKP2BG5X,Digital Download,Digital Product,,,,missing,missing,MISSING_USD | MISSING_CAD | NO_PRICE_FOR_ANY_PUBLIC_REGION,,,,,,false
+prod_01KWKX6X6KE1YKP1ZJDZ4BJP5J,most imp,most-imp-mr4vjyjx,variant_01KWKX6XG4V9J70MYG89BQFCCK,Digital Download,Digital Product,,,,missing,missing,MISSING_USD | MISSING_CAD | NO_PRICE_FOR_ANY_PUBLIC_REGION,,,,,,false
+prod_01KWW0R7M8TYHQJMQTWRQ6FXPZ,DECIMAL OIL 20260706205906,decimal-oil-20260706205906-mr9dl20k,variant_01KWW0R7NT0T4WR9WM88ATBPTR,Standard,,,,599,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVN02PJ0TEWPZ721K4BC6XT7,Final 1782042414,final-1782042414-mqnq1lpn,variant_01KVN02PMQNA2VAB5Z7RZ4HW9X,Standard,,,,1999,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWW0QKYEEXVQEKWXXME70BSX,ORGANIC OIL 20260706205845,organic-oil-20260706205845-mr9dkmgn,variant_01KWW0QM4SQPZ5RZKAFAFGETBZ,Standard,,,,1000,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSPZAPBTBRDSZHTRVCYXW6Z,Papaya Pack 2015cd,papaya-pack-2015cd-mqqc8whq,variant_01KVSPZAW0S335JX2KXGD7NEQJ,Large,,,,899,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSPZAPBTBRDSZHTRVCYXW6Z,Papaya Pack 2015cd,papaya-pack-2015cd-mqqc8whq,variant_01KVSPZAVZKYRRNKJJXMB3VJH0,Small,,,,499,missing,present,MISSING_USD,,,,,,false
+prod_01KVSFB8GJWSH1JMXG0XPG2F6N,Croissant,croissant,variant_01KVSFB8HDHXQHA4PKSS9PQ89A,Standard,,Bakery,,349,missing,present,MISSING_USD,,,,,,false
+prod_01KVSFB8M7AVMZ6888SSSYQE5K,Muffins Pack,muffins-pack,variant_01KVSFB8MVTVENGRRVN6V61TQN,Standard,,Bakery,,899,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB8NSZ67XN9G17BJJ1W38,Organic Cookies,organic-cookies,variant_01KVSFB8PAKFQGF5B8VM9DCSFJ,Standard,,Bakery,,649,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB8JPGQQ7QE235C4QDZX0,Sourdough Loaf,sourdough-loaf,variant_01KVSFB8K8SQ0PERBD5HNEJE6M,Standard,,Bakery,,699,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVW5WN2X0EWHYJ4SGGCA7XNP,Thekua,thekua-mqrpiime,variant_01KVW5WNE5G5M7Z46PKGYH3Y5X,Standard,,Bakery,,2000,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVWF8FG3R20YF227VBX4RJKS,Thekua,thekua-mqrvd3g1,variant_01KVWF8FWA0H73XJWWDZX63PDD,Standard,,Bakery,,2000,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB8ENFV01KZE8AYE46CJB,Whole Wheat Bread,whole-wheat-bread,variant_01KVSFB8FGBH5QYY47W48PZY7B,Standard,,Bakery,,499,missing,present,MISSING_USD,,,,,,false
+prod_01KVSFB87RKDRSY8HR988M0Z9K,Cheddar Cheese,cheddar-cheese,variant_01KVSFB88CG0FGKBQTG2KNBZE8,Standard,,Dairy,,799,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB8A3QK5WZV03MTMEAHPD,Fresh Butter,fresh-butter,variant_01KVSFB8B6VM0SCQ8NFQZRC239,Standard,,Dairy,,549,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB85A4E8Z4E4F7ZX8E2SW,Greek Yogurt,greek-yogurt,variant_01KVSFB86BTEA7ZEZ2M01STJYG,Standard,,Dairy,,599,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB82HYD8N48WG7XQGKWBW,Organic Milk,organic-milk,variant_01KVSFB83K91ZD462YSQSFPK8C,Standard,,Dairy,,649,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB8CFN04MJA0CDQ8Y3QZX,Paneer Block,paneer-block,variant_01KVSFB8D6X5V3ZFD2N7NXRYY5,Standard,,Dairy,,699,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB7BAX6R5GFXKKCC4CYHX,Fresh Bananas,fresh-bananas,variant_01KVSFB7CD3CVS9WN4SCVE9YXT,Standard,,Fruits,,299,missing,present,MISSING_USD,,,,,,false
+prod_01KVSFB7FQRQPT7HHHQTS0D9QA,Green Grapes,green-grapes,variant_01KVSFB7GDJ405F2JQJ8A68700,Standard,,Fruits,,599,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSPT0255E9PQS0FJZ94MPSR,Papaya,papaya-mqqc55q3,variant_01KVSPT08VCN1E9D4CYYGQBG3Q,Standard,,Fruits,,699,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSZH979HQY5NNJS0BCC8Y7Q,papaya,papaya-mqqhlb57,variant_01KVSZH9M19J7GWF1M8TV5D5ZZ,Standard,,Fruits,,600,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSQ48867BV7ZNMYB7CFZX75,Papaya Final a90dd3,papaya-final-a90dd3-mqqccd0y,variant_01KVSQ48EZAJH0KY9XVS2ZZ7BA,Standard,,Fruits,,799,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSQ9RMC9VY464EF61WVPZE2,Papaya Link 1a8db7,papaya-link-1a8db7-mqqcg8cz,variant_01KVSQ9RXKQWZBH7AK4VK7PTSV,Standard,,Fruits,,899,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSQZ00MWS1S3T7FYJJC0VXK,Papaya Link Array b9f928,papaya-link-array-b9f928-mqqcv56k,variant_01KVSQZ04ZZ120JMVMPCQ0PYQJ,Standard,,Fruits,,999,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSR6H141CJWVP91R4T3TD8E,Papaya Vendor Smoke dc9962,papaya-vendor-smoke-dc9962-mqqd0fm9,variant_01KVSR6H59F57ED9M0GRE24BNJ,Standard,,Fruits,,999,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVW0YM6H0HYPRV73MKDJZWDX,Pineapple,pineapple-mqrmfj25,variant_01KVW0YMR5Q4X2P1H9QVJ0W6XK,Standard,,Fruits,,900,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVW221QD90ZE1Y069Z8VB2J4,Pineapple,pineapple-mqrn4er9,variant_01KVW221YN1BGRD3G66J4KSJTQ,Standard,,Fruits,,700,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB7DRWS2W3RZ6PEWEJV29,Red Strawberries,red-strawberries,variant_01KVSFB7EKARSRMJ14F2T30WPN,Standard,,Fruits,,699,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB7HK2723G4QTVR3DBP0S,Sweet Mangoes,sweet-mangoes,variant_01KVSFB7JCCZ0V3E7Q7JQPAYGW,Standard,,Fruits,,799,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB8WPTXN2GCYBZ5XH4RH6,Beef Steak,beef-steak,variant_01KVSFB8X9WW94FBJDVM4J4VFH,Standard,,Meat,,2299,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB8QBJ9M95V6E0DFZWHBV,Chicken Breast,chicken-breast,variant_01KVSFB8R0M148Z5PHK7597K2E,Standard,,Meat,,1299,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB8YFCM952E63E8F4955Z,Chicken Sausages,chicken-sausages,variant_01KVSFB8Z51WWP1W03QSDBY8N3,Standard,,Meat,,999,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB8S2F4YXNV9BAKSNB9M2,Lamb Chops,lamb-chops,variant_01KVSFB8STSXDM303M3W7B1C6A,Standard,,Meat,,1899,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB8V27PTZ08274047AXD9,Turkey Slices,turkey-slices,variant_01KVSFB8VPBD68YJKXTHQMNQ8W,Standard,,Meat,,1099,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB9B2AF16KR0X5JE0C3WV,Crab Meat,crab-meat,variant_01KVSFB9C5W5C0347WGB5RNS4Y,Standard,,Seafood,,2199,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB94BJ8CSBH3WSE47JY4N,Fresh Prawns,fresh-prawns,variant_01KVSFB95KV4BKPP4JT3WD2MRP,Standard,,Seafood,,1699,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB913BBP6JV700C09QV5D,Salmon Fillet,salmon-fillet,variant_01KVSFB92CWGYZ3A6S6EMXP6BE,Standard,,Seafood,,1999,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB97WZ9DA9P6VRTKVQAFF,Tuna Steak,tuna-steak,variant_01KVSFB992JJ928VFRNB422JQ9,Standard,,Seafood,,1899,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB9E75M66XRVS6N0XS6ZW,White Fish Fillet,white-fish-fillet,variant_01KVSFB9F81ZZM6H5SSK61WGBN,Standard,,Seafood,,1499,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB7NFW3HA28BEMYCHVFRJ,Fresh Broccoli,fresh-broccoli,variant_01KVSFB7PMVBDKJ5NHD9CQQ5NX,Standard,,Vegetables,,449,missing,present,MISSING_USD,,,,,,false
+prod_01KVSFB7REXCQRQ06W82C4610V,Green Spinach,green-spinach,variant_01KVSFB7SC8G5X8ZGN2TAPHTPG,Standard,,Vegetables,,499,missing,present,MISSING_USD,,,,,,false
+prod_01KVSFB7KH3MAADTC8FXDNB7K9,Organic Carrots,organic-carrots,variant_01KVSFB7M7DJ2NQP1MRFC161ZP,Standard,,Vegetables,,399,missing,present,MISSING_USD,,,,,,false
+prod_01KVSFB7Z7ZARK3KPZCNNGCFN8,Organic Potatoes,organic-potatoes,variant_01KVSFB80MDTP8T8R6Z7GB0CQN,Standard,,Vegetables,,549,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVSFB7VJMJVD821ZFVYN9FWV,Red Tomatoes,red-tomatoes,variant_01KVSFB7WSVC6Y3C0E24ZSP890,Standard,,Vegetables,,399,missing,present,MISSING_USD,,,,,,false
+prod_01KWPZ751172E2TJGVJD9KNTKA,1 st product,1-st-product-mr6kqn8a,variant_01KWPZ751Z4X6NS0CQGPY3YS9N,Digital Download,Digital Product,,,6000,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWQ1KPJ353283BZV8W23TE03,2nd book,2nd-book-mr6m8enl,variant_01KWQ1KPM3PSW0M8R6VD1SR9G1,Digital Download,Digital Product,,,9000,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWQ1NW3DSVAZ40HWKGZ3G8ZG,3rd book,3rd-book-mr6m9xlw,variant_01KWQ1NW4DCTQZMDVYQJSSJ1PN,Digital Download,Digital Product,,,1998,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWHZN4Q2FW2Z78K1SG8SGD4E,abcd,abcd-mr3t4j4n,variant_01KWHZN4S3PZZGADF85XSCYAG4,Digital Download,Digital Product,,,9897,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWMDFGBBCVK7DC7K1JZCMTJM,abcdefg,abcdefg-mr55plcv,variant_01KWMDFGDF085SGFC0E8A8CAF4,Digital Download,Digital Product,,,2900,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWHV6ZPSQJ28CN6X8T3JE4BA,anaana,anaana-mr3qcouf,variant_01KWHV6ZRNCK5WTHEX10JPM6FZ,Digital Download,Digital Product,,,196,missing,present,MISSING_USD,,,,,,false
+prod_01KWMAM00WTB7B5P6AJ799RYTC,Codex Digital Upload Verification,codex-digital-upload-verification-mr53xbma,variant_01KWMAM042JP42Y1AX94QRR9V7,Digital Download,Digital Product,,,2000,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWQ0QFX7S61WFT27SVRE6RMK,First E Book,first-e-book-mr6lolgc,variant_01KWQ0QFYM01DK8EHXM9ADFW3B,Digital Download,Digital Product,,,8898,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWPXVTWMG9C90F0WCQGWAPFT,first product,first-product-mr6jw808,variant_01KWPXVTYE8QNG3R2AMFXZ9BQ0,Digital Download,Digital Product,,,8900,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWPYVVN6WMB545K1QD48G368,first product,first-product-mr6kipp4,variant_01KWPYVVQ4P3AQX6MV1D529JFC,Digital Download,Digital Product,,,5897,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWJ0NRWG4CAMH6V1RF25FB3X,kdksks,kdksks-mr3trg5b,variant_01KWJ0NRYQB2W72NVMCCT49KGK,Digital Download,Digital Product,,,23395,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWQ33JKCZM29X376W8YPMYX5,kmdcdlka,kmdcdlka-mr6n615p,variant_01KWQ33JNZJQKPXJQBG9YD9TA3,Digital Download,Digital Product,,,779400,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWHT1K6NX18YED89NZPCEPD2,master class book,master-class-book-mr3pmfgr,variant_01KWHT1K91GCQTENK2204MYG41,Digital Download,Digital Product,,,999,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWHSBEPFGTCBKNAQACQYZHJR,master class notes,master-class-notes-mr3p6vni,variant_01KWHSBERK2DJ0DNPQR3NYZ9BY,Digital Download,Digital Product,,,1700,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWHZ0X6CHGKHYZH4Z1A6XHT8,master class of chatgpt,master-class-of-chatgpt-mr3sqbi6,variant_01KWHZ0X8N97ZVTCZBK0BGHJF8,Digital Download,Digital Product,,,900,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWQ48V3QXBHNKJ3WW92VXHPB,open ebbbok,open-ebbbok-mr6nw7e2,variant_01KWQ48V5KTFPFVGKB8H7PD2S4,Digital Download,Digital Product,,,8694,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWMFJENJQ0CADDKAPZ142MZA,organic book,organic-book-mr570m1x,variant_01KWMFJES8MX8JS58Q6MB35Q1G,Digital Download,Digital Product,,,4995,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWQ57CSJQ1VBVF7BTTYSEDRY,physics book,physics-book-mr6ohnvo,variant_01KWQ57CVG1FJEREF9QRNT7T47,Digital Download,Digital Product,,,9000,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWNTYHP4K6NRYXGCT9FY4SYG,prince product,prince-product-mr5y3ika,variant_01KWNTYHSJSMRRQVD3MRJ2T4AT,Digital Download,Digital Product,,,2899,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWKVPT51K2TP2M0K8WZ19GSS,ssff,ssff-mr4um6j0,variant_01KWKVPT86GTB2DBN1DBT1HN95,Digital Download,Digital Product,,,9000,missing,present,MISSING_USD | HIGH_CAD_REVIEW,,,,,,false
+prod_01KW1E8JX774PPRMQ88VN5GR9Q,E-Book Gardening 1782459943821,e-book-gardening-1782459943821-mqummmxt,variant_01KW1E8K0NT9NVRYR5EDKC77CM,Digital Download,,,2499,1999,present,present,HIGH_USD_REVIEW | HIGH_CAD_REVIEW,,,,,,false
+prod_01KW1ECW8TGFYJMNMV1NDF1RT7,E-Book Gardening 1782460084480,e-book-gardening-1782460084480-mqumpnh2,variant_01KW1ECW9SKM0VPQBFPSXBGKCS,Digital Download,,,2499,1999,present,present,HIGH_USD_REVIEW | HIGH_CAD_REVIEW,,,,,,false
+prod_01KW1EJC8ZKS0WR0KN883CGQA8,E-Book Gardening 1782460264701,e-book-gardening-1782460264701-mqumtijf,variant_01KW1EJC9VS51Y9ZJZADMD4YCR,Digital Download,,,2499,1999,present,present,HIGH_USD_REVIEW | HIGH_CAD_REVIEW,,,,,,false
+prod_01KW1EP9GVF1VAK1ZQ44HHR4W8,E-Book Gardening 1782460392951,e-book-gardening-1782460392951-mqumw9hu,variant_01KW1EP9JSQPZCPCQ3PZK1A1F6,Digital Download,,,2499,1999,present,present,HIGH_USD_REVIEW | HIGH_CAD_REVIEW,,,,,,false
+prod_01KW1EYP5CCFDDB2Z81R8HQ3VE,E-Book Gardening 1782460668053,e-book-gardening-1782460668053-mqun25rc,variant_01KW1EYP6Y9X6CXHN5FAEDYKZ5,Digital Download,,,2499,1999,present,present,HIGH_USD_REVIEW | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVMCKDHHQQPJZ72BHN5A5ETD,lyuyhybuyhbb,lyuyhybuyhbb-mqndvup6,variant_01KVMCKDKFZJWW29S963TVY186,Digital Download,,,901,699,present,present,HIGH_USD_REVIEW | HIGH_CAD_REVIEW,,,,,,false
+prod_01KVMCN2V0YK5CRHYA4CH2CTR3,lyuyhybuyhbb,lyuyhybuyhbb-mqndx0t6,variant_01KVMCN2VRXEM77SFC9PQQKMQ3,Digital Download,,,901,699,present,present,HIGH_USD_REVIEW | HIGH_CAD_REVIEW,,,,,,false
+prod_01KWPX4HF4YXN4SF1ANB8AJNHD,E-Book Gardening 1783180182970,e-book-gardening-1783180182970-mr6jfv15,variant_01KWPX4HJTNC65C6YKW8PB33HC,Digital Download,Digital Product,,2499,1999,present,present,HIGH_USD_REVIEW | HIGH_CAD_REVIEW,,,,,,false
+prod_01KXJNH57CMPRBEVGSAMB30EMF,chocolate,chocolate-mrly26sk,variant_01KXJNH5ASR8XNZ9QSW29B8SJ7,Standard,,,16.99,22,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KWW11N9K4XYTK17K7DKTSBX0,Organic OIL,organic-oil-mr9drod0,variant_01KWW11NCJY9SGGGPJ5D7WB4FR,Standard,,,18.99,25,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVSFB71XDNGFJN01RH3C2G1M,Organic Apples,organic-apples,variant_01KVSFB75GZJ4N0B9SY6BXDTZC,Standard,,Fruits,3.99,4.99,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4RJDP0QXZ4B09QGJ0S,Medusa Shorts,shorts,variant_01KVJF9J7WPJ0J6KXS78K8B4AX,L,,Merch,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4RJDP0QXZ4B09QGJ0S,Medusa Shorts,shorts,variant_01KVJF9J7WQ2T5BPB02N3QYKBZ,M,,Merch,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4RJDP0QXZ4B09QGJ0S,Medusa Shorts,shorts,variant_01KVJF9J7WMRTV8Z6YF9PXPMTB,S,,Merch,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4RJDP0QXZ4B09QGJ0S,Medusa Shorts,shorts,variant_01KVJF9J7WFCB21E58J9FSE50Q,XL,,Merch,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4R7XMZ1Z73SMTNT8KC,Medusa Sweatpants,sweatpants,variant_01KVJF9J7VRVF2N11E0J6K2ETS,L,,Pants,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4R7XMZ1Z73SMTNT8KC,Medusa Sweatpants,sweatpants,variant_01KVJF9J7VCVRWX9QA6Y4Z7WNB,M,,Pants,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4R7XMZ1Z73SMTNT8KC,Medusa Sweatpants,sweatpants,variant_01KVJF9J7VRDSRVXN2TPR5E5JS,S,,Pants,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4R7XMZ1Z73SMTNT8KC,Medusa Sweatpants,sweatpants,variant_01KVJF9J7VBMFJWM99HTYEE3KX,XL,,Pants,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4RKQA6VSTE3T3YYAKX,Medusa T-Shirt,t-shirt,variant_01KVJF9J7S83CCMC5AAKBGVQNC,L / Black,,Shirts,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4RKQA6VSTE3T3YYAKX,Medusa T-Shirt,t-shirt,variant_01KVJF9J7S7ZQDN60WM8ACGRJF,L / White,,Shirts,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4RKQA6VSTE3T3YYAKX,Medusa T-Shirt,t-shirt,variant_01KVJF9J7SFPA1G7GAD3ZYPRM0,M / Black,,Shirts,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4RKQA6VSTE3T3YYAKX,Medusa T-Shirt,t-shirt,variant_01KVJF9J7SEH6FJ3VVX98B31M2,M / White,,Shirts,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4RKQA6VSTE3T3YYAKX,Medusa T-Shirt,t-shirt,variant_01KVJF9J7R77RDQYMEDJ0MF7TV,S / Black,,Shirts,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4RKQA6VSTE3T3YYAKX,Medusa T-Shirt,t-shirt,variant_01KVJF9J7S2NNS60SCPNBNK3YH,S / White,,Shirts,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4RKQA6VSTE3T3YYAKX,Medusa T-Shirt,t-shirt,variant_01KVJF9J7S66WB2FHYDA4WWVYK,XL / Black,,Shirts,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4RKQA6VSTE3T3YYAKX,Medusa T-Shirt,t-shirt,variant_01KVJF9J7TE542K4A96JQMWSDA,XL / White,,Shirts,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4RKC61HMGV5BMRNXN3,Medusa Sweatshirt,sweatshirt,variant_01KVJF9J7TXJP70XZXEAQWVATX,L,,Sweatshirts,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4RKC61HMGV5BMRNXN3,Medusa Sweatshirt,sweatshirt,variant_01KVJF9J7TH3XVZSS7EASJNP2S,M,,Sweatshirts,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4RKC61HMGV5BMRNXN3,Medusa Sweatshirt,sweatshirt,variant_01KVJF9J7TBTE05S8FBCXNTTGD,S,,Sweatshirts,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false
+prod_01KVJF9J4RKC61HMGV5BMRNXN3,Medusa Sweatshirt,sweatshirt,variant_01KVJF9J7VH1FXQ845RECAFW8V,XL,,Sweatshirts,15,10,present,present,VALID_BOTH_REGIONS,,,,,,false

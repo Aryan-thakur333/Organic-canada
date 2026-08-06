@@ -1,0 +1,65 @@
+
+> backend@0.0.1 admin:stable:local
+> node scripts/start-stable.js --local
+
+
+══════════════════════════════════════════════════════
+  EATSIE MEDUSA v2 — STABLE ADMIN START
+══════════════════════════════════════════════════════
+  Mode: LOCAL STABLE (fake Redis allowed)
+  Admin: http://localhost:9000/app
+  Flags: --local
+
+  ✅  Project validated: D:\eatsie-project\backend
+  ✅  Auth secrets loaded from project .env (values not logged)
+  ⚠️   LOCAL ONLY: fake Redis is enabled. Do not use this mode in production.
+  ✅  Loaded existing validated Admin Build ID: eatsie_build_1785085882800_esvzgk
+
+══════════════════════════════════════════════════════
+  STARTING MEDUSA (STABLE MODE — NO VITE HMR)
+══════════════════════════════════════════════════════
+  ▶  Running: medusa start on port 9000
+  ▶  Admin URL: http://localhost:9000/app
+  ▶  Health:    http://localhost:9000/health
+
+  ℹ️  STABLE MODE: Admin assets are pre-built.
+     No ephemeral Vite HMR port is used.
+     Preferred for pricing approvals and live import operations.
+
+  ▶  Copying .env to .medusa/server/.env...
+  ✅  .env copied
+  ▶  Waiting for backend health check at http://localhost:9000/health...
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    Skipping instrumentation registration. No register function found.
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    No link to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\links. skipped.
+[33mwarn[39m:    Local Event Bus installed. This is not recommended for production.
+[32minfo[39m:    Locking module: Using "in-memory" as default.
+[32minfo[39m:    No workflow to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\workflows. skipped.
+[32minfo[39m:    No subscriber to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\subscribers. skipped.
+[32minfo[39m:    No job to load from D:\eatsie-project\backend\node_modules\@medusajs\medusa\dist\jobs. skipped.
+[32minfo[39m:    No job to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\jobs. skipped.
+  ✅  Backend is healthy! (attempt 6)
+  ▶  Verifying served Admin HTML at http://localhost:9000/app/...
+  ✅  Stable Admin production assets verified successfully (no Vite HMR runtime detected)
+{"level":"http","client_ip":"::1","request_id":"f861e3c3-2a34-45d6-bb3b-e82d95e2e318","http_version":"1.1","method":"GET","path":"/app/","status":200,"response_size":"581","request_size":0,"duration":1.006,"referrer":"-","timestamp":"2026-07-26T17:12:31.198Z"}
+  ▶  Verifying served Build Metadata at http://localhost:9000/app/eatsie-build.json...
+{"level":"http","client_ip":"::1","request_id":"1a4c20c0-c3e4-4093-ab12-19f87005fd91","http_version":"1.1","method":"GET","path":"/app/eatsie-build.json","status":200,"response_size":116,"request_size":0,"duration":2.677,"referrer":"-","timestamp":"2026-07-26T17:12:31.202Z"}
+  ✅  Served Build ID matches derived Build ID: eatsie_build_1785085882800_esvzgk
+{"level":"http","client_ip":"::1","request_id":"2aed425a-9c9e-478b-ba11-846c3904e491","http_version":"1.1","method":"GET","path":"/app/eatsie-build.json","status":200,"response_size":116,"request_size":0,"duration":1.571,"referrer":"-","user_agent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8875","timestamp":"2026-07-26T17:12:50.696Z"}
+{"level":"http","client_ip":"::1","request_id":"3654d265-5eb5-48c6-bc8f-7a2347b69e94","http_version":"1.1","method":"GET","path":"/app","status":200,"response_size":"581","request_size":0,"duration":0.343,"referrer":"-","user_agent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8875","timestamp":"2026-07-26T17:13:02.771Z"}
+{"level":"http","client_ip":"::1","request_id":"6b5e49c5-4002-400f-be2e-c09fc4d51134","http_version":"1.1","method":"GET","path":"/app/eatsie-build.json","status":200,"response_size":116,"request_size":0,"duration":1.496,"referrer":"-","user_agent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8875","timestamp":"2026-07-26T17:13:02.786Z"}
+{"level":"http","client_ip":"::1","request_id":"bb9d3eb3-dca1-4bf4-a03d-2b38b829d092","http_version":"1.1","method":"GET","path":"/","status":404,"response_size":139,"request_size":0,"duration":20.586,"referrer":"-","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T17:19:13.256Z"}
+{"level":"http","client_ip":"::1","request_id":"06f59a42-ed84-474a-8687-c7510b31c6c5","http_version":"1.1","method":"GET","path":"/","status":404,"response_size":139,"request_size":0,"duration":7.338,"referrer":"-","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T17:19:27.742Z"}
+{"level":"http","client_ip":"::1","request_id":"124a463b-4975-4ccd-b300-4d7b0d39813a","http_version":"1.1","method":"GET","path":"/","status":404,"response_size":139,"request_size":0,"duration":0.927,"referrer":"-","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T17:19:32.273Z"}
+{"level":"http","client_ip":"::1","request_id":"b4ea5399-c18d-47b5-8429-80732b0f88d8","http_version":"1.1","method":"GET","path":"/","status":404,"response_size":139,"request_size":0,"duration":1.173,"referrer":"-","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T17:19:51.472Z"}
+{"level":"http","client_ip":"::1","request_id":"48618ef2-5236-4fb7-a9bd-ddbadbaa25a0","http_version":"1.1","method":"OPTIONS","path":"/store/customers/me","status":204,"response_size":"0","request_size":0,"duration":1.509,"referrer":"http://localhost:5173/","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T17:21:10.539Z"}
+{"level":"http","client_ip":"::1","request_id":"f6b58457-3514-4ec9-8a59-137a5dcd2bf4","http_version":"1.1","method":"OPTIONS","path":"/store/regions?limit=50","status":204,"response_size":"0","request_size":0,"duration":2.676,"referrer":"http://localhost:5173/","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T17:21:10.547Z"}
+{"level":"http","client_ip":"::1","request_id":"8a8de6c0-833d-45f8-9143-936c89e387a5","http_version":"1.1","method":"OPTIONS","path":"/store/regions?limit=50","status":204,"response_size":"0","request_size":0,"duration":0.482,"referrer":"http://localhost:5173/","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T17:21:10.549Z"}
+{"level":"http","client_ip":"::1","request_id":"48b6fe37-f0df-46f4-9523-38393cd5fba3","http_version":"1.1","method":"OPTIONS","path":"/store/products?fields=id,title,handle,description,thumbnail,images.*,variants.*,variants.prices.*,variants.calculated_price.*,categories.*,metadata,type.*&limit=100&order=-created_at&region_id=reg_01KXT623CTGM9NJJYK2G4DQW7E&country_code=us&offset=0","status":204,"response_size":"0","request_size":0,"duration":0.503,"referrer":"http://localhost:5173/","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T17:21:10.830Z"}
+{"level":"http","client_ip":"::1","request_id":"a1020236-8c58-4b2e-8a95-9edadde5881c","http_version":"1.1","method":"GET","path":"/store/products?fields=id,title,handle,description,thumbnail,images.*,variants.*,variants.prices.*,variants.calculated_price.*,categories.*,metadata,type.*&limit=100&order=-created_at&region_id=reg_01KXT623CTGM9NJJYK2G4DQW7E&country_code=us&offset=0","status":304,"response_size":0,"request_size":0,"duration":250.315,"referrer":"http://localhost:5173/","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T17:21:11.083Z"}
+{"event":"http_request","request_id":"ms22e85eyoxfr2","method":"GET","path":"/store/products","status":304,"duration_ms":234,"rate_limit_remaining":59}
+{"level":"http","client_ip":"::1","request_id":"fd5bcce2-6d4c-4d06-b731-260b5e52a515","http_version":"1.1","method":"OPTIONS","path":"/store/products?fields=id,title,handle,description,thumbnail,images.*,variants.*,variants.prices.*,variants.calculated_price.*,categories.*,metadata,type.*&limit=100&order=-created_at&region_id=reg_01KXT623CTGM9NJJYK2G4DQW7E&country_code=us&offset=100","status":204,"response_size":"0","request_size":0,"duration":0.432,"referrer":"http://localhost:5173/","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T17:21:11.091Z"}
+{"level":"http","client_ip":"::1","request_id":"e932e4e5-8075-4143-8e65-aa0287ea7f6d","http_version":"1.1","method":"GET","path":"/store/products?fields=id,title,handle,description,thumbnail,images.*,variants.*,variants.prices.*,variants.calculated_price.*,categories.*,metadata,type.*&limit=100&order=-created_at&region_id=reg_01KXT623CTGM9NJJYK2G4DQW7E&country_code=us&offset=100","status":304,"response_size":0,"request_size":0,"duration":138.141,"referrer":"http://localhost:5173/","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36","timestamp":"2026-07-26T17:21:11.231Z"}
+{"event":"http_request","request_id":"ms22e8cififdvn","method":"GET","path":"/store/products","status":304,"duration_ms":125,"rate_limit_remaining":58}

@@ -1,4 +1,5 @@
 import { medusaIntegrationTestRunner } from "@medusajs/test-utils"
+import { createAndLoginAdmin, registerAndApproveVendor } from "../helpers/integration-auth"
 
 jest.setTimeout(120 * 1000)
 
@@ -18,53 +19,26 @@ jest.setTimeout(120 * 1000)
 medusaIntegrationTestRunner({
   inApp: true,
   env: {},
-  testSuite: ({ api, adminHeaders }) => {
+  testSuite: ({ api, adminHeaders, getContainer }) => {
     // ── Helpers ──────────────────────────────────────────────────────────
 
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
-
-    /** Register a vendor and return { id, email, token } */
-    async function registerVendor(storeName: string): Promise<{
-      id: string
-      email: string
-      token: string
-    }> {
-      const email = `vendor-${storeName}-${uid()}@eatsie.test`
-      const regRes = await api.post("/vendor/register").send({
-        name: storeName,
-        store_name: storeName,
-        email,
-        password: "TestVendorPass123!",
-      })
-      const vendorId = regRes.body.vendor.id
-
-      // Admin approves the vendor
-      await api
-        .post(`/admin/vendors/${vendorId}/approve`)
-        .set(adminHeaders.headers)
-        .expect(200)
-
-      // Login to get JWT
-      const loginRes = await api.post("/vendor/login").send({
-        email,
-        password: "TestVendorPass123!",
-      })
-      return { id: vendorId, email, token: loginRes.body.token }
-    }
-
-    /** Build auth header for a vendor token */
     const vendorAuth = (token: string) => ({ Authorization: `Bearer ${token}` })
 
     // ── Shared data ──────────────────────────────────────────────────────
 
-    let vendorA: { id: string; email: string; token: string }
-    let vendorB: { id: string; email: string; token: string }
+    let vendorA: { id: string; email: string; token: string; headers: Record<string, string> }
+    let vendorB: { id: string; email: string; token: string; headers: Record<string, string> }
     let productAId: string
     let productBId: string
+    let adminAuth: { email: string; token: string; headers: Record<string, string> }
 
     beforeAll(async () => {
-      vendorA = await registerVendor("VendorA")
-      vendorB = await registerVendor("VendorB")
+      const container = getContainer()
+      adminAuth = await createAndLoginAdmin(container, api)
+
+      vendorA = await registerAndApproveVendor(container, api, "VendorA", adminAuth.headers)
+      vendorB = await registerAndApproveVendor(container, api, "VendorB", adminAuth.headers)
     })
 
     // ═════════════════════════════════════════════════════════════════════
@@ -73,75 +47,75 @@ medusaIntegrationTestRunner({
 
     describe("POST /vendor/products — Vendor creates products", () => {
       test("Vendor A creates a product with a price", async () => {
-        const res = await api
-          .post("/vendor/products")
-          .set(vendorAuth(vendorA.token))
-          .send({
-            title: `Organic Honey - ${uid()}`,
-            price: 14.99,
-            description: "Pure organic honey from local farms.",
-          })
+        const res = await api.post("/vendor/products", {
+          title: `Organic Honey - ${uid()}`,
+          price: 14.99,
+          description: "Pure organic honey from local farms.",
+        }, {
+          headers: vendorA.headers,
+          validateStatus: () => true,
+        })
 
         expect(res.status).toBe(201)
-        expect(res.body.message).toMatch(/created.*linked/i)
-        expect(res.body.product).toBeDefined()
-        expect(res.body.product.id).toBeTruthy()
-        expect(res.body.product.title).toContain("Organic Honey")
-        expect(res.body.product.status).toBe("published")
+        expect(res.data.message).toMatch(/created.*linked/i)
+        expect(res.data.product).toBeDefined()
+        expect(res.data.product.id).toBeTruthy()
+        expect(res.data.product.title).toContain("Organic Honey")
+        expect(res.data.product.status).toBe("published")
 
-        productAId = res.body.product.id
+        productAId = res.data.product.id
       })
 
       test("Vendor A creates a product with multiple variants", async () => {
-        const res = await api
-          .post("/vendor/products")
-          .set(vendorAuth(vendorA.token))
-          .send({
-            title: `Multi-Variant Product - ${uid()}`,
-            status: "draft",
-            variants: [
-              { title: "Small", price: 9.99, sku: "MV-SML", manage_inventory: true },
-              { title: "Medium", price: 14.99, sku: "MV-MED", manage_inventory: true },
-              { title: "Large", price: 19.99, sku: "MV-LRG", allow_backorder: true },
-            ],
-          })
+        const res = await api.post("/vendor/products", {
+          title: `Multi-Variant Product - ${uid()}`,
+          status: "draft",
+          variants: [
+            { title: "Small", price: 9.99, sku: "MV-SML", manage_inventory: true },
+            { title: "Medium", price: 14.99, sku: "MV-MED", manage_inventory: true },
+            { title: "Large", price: 19.99, sku: "MV-LRG", allow_backorder: true },
+          ],
+        }, {
+          headers: vendorA.headers,
+          validateStatus: () => true,
+        })
 
         expect(res.status).toBe(201)
-        expect(res.body.product.variants).toHaveLength(3)
-        expect(res.body.product.status).toBe("draft")
+        expect(res.data.product.variants).toHaveLength(3)
+        expect(res.data.product.status).toBe("draft")
       })
 
       test("Vendor B creates their own product", async () => {
-        const res = await api
-          .post("/vendor/products")
-          .set(vendorAuth(vendorB.token))
-          .send({
-            title: `Vendor B Product - ${uid()}`,
-            price: 24.99,
-          })
+        const res = await api.post("/vendor/products", {
+          title: `Vendor B Product - ${uid()}`,
+          price: 24.99,
+        }, {
+          headers: vendorB.headers,
+          validateStatus: () => true,
+        })
 
         expect(res.status).toBe(201)
-        productBId = res.body.product.id
+        productBId = res.data.product.id
       })
 
       test("returns 401 without auth token", async () => {
-        const res = await api.post("/vendor/products").send({
+        const res = await api.post("/vendor/products", {
           title: "Unauthorized Product",
           price: 10.0,
-        })
+        }, { validateStatus: () => true })
 
         expect(res.status).toBe(401)
-        expect(res.body.message).toMatch(/token required/i)
+        expect(res.data.message).toMatch(/token required/i)
       })
 
       test("returns 400 without title", async () => {
-        const res = await api
-          .post("/vendor/products")
-          .set(vendorAuth(vendorA.token))
-          .send({ price: 10.0 })
+        const res = await api.post("/vendor/products", { price: 10.0 }, {
+          headers: vendorA.headers,
+          validateStatus: () => true,
+        })
 
         expect(res.status).toBe(400)
-        expect(res.body.message).toMatch(/title/i)
+        expect(res.data.message).toMatch(/title/i)
       })
     })
 
@@ -151,25 +125,27 @@ medusaIntegrationTestRunner({
 
     describe("GET /vendor/products — Ownership isolation", () => {
       test("Vendor A sees their products but not Vendor B's", async () => {
-        const res = await api
-          .get("/vendor/products")
-          .set(vendorAuth(vendorA.token))
+        const res = await api.get("/vendor/products", {
+          headers: vendorA.headers,
+          validateStatus: () => true,
+        })
 
         expect(res.status).toBe(200)
-        expect(Array.isArray(res.body.products)).toBe(true)
+        expect(Array.isArray(res.data.products)).toBe(true)
 
-        const ids = res.body.products.map((p: any) => p.id)
+        const ids = res.data.products.map((p: any) => p.id)
         expect(ids).toContain(productAId)
         expect(ids).not.toContain(productBId)
       })
 
       test("Vendor B sees their products but not Vendor A's", async () => {
-        const res = await api
-          .get("/vendor/products")
-          .set(vendorAuth(vendorB.token))
+        const res = await api.get("/vendor/products", {
+          headers: vendorB.headers,
+          validateStatus: () => true,
+        })
 
         expect(res.status).toBe(200)
-        const ids = res.body.products.map((p: any) => p.id)
+        const ids = res.data.products.map((p: any) => p.id)
         expect(ids).toContain(productBId)
         expect(ids).not.toContain(productAId)
       })
@@ -181,57 +157,64 @@ medusaIntegrationTestRunner({
 
     describe("PUT /vendor/products/:id — Ownership enforcement", () => {
       test("Vendor B cannot update Vendor A's product (403)", async () => {
-        const res = await api
-          .put(`/vendor/products/${productAId}`)
-          .set(vendorAuth(vendorB.token))
-          .send({ title: "Hacked Title", price: 1.99 })
+        const res = await api.put(`/vendor/products/${productAId}`, {
+          title: "Hacked Title",
+          price: 1.99,
+        }, {
+          headers: vendorB.headers,
+          validateStatus: () => true,
+        })
 
         expect(res.status).toBe(403)
-        expect(res.body.message).toMatch(/do not own/i)
+        expect(res.data.message).toMatch(/do not own/i)
       })
 
       test("Vendor A can update their own product", async () => {
-        const res = await api
-          .put(`/vendor/products/${productAId}`)
-          .set(vendorAuth(vendorA.token))
-          .send({
-            title: "Updated Organic Honey",
-            description: "Updated description for the product.",
-            price: 16.99,
-          })
+        const res = await api.put(`/vendor/products/${productAId}`, {
+          title: "Updated Organic Honey",
+          description: "Updated description for the product.",
+          price: 16.99,
+        }, {
+          headers: vendorA.headers,
+          validateStatus: () => true,
+        })
 
         expect(res.status).toBe(200)
-        expect(res.body.message).toMatch(/updated successfully/i)
-        expect(res.body.product).toBeDefined()
+        expect(res.data.message).toMatch(/updated successfully/i)
+        expect(res.data.product).toBeDefined()
       })
 
       test("Vendor A can publish/unpublish their product", async () => {
         // Unpublish (draft)
-        const draftRes = await api
-          .put(`/vendor/products/${productAId}`)
-          .set(vendorAuth(vendorA.token))
-          .send({ status: "draft" })
+        const draftRes = await api.put(`/vendor/products/${productAId}`, {
+          status: "draft",
+        }, {
+          headers: vendorA.headers,
+          validateStatus: () => true,
+        })
 
         expect(draftRes.status).toBe(200)
 
         // Republish
-        const pubRes = await api
-          .put(`/vendor/products/${productAId}`)
-          .set(vendorAuth(vendorA.token))
-          .send({ status: "published" })
+        const pubRes = await api.put(`/vendor/products/${productAId}`, {
+          status: "published",
+        }, {
+          headers: vendorA.headers,
+          validateStatus: () => true,
+        })
 
         expect(pubRes.status).toBe(200)
       })
 
       test("Vendor A can update product with categories and tags", async () => {
-        const res = await api
-          .put(`/vendor/products/${productAId}`)
-          .set(vendorAuth(vendorA.token))
-          .send({
-            title: "Organic Honey With Categories",
-            categories: [],
-            tags: [],
-          })
+        const res = await api.put(`/vendor/products/${productAId}`, {
+          title: "Organic Honey With Categories",
+          categories: [],
+          tags: [],
+        }, {
+          headers: vendorA.headers,
+          validateStatus: () => true,
+        })
 
         expect(res.status).toBe(200)
       })
@@ -246,42 +229,49 @@ medusaIntegrationTestRunner({
 
       beforeAll(async () => {
         // Vendor A creates a temp product for delete tests
-        const res = await api
-          .post("/vendor/products")
-          .set(vendorAuth(vendorA.token))
-          .send({ title: "Temp Product for Delete", price: 5.99 })
-        tempProductId = res.body.product.id
+        const res = await api.post("/vendor/products", {
+          title: "Temp Product for Delete",
+          price: 5.99,
+        }, {
+          headers: vendorA.headers,
+          validateStatus: () => true,
+        })
+        tempProductId = res.data.product.id
       })
 
       test("Vendor B cannot delete Vendor A's product (403)", async () => {
-        const res = await api
-          .delete(`/vendor/products/${tempProductId}`)
-          .set(vendorAuth(vendorB.token))
+        const res = await api.delete(`/vendor/products/${tempProductId}`, {
+          headers: vendorB.headers,
+          validateStatus: () => true,
+        })
 
         expect(res.status).toBe(403)
-        expect(res.body.message).toMatch(/do not own/i)
+        expect(res.data.message).toMatch(/do not own/i)
       })
 
       test("Vendor A can delete their own product", async () => {
-        const res = await api
-          .delete(`/vendor/products/${tempProductId}`)
-          .set(vendorAuth(vendorA.token))
+        const res = await api.delete(`/vendor/products/${tempProductId}`, {
+          headers: vendorA.headers,
+          validateStatus: () => true,
+        })
 
         expect(res.status).toBe(200)
-        expect(res.body.message).toMatch(/deleted successfully/i)
+        expect(res.data.message).toMatch(/deleted successfully/i)
 
         // Verify it's gone from vendor A's product list
-        const listRes = await api
-          .get("/vendor/products")
-          .set(vendorAuth(vendorA.token))
-        const ids = listRes.body.products.map((p: any) => p.id)
+        const listRes = await api.get("/vendor/products", {
+          headers: vendorA.headers,
+          validateStatus: () => true,
+        })
+        const ids = listRes.data.products.map((p: any) => p.id)
         expect(ids).not.toContain(tempProductId)
       })
 
       test("returns 404 for non-existent product", async () => {
-        const res = await api
-          .delete("/vendor/products/non-existent-id")
-          .set(vendorAuth(vendorA.token))
+        const res = await api.delete("/vendor/products/non-existent-id", {
+          headers: vendorA.headers,
+          validateStatus: () => true,
+        })
 
         expect(res.status).toBe(404)
       })
@@ -293,15 +283,16 @@ medusaIntegrationTestRunner({
 
     describe("GET /admin/vendor-products — Admin sees all", () => {
       test("admin can list all vendor products", async () => {
-        const res = await api
-          .get("/admin/vendor-products")
-          .set(adminHeaders.headers)
+        const res = await api.get("/admin/vendor-products", {
+          headers: adminAuth.headers,
+          validateStatus: () => true,
+        })
 
         expect(res.status).toBe(200)
-        expect(Array.isArray(res.body.vendor_products)).toBe(true)
-        expect(res.body.count).toBeGreaterThanOrEqual(2)
+        expect(Array.isArray(res.data.vendor_products)).toBe(true)
+        expect(res.data.count).toBeGreaterThanOrEqual(2)
 
-        const ids = res.body.vendor_products.map((p: any) => p.id)
+        const ids = res.data.vendor_products.map((p: any) => p.id)
         expect(ids).toContain(productAId)
         expect(ids).toContain(productBId)
       })

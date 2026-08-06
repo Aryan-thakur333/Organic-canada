@@ -1,0 +1,18 @@
+{
+  "mode": "DRY_RUN",
+  "status": "NOT_RUN_PENDING_PRICE_APPROVAL",
+  "variantsExamined": 147,
+  "variantsMatched": 64,
+  "rowsApproved": 0,
+  "rowsSkipped": 64,
+  "rowsInvalid": 0,
+  "pricesToCreate": 0,
+  "pricesToUpdate": 0,
+  "existingValidPricesPreserved": 42,
+  "expectedFinalEligibleProductCount": 15,
+  "databaseWrites": 0,
+  "existingUsdPricesModified": 0,
+  "cadPricesModified": 0,
+  "productsModified": 0,
+  "inventoryModified": 0
+}

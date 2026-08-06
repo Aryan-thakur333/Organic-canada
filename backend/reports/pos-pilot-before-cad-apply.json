@@ -1,0 +1,174 @@
+{
+  "capturedAt": "2026-07-29T05:34:58.399Z",
+  "posChannelId": "sc_01KWSKACE7DEGMXG6GH1ZRSA4V",
+  "pilot": [
+    {
+      "id": "prod_01KVSFB71XDNGFJN01RH3C2G1M",
+      "title": "Organic Apples",
+      "status": "published",
+      "vendorOwnership": "PLATFORM",
+      "salesChannels": [
+        "sc_01KVJF9HK0YY92JES8P7VPZN12",
+        "sc_01KWSKACE7DEGMXG6GH1ZRSA4V"
+      ],
+      "variants": [
+        {
+          "id": "variant_01KVSFB75GZJ4N0B9SY6BXDTZC",
+          "sku": "EATSIE-ORGANIC-APPLES",
+          "barcode": "EAT-GEN-ORGANIC-APPLES-STANDARD-89BC51C6",
+          "upc": null,
+          "ean": null,
+          "cadPrice": 4.99,
+          "usdPrice": 3.99,
+          "cadPriceRecords": 1,
+          "inventory": [
+            {
+              "inventoryItemId": "iitem_01KVSFB7672TYVZNVRY306DPWS",
+              "levels": [
+                {
+                  "locationId": "sloc_01KVJF9HWWJ38MPAFDGH5YB0W1",
+                  "stockedQuantity": 0,
+                  "reservedQuantity": 0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB7BAX6R5GFXKKCC4CYHX",
+      "title": "Fresh Bananas",
+      "status": "published",
+      "vendorOwnership": "PLATFORM",
+      "salesChannels": [
+        "sc_01KVJF9HK0YY92JES8P7VPZN12"
+      ],
+      "variants": [
+        {
+          "id": "variant_01KVSFB7CD3CVS9WN4SCVE9YXT",
+          "sku": "EATSIE-FRESH-BANANAS",
+          "barcode": "EAT-GEN-FRESH-BANANAS-STANDARD-AE38845D",
+          "upc": null,
+          "ean": null,
+          "cadPrice": 299,
+          "usdPrice": 9,
+          "cadPriceRecords": 1,
+          "inventory": [
+            {
+              "inventoryItemId": "iitem_01KVSFB7CQ0NPN56DM23P4FFR4",
+              "levels": [
+                {
+                  "locationId": "sloc_01KVJF9HWWJ38MPAFDGH5YB0W1",
+                  "stockedQuantity": 100,
+                  "reservedQuantity": 50
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB7KH3MAADTC8FXDNB7K9",
+      "title": "Organic Carrots",
+      "status": "published",
+      "vendorOwnership": "PLATFORM",
+      "salesChannels": [
+        "sc_01KVJF9HK0YY92JES8P7VPZN12"
+      ],
+      "variants": [
+        {
+          "id": "variant_01KVSFB7M7DJ2NQP1MRFC161ZP",
+          "sku": "EATSIE-ORGANIC-CARROTS",
+          "barcode": "EAT-GEN-ORGANIC-CARROT-STANDARD-2F57F3B6",
+          "upc": null,
+          "ean": null,
+          "cadPrice": 399,
+          "usdPrice": 5,
+          "cadPriceRecords": 1,
+          "inventory": [
+            {
+              "inventoryItemId": "iitem_01KVSFB7MF3W607DYGF8DQWKVT",
+              "levels": [
+                {
+                  "locationId": "sloc_01KVJF9HWWJ38MPAFDGH5YB0W1",
+                  "stockedQuantity": 100,
+                  "reservedQuantity": 0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB82HYD8N48WG7XQGKWBW",
+      "title": "Organic Milk",
+      "status": "published",
+      "vendorOwnership": "PLATFORM",
+      "salesChannels": [
+        "sc_01KVJF9HK0YY92JES8P7VPZN12"
+      ],
+      "variants": [
+        {
+          "id": "variant_01KVSFB83K91ZD462YSQSFPK8C",
+          "sku": "EATSIE-ORGANIC-MILK",
+          "barcode": "EAT-GEN-ORGANIC-MILK-STANDARD-F44FAB2F",
+          "upc": null,
+          "ean": null,
+          "cadPrice": 649,
+          "usdPrice": null,
+          "cadPriceRecords": 1,
+          "inventory": [
+            {
+              "inventoryItemId": "iitem_01KVSFB841CPBEH86T1VHT0XXA",
+              "levels": [
+                {
+                  "locationId": "sloc_01KVJF9HWWJ38MPAFDGH5YB0W1",
+                  "stockedQuantity": 100,
+                  "reservedQuantity": 0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB8ENFV01KZE8AYE46CJB",
+      "title": "Whole Wheat Bread",
+      "status": "published",
+      "vendorOwnership": "PLATFORM",
+      "salesChannels": [
+        "sc_01KVJF9HK0YY92JES8P7VPZN12"
+      ],
+      "variants": [
+        {
+          "id": "variant_01KVSFB8FGBH5QYY47W48PZY7B",
+          "sku": "EATSIE-WHOLE-WHEAT-BREAD",
+          "barcode": "EAT-GEN-WHOLE-WHEAT-BR-STANDARD-0B664A12",
+          "upc": null,
+          "ean": null,
+          "cadPrice": 499,
+          "usdPrice": null,
+          "cadPriceRecords": 1,
+          "inventory": [
+            {
+              "inventoryItemId": "iitem_01KVSFB8FS61D47YJDC04QJ4V7",
+              "levels": [
+                {
+                  "locationId": "sloc_01KVJF9HWWJ38MPAFDGH5YB0W1",
+                  "stockedQuantity": 0,
+                  "reservedQuantity": 0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "nonPilotHash": "8172cd7239bb0a8d0547f1ceed41b671fea30c04b3c5c1202db6785fca8f11a9",
+  "nonPilotProducts": 128
+}

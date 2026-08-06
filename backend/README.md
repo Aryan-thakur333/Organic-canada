@@ -104,3 +104,32 @@ After `npm run seed` (or via Admin), create a publishable key scoped to the defa
 ## Optional: legacy `payment-server/`
 
 The Node demo under `payment-server/` is separate from Medusa; Medusa handles payments via configured providers (`pp_system_default`, Stripe, etc.).
+
+## Multi-Vendor Commission System
+
+This project contains a comprehensive commission calculation and reporting system for Marketplace environments.
+
+### Setup and Migrations
+The commission system relies on the `commission` module and its custom database tables (`commission_rule` and `commission_record`).
+
+To initialize the module:
+```bash
+npm run build
+npx medusa db:migrate
+```
+
+### Rollback Instructions
+If you need to completely rollback or reset the commission data:
+1. Down-migrate the commission module (if supported by your setup).
+2. Or manually drop the tables in Postgres:
+   ```sql
+   DROP TABLE IF EXISTS "commission_record";
+   DROP TABLE IF EXISTS "commission_rule";
+   ```
+3. Remove the `COMMISSION_MODULE` from `medusa-config.js` and delete `src/modules/commission`.
+
+### QA and Testing
+To verify the math logic for multi-vendor, tax offsets, and B2B vs Normal customers:
+```bash
+npx ts-node src/scripts/qa-commission-math.ts
+```

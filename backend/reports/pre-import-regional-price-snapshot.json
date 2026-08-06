@@ -1,0 +1,1344 @@
+{
+  "createdAt": "2026-07-25T15:04:49.331Z",
+  "usaRegionId": "reg_01KXT623CTGM9NJJYK2G4DQW7E",
+  "currency": "usd",
+  "products": [
+    {
+      "id": "prod_01KVN02PJ0TEWPZ721K4BC6XT7",
+      "handle": "final-1782042414-mqnq1lpn",
+      "title": "Final 1782042414",
+      "variants": [
+        {
+          "id": "variant_01KVN02PMQNA2VAB5Z7RZ4HW9X",
+          "title": "Standard",
+          "sku": "",
+          "prices": [
+            {
+              "id": "price_01KVN02PQD93ESSC152AA0QSAE",
+              "currency_code": "cad",
+              "amount": 1999,
+              "price_set_id": "pset_01KVN02PQE6BVV0RMD75NFNZCY"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB7BAX6R5GFXKKCC4CYHX",
+      "handle": "fresh-bananas",
+      "title": "Fresh Bananas",
+      "variants": [
+        {
+          "id": "variant_01KVSFB7CD3CVS9WN4SCVE9YXT",
+          "title": "Standard",
+          "sku": "EATSIE-FRESH-BANANAS",
+          "prices": [
+            {
+              "id": "price_01KVSFB7D4DTMCW0Z7AH1CAESD",
+              "currency_code": "cad",
+              "amount": 299,
+              "price_set_id": "pset_01KVSFB7D5SDCMC9NRH82RXCAH"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB7DRWS2W3RZ6PEWEJV29",
+      "handle": "red-strawberries",
+      "title": "Red Strawberries",
+      "variants": [
+        {
+          "id": "variant_01KVSFB7EKARSRMJ14F2T30WPN",
+          "title": "Standard",
+          "sku": "EATSIE-RED-STRAWBERRIES",
+          "prices": [
+            {
+              "id": "price_01KVSFB7F6W6XJYNTB2QC33R1X",
+              "currency_code": "cad",
+              "amount": 699,
+              "price_set_id": "pset_01KVSFB7F67J88JKRF5F649VBT"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB7FQRQPT7HHHQTS0D9QA",
+      "handle": "green-grapes",
+      "title": "Green Grapes",
+      "variants": [
+        {
+          "id": "variant_01KVSFB7GDJ405F2JQJ8A68700",
+          "title": "Standard",
+          "sku": "EATSIE-GREEN-GRAPES",
+          "prices": [
+            {
+              "id": "price_01KVSFB7H2VNKWASGZHE06B9QV",
+              "currency_code": "cad",
+              "amount": 599,
+              "price_set_id": "pset_01KVSFB7H2YP6PKD3B65RXQMQ3"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB7HK2723G4QTVR3DBP0S",
+      "handle": "sweet-mangoes",
+      "title": "Sweet Mangoes",
+      "variants": [
+        {
+          "id": "variant_01KVSFB7JCCZ0V3E7Q7JQPAYGW",
+          "title": "Standard",
+          "sku": "EATSIE-SWEET-MANGOES",
+          "prices": [
+            {
+              "id": "price_01KVSFB7K18JZFVKGAP0GAKM2A",
+              "currency_code": "cad",
+              "amount": 799,
+              "price_set_id": "pset_01KVSFB7K1Q8YPPWDJXV4CXXX2"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB7KH3MAADTC8FXDNB7K9",
+      "handle": "organic-carrots",
+      "title": "Organic Carrots",
+      "variants": [
+        {
+          "id": "variant_01KVSFB7M7DJ2NQP1MRFC161ZP",
+          "title": "Standard",
+          "sku": "EATSIE-ORGANIC-CARROTS",
+          "prices": [
+            {
+              "id": "price_01KVSFB7MWW0AD0D1T2TE515KY",
+              "currency_code": "cad",
+              "amount": 399,
+              "price_set_id": "pset_01KVSFB7MW519ZYSVCY30G453V"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB7NFW3HA28BEMYCHVFRJ",
+      "handle": "fresh-broccoli",
+      "title": "Fresh Broccoli",
+      "variants": [
+        {
+          "id": "variant_01KVSFB7PMVBDKJ5NHD9CQQ5NX",
+          "title": "Standard",
+          "sku": "EATSIE-FRESH-BROCCOLI",
+          "prices": [
+            {
+              "id": "price_01KVSFB7QMBMJJZJ3WSWV4N2M5",
+              "currency_code": "cad",
+              "amount": 449,
+              "price_set_id": "pset_01KVSFB7QM5PYMWSJ8PKXPVDZM"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB7REXCQRQ06W82C4610V",
+      "handle": "green-spinach",
+      "title": "Green Spinach",
+      "variants": [
+        {
+          "id": "variant_01KVSFB7SC8G5X8ZGN2TAPHTPG",
+          "title": "Standard",
+          "sku": "EATSIE-GREEN-SPINACH",
+          "prices": [
+            {
+              "id": "price_01KVSFB7TQYSM11HJT6EFTFRBN",
+              "currency_code": "cad",
+              "amount": 499,
+              "price_set_id": "pset_01KVSFB7TQ63A55QPSJ3AD4Z3N"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB7VJMJVD821ZFVYN9FWV",
+      "handle": "red-tomatoes",
+      "title": "Red Tomatoes",
+      "variants": [
+        {
+          "id": "variant_01KVSFB7WSVC6Y3C0E24ZSP890",
+          "title": "Standard",
+          "sku": "EATSIE-RED-TOMATOES",
+          "prices": [
+            {
+              "id": "price_01KVSFB7Y039CV8P5EGNWF8AQA",
+              "currency_code": "cad",
+              "amount": 399,
+              "price_set_id": "pset_01KVSFB7Y1EAM3S8A6HBYGZDR8"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB7Z7ZARK3KPZCNNGCFN8",
+      "handle": "organic-potatoes",
+      "title": "Organic Potatoes",
+      "variants": [
+        {
+          "id": "variant_01KVSFB80MDTP8T8R6Z7GB0CQN",
+          "title": "Standard",
+          "sku": "EATSIE-ORGANIC-POTATOES",
+          "prices": [
+            {
+              "id": "price_01KVSFB81SC7GKAWER1GRZGTSK",
+              "currency_code": "cad",
+              "amount": 549,
+              "price_set_id": "pset_01KVSFB81STRZV93HG7VP8QYP4"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB82HYD8N48WG7XQGKWBW",
+      "handle": "organic-milk",
+      "title": "Organic Milk",
+      "variants": [
+        {
+          "id": "variant_01KVSFB83K91ZD462YSQSFPK8C",
+          "title": "Standard",
+          "sku": "EATSIE-ORGANIC-MILK",
+          "prices": [
+            {
+              "id": "price_01KVSFB84KKY3Z5JRKXA0MTJMC",
+              "currency_code": "cad",
+              "amount": 649,
+              "price_set_id": "pset_01KVSFB84KT2D5DF8168A0WS87"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB85A4E8Z4E4F7ZX8E2SW",
+      "handle": "greek-yogurt",
+      "title": "Greek Yogurt",
+      "variants": [
+        {
+          "id": "variant_01KVSFB86BTEA7ZEZ2M01STJYG",
+          "title": "Standard",
+          "sku": "EATSIE-GREEK-YOGURT",
+          "prices": [
+            {
+              "id": "price_01KVSFB8748CZPQ7JNM0JNAXBG",
+              "currency_code": "cad",
+              "amount": 599,
+              "price_set_id": "pset_01KVSFB874M5ZXKH8ZN9FA9V36"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB87RKDRSY8HR988M0Z9K",
+      "handle": "cheddar-cheese",
+      "title": "Cheddar Cheese",
+      "variants": [
+        {
+          "id": "variant_01KVSFB88CG0FGKBQTG2KNBZE8",
+          "title": "Standard",
+          "sku": "EATSIE-CHEDDAR-CHEESE",
+          "prices": [
+            {
+              "id": "price_01KVSFB8983QJ6R6685TNQWJ0Z",
+              "currency_code": "cad",
+              "amount": 799,
+              "price_set_id": "pset_01KVSFB898SY6YECAC57YKA1WF"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB8A3QK5WZV03MTMEAHPD",
+      "handle": "fresh-butter",
+      "title": "Fresh Butter",
+      "variants": [
+        {
+          "id": "variant_01KVSFB8B6VM0SCQ8NFQZRC239",
+          "title": "Standard",
+          "sku": "EATSIE-FRESH-BUTTER",
+          "prices": [
+            {
+              "id": "price_01KVSFB8BZS21YE5Z0BC4D64TV",
+              "currency_code": "cad",
+              "amount": 549,
+              "price_set_id": "pset_01KVSFB8BZME78VF1TY849SYPV"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB8CFN04MJA0CDQ8Y3QZX",
+      "handle": "paneer-block",
+      "title": "Paneer Block",
+      "variants": [
+        {
+          "id": "variant_01KVSFB8D6X5V3ZFD2N7NXRYY5",
+          "title": "Standard",
+          "sku": "EATSIE-PANEER-BLOCK",
+          "prices": [
+            {
+              "id": "price_01KVSFB8DQJN0WSV2KKWZV004Z",
+              "currency_code": "cad",
+              "amount": 699,
+              "price_set_id": "pset_01KVSFB8DQ84MNNF3ENKFRVC2N"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB8ENFV01KZE8AYE46CJB",
+      "handle": "whole-wheat-bread",
+      "title": "Whole Wheat Bread",
+      "variants": [
+        {
+          "id": "variant_01KVSFB8FGBH5QYY47W48PZY7B",
+          "title": "Standard",
+          "sku": "EATSIE-WHOLE-WHEAT-BREAD",
+          "prices": [
+            {
+              "id": "price_01KVSFB8G52RRSQ7RB6YAZRHFA",
+              "currency_code": "cad",
+              "amount": 499,
+              "price_set_id": "pset_01KVSFB8G5T23VS56G5T86CXFQ"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB8GJWSH1JMXG0XPG2F6N",
+      "handle": "croissant",
+      "title": "Croissant",
+      "variants": [
+        {
+          "id": "variant_01KVSFB8HDHXQHA4PKSS9PQ89A",
+          "title": "Standard",
+          "sku": "EATSIE-CROISSANT",
+          "prices": [
+            {
+              "id": "price_01KVSFB8J44GQVNY8D8K7CKHZJ",
+              "currency_code": "cad",
+              "amount": 349,
+              "price_set_id": "pset_01KVSFB8J460K39GFGNP4ZHXFZ"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB8JPGQQ7QE235C4QDZX0",
+      "handle": "sourdough-loaf",
+      "title": "Sourdough Loaf",
+      "variants": [
+        {
+          "id": "variant_01KVSFB8K8SQ0PERBD5HNEJE6M",
+          "title": "Standard",
+          "sku": "EATSIE-SOURDOUGH-LOAF",
+          "prices": [
+            {
+              "id": "price_01KVSFB8KQ01KYC679GGGM2NEJ",
+              "currency_code": "cad",
+              "amount": 699,
+              "price_set_id": "pset_01KVSFB8KQZ4EDMXEF9Z4AECCW"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB8M7AVMZ6888SSSYQE5K",
+      "handle": "muffins-pack",
+      "title": "Muffins Pack",
+      "variants": [
+        {
+          "id": "variant_01KVSFB8MVTVENGRRVN6V61TQN",
+          "title": "Standard",
+          "sku": "EATSIE-MUFFINS-PACK",
+          "prices": [
+            {
+              "id": "price_01KVSFB8NBZ9K4HA1R6ZV4HSRK",
+              "currency_code": "cad",
+              "amount": 899,
+              "price_set_id": "pset_01KVSFB8NB43ZKH3XX5MW9XC3A"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB8NSZ67XN9G17BJJ1W38",
+      "handle": "organic-cookies",
+      "title": "Organic Cookies",
+      "variants": [
+        {
+          "id": "variant_01KVSFB8PAKFQGF5B8VM9DCSFJ",
+          "title": "Standard",
+          "sku": "EATSIE-ORGANIC-COOKIES",
+          "prices": [
+            {
+              "id": "price_01KVSFB8PW6C0Z0Z8A9WZX1NB8",
+              "currency_code": "cad",
+              "amount": 649,
+              "price_set_id": "pset_01KVSFB8PXNTSG2GQYD64G1ZW0"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB8QBJ9M95V6E0DFZWHBV",
+      "handle": "chicken-breast",
+      "title": "Chicken Breast",
+      "variants": [
+        {
+          "id": "variant_01KVSFB8R0M148Z5PHK7597K2E",
+          "title": "Standard",
+          "sku": "EATSIE-CHICKEN-BREAST",
+          "prices": [
+            {
+              "id": "price_01KVSFB8RK1320GJDXCZXWB6HH",
+              "currency_code": "cad",
+              "amount": 1299,
+              "price_set_id": "pset_01KVSFB8RK9E6DZY2R22Q015YT"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB8S2F4YXNV9BAKSNB9M2",
+      "handle": "lamb-chops",
+      "title": "Lamb Chops",
+      "variants": [
+        {
+          "id": "variant_01KVSFB8STSXDM303M3W7B1C6A",
+          "title": "Standard",
+          "sku": "EATSIE-LAMB-CHOPS",
+          "prices": [
+            {
+              "id": "price_01KVSFB8TCTJ5RW54Z8X69AMWQ",
+              "currency_code": "cad",
+              "amount": 1899,
+              "price_set_id": "pset_01KVSFB8TCBYHJ9YD58J8F6PRV"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB8V27PTZ08274047AXD9",
+      "handle": "turkey-slices",
+      "title": "Turkey Slices",
+      "variants": [
+        {
+          "id": "variant_01KVSFB8VPBD68YJKXTHQMNQ8W",
+          "title": "Standard",
+          "sku": "EATSIE-TURKEY-SLICES",
+          "prices": [
+            {
+              "id": "price_01KVSFB8W5X018TYAE3EBY9W6S",
+              "currency_code": "cad",
+              "amount": 1099,
+              "price_set_id": "pset_01KVSFB8W5VM32WY9QZ12N1R91"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB8WPTXN2GCYBZ5XH4RH6",
+      "handle": "beef-steak",
+      "title": "Beef Steak",
+      "variants": [
+        {
+          "id": "variant_01KVSFB8X9WW94FBJDVM4J4VFH",
+          "title": "Standard",
+          "sku": "EATSIE-BEEF-STEAK",
+          "prices": [
+            {
+              "id": "price_01KVSFB8XXNJF13Z45JG2R8TNW",
+              "currency_code": "cad",
+              "amount": 2299,
+              "price_set_id": "pset_01KVSFB8XXR3NVBGV45WHG54GJ"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB8YFCM952E63E8F4955Z",
+      "handle": "chicken-sausages",
+      "title": "Chicken Sausages",
+      "variants": [
+        {
+          "id": "variant_01KVSFB8Z51WWP1W03QSDBY8N3",
+          "title": "Standard",
+          "sku": "EATSIE-CHICKEN-SAUSAGES",
+          "prices": [
+            {
+              "id": "price_01KVSFB906KMTF30WB8G2KTHPQ",
+              "currency_code": "cad",
+              "amount": 999,
+              "price_set_id": "pset_01KVSFB906MTZW6AWVMWTZJ2J5"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB913BBP6JV700C09QV5D",
+      "handle": "salmon-fillet",
+      "title": "Salmon Fillet",
+      "variants": [
+        {
+          "id": "variant_01KVSFB92CWGYZ3A6S6EMXP6BE",
+          "title": "Standard",
+          "sku": "EATSIE-SALMON-FILLET",
+          "prices": [
+            {
+              "id": "price_01KVSFB93AHHHTRF436BF1MRXQ",
+              "currency_code": "cad",
+              "amount": 1999,
+              "price_set_id": "pset_01KVSFB93BV978BCNBTFKZSJPP"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB94BJ8CSBH3WSE47JY4N",
+      "handle": "fresh-prawns",
+      "title": "Fresh Prawns",
+      "variants": [
+        {
+          "id": "variant_01KVSFB95KV4BKPP4JT3WD2MRP",
+          "title": "Standard",
+          "sku": "EATSIE-FRESH-PRAWNS",
+          "prices": [
+            {
+              "id": "price_01KVSFB96XGWDKTVD3J4BDPZ2M",
+              "currency_code": "cad",
+              "amount": 1699,
+              "price_set_id": "pset_01KVSFB96X0A4KPYT2GFPGNV0C"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB97WZ9DA9P6VRTKVQAFF",
+      "handle": "tuna-steak",
+      "title": "Tuna Steak",
+      "variants": [
+        {
+          "id": "variant_01KVSFB992JJ928VFRNB422JQ9",
+          "title": "Standard",
+          "sku": "EATSIE-TUNA-STEAK",
+          "prices": [
+            {
+              "id": "price_01KVSFB9A64JBGN3YY997NE1CF",
+              "currency_code": "cad",
+              "amount": 1899,
+              "price_set_id": "pset_01KVSFB9A7DV4D21PX7CNBJ7DV"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB9B2AF16KR0X5JE0C3WV",
+      "handle": "crab-meat",
+      "title": "Crab Meat",
+      "variants": [
+        {
+          "id": "variant_01KVSFB9C5W5C0347WGB5RNS4Y",
+          "title": "Standard",
+          "sku": "EATSIE-CRAB-MEAT",
+          "prices": [
+            {
+              "id": "price_01KVSFB9D61F5N8ADVK80GKDE5",
+              "currency_code": "cad",
+              "amount": 2199,
+              "price_set_id": "pset_01KVSFB9D64Q55APBVM0BKAPZS"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSFB9E75M66XRVS6N0XS6ZW",
+      "handle": "white-fish-fillet",
+      "title": "White Fish Fillet",
+      "variants": [
+        {
+          "id": "variant_01KVSFB9F81ZZM6H5SSK61WGBN",
+          "title": "Standard",
+          "sku": "EATSIE-WHITE-FISH-FILLET",
+          "prices": [
+            {
+              "id": "price_01KVSFB9G3XSFPQTDVVR120B3F",
+              "currency_code": "cad",
+              "amount": 1499,
+              "price_set_id": "pset_01KVSFB9G3X9376X2ZFKAD3B79"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSPT0255E9PQS0FJZ94MPSR",
+      "handle": "papaya-mqqc55q3",
+      "title": "Papaya",
+      "variants": [
+        {
+          "id": "variant_01KVSPT08VCN1E9D4CYYGQBG3Q",
+          "title": "Standard",
+          "sku": "PAPAYA-VERIFY",
+          "prices": [
+            {
+              "id": "price_01KVSPT0B6ZZ2EVBBW71M6F9WX",
+              "currency_code": "cad",
+              "amount": 699,
+              "price_set_id": "pset_01KVSPT0B65JRZKV3SMK5WFEV2"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSPZAPBTBRDSZHTRVCYXW6Z",
+      "handle": "papaya-pack-2015cd-mqqc8whq",
+      "title": "Papaya Pack 2015cd",
+      "variants": [
+        {
+          "id": "variant_01KVSPZAVZKYRRNKJJXMB3VJH0",
+          "title": "Small",
+          "sku": "PAP-S-a3a2",
+          "prices": [
+            {
+              "id": "price_01KVSPZAY4Q66D941CPBQHPHPM",
+              "currency_code": "cad",
+              "amount": 499,
+              "price_set_id": "pset_01KVSPZAY4Z03NKP472WSPVGA2"
+            }
+          ],
+          "calculated_price": null
+        },
+        {
+          "id": "variant_01KVSPZAW0S335JX2KXGD7NEQJ",
+          "title": "Large",
+          "sku": "PAP-L-ea15",
+          "prices": [
+            {
+              "id": "price_01KVSPZAY42X8YW80S3KY6Q2ME",
+              "currency_code": "cad",
+              "amount": 899,
+              "price_set_id": "pset_01KVSPZAY47XD6WE54XWCEJSE8"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSQ48867BV7ZNMYB7CFZX75",
+      "handle": "papaya-final-a90dd3-mqqccd0y",
+      "title": "Papaya Final a90dd3",
+      "variants": [
+        {
+          "id": "variant_01KVSQ48EZAJH0KY9XVS2ZZ7BA",
+          "title": "Standard",
+          "sku": "PAPAYA-FINAL-04c9",
+          "prices": [
+            {
+              "id": "price_01KVSQ48J2ZR6A6P8VJFMVZCYW",
+              "currency_code": "cad",
+              "amount": 799,
+              "price_set_id": "pset_01KVSQ48J2ZDP1JXQ1W90WQ78C"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSQ9RMC9VY464EF61WVPZE2",
+      "handle": "papaya-link-1a8db7-mqqcg8cz",
+      "title": "Papaya Link 1a8db7",
+      "variants": [
+        {
+          "id": "variant_01KVSQ9RXKQWZBH7AK4VK7PTSV",
+          "title": "Standard",
+          "sku": "PAPAYA-LINK-638d",
+          "prices": [
+            {
+              "id": "price_01KVSQ9S0PSR0BTEVZ564FGNY4",
+              "currency_code": "cad",
+              "amount": 899,
+              "price_set_id": "pset_01KVSQ9S0Q5KMR28SRFC4JR3NX"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSQZ00MWS1S3T7FYJJC0VXK",
+      "handle": "papaya-link-array-b9f928-mqqcv56k",
+      "title": "Papaya Link Array b9f928",
+      "variants": [
+        {
+          "id": "variant_01KVSQZ04ZZ120JMVMPCQ0PYQJ",
+          "title": "Standard",
+          "sku": "PAPAYA-ARRAY-dbca",
+          "prices": [
+            {
+              "id": "price_01KVSQZ06RRDS06Y7CFFDSHBC7",
+              "currency_code": "cad",
+              "amount": 999,
+              "price_set_id": "pset_01KVSQZ06R7209J4XC8NE2QMN4"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSR6H141CJWVP91R4T3TD8E",
+      "handle": "papaya-vendor-smoke-dc9962-mqqd0fm9",
+      "title": "Papaya Vendor Smoke dc9962",
+      "variants": [
+        {
+          "id": "variant_01KVSR6H59F57ED9M0GRE24BNJ",
+          "title": "Standard",
+          "sku": "PAP-SMOKE-dc9962",
+          "prices": [
+            {
+              "id": "price_01KVSR6H7YW0XXVYVWZBA3KDN0",
+              "currency_code": "cad",
+              "amount": 999,
+              "price_set_id": "pset_01KVSR6H7YWGGP01BSQC011VED"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVSZH979HQY5NNJS0BCC8Y7Q",
+      "handle": "papaya-mqqhlb57",
+      "title": "papaya",
+      "variants": [
+        {
+          "id": "variant_01KVSZH9M19J7GWF1M8TV5D5ZZ",
+          "title": "Standard",
+          "sku": "VENDOR-mqqhlb5x-1",
+          "prices": [
+            {
+              "id": "price_01KVSZH9QS1YAVA2NZTV4A45WH",
+              "currency_code": "cad",
+              "amount": 600,
+              "price_set_id": "pset_01KVSZH9QSZYSCRJCBCN2YANW9"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVW0YM6H0HYPRV73MKDJZWDX",
+      "handle": "pineapple-mqrmfj25",
+      "title": "Pineapple",
+      "variants": [
+        {
+          "id": "variant_01KVW0YMR5Q4X2P1H9QVJ0W6XK",
+          "title": "Standard",
+          "sku": "VENDOR-mqrmfj31-1",
+          "prices": [
+            {
+              "id": "price_01KVW0YN14NTTHG3K4Z73ST4H6",
+              "currency_code": "cad",
+              "amount": 900,
+              "price_set_id": "pset_01KVW0YN151689PEAX4XMTP1C9"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVW221QD90ZE1Y069Z8VB2J4",
+      "handle": "pineapple-mqrn4er9",
+      "title": "Pineapple",
+      "variants": [
+        {
+          "id": "variant_01KVW221YN1BGRD3G66J4KSJTQ",
+          "title": "Standard",
+          "sku": "VENDOR-mqrn4ern-1",
+          "prices": [
+            {
+              "id": "price_01KVW2221YR1157VDYWPE1DXQ6",
+              "currency_code": "cad",
+              "amount": 700,
+              "price_set_id": "pset_01KVW2221YZ7PCQYJQ8R28795H"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVW5WN2X0EWHYJ4SGGCA7XNP",
+      "handle": "thekua-mqrpiime",
+      "title": "Thekua",
+      "variants": [
+        {
+          "id": "variant_01KVW5WNE5G5M7Z46PKGYH3Y5X",
+          "title": "Standard",
+          "sku": "VENDOR-mqrpiio4-1",
+          "prices": [
+            {
+              "id": "price_01KVW5WNJ33MJEGSZNFAM59MCR",
+              "currency_code": "cad",
+              "amount": 2000,
+              "price_set_id": "pset_01KVW5WNJ6MJ0PMH2S834ACKDR"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KVWF8FG3R20YF227VBX4RJKS",
+      "handle": "thekua-mqrvd3g1",
+      "title": "Thekua",
+      "variants": [
+        {
+          "id": "variant_01KVWF8FWA0H73XJWWDZX63PDD",
+          "title": "Standard",
+          "sku": "VENDOR-mqrvd3ga-1",
+          "prices": [
+            {
+              "id": "price_01KVWF9GAS4828D21MG7898PZ3",
+              "currency_code": "cad",
+              "amount": 2000,
+              "price_set_id": "pset_01KVWF8FYEHM73R5HW3FQQ3CFD"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWHSBEPFGTCBKNAQACQYZHJR",
+      "handle": "master-class-notes-mr3p6vni",
+      "title": "master class notes",
+      "variants": [
+        {
+          "id": "variant_01KWHSBERK2DJ0DNPQR3NYZ9BY",
+          "title": "Digital Download",
+          "sku": "DIGITAL-1783008443073",
+          "prices": [
+            {
+              "id": "price_01KWHSBESF1F40CKWQK6XNX20J",
+              "currency_code": "cad",
+              "amount": 1700,
+              "price_set_id": "pset_01KWHSBESF05398JKAEBE01ZPD"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWHT1K6NX18YED89NZPCEPD2",
+      "handle": "master-class-book-mr3pmfgr",
+      "title": "master class book",
+      "variants": [
+        {
+          "id": "variant_01KWHT1K91GCQTENK2204MYG41",
+          "title": "Digital Download",
+          "sku": "DIGITAL-1783009168591",
+          "prices": [
+            {
+              "id": "price_01KWHT1K9VBMY8M14Q67BCH9X0",
+              "currency_code": "cad",
+              "amount": 999,
+              "price_set_id": "pset_01KWHT1K9V27W1HADDJED0MWJ6"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWHV6ZPSQJ28CN6X8T3JE4BA",
+      "handle": "anaana-mr3qcouf",
+      "title": "anaana",
+      "variants": [
+        {
+          "id": "variant_01KWHV6ZRNCK5WTHEX10JPM6FZ",
+          "title": "Digital Download",
+          "sku": "DIGITAL-1783010393804",
+          "prices": [
+            {
+              "id": "price_01KWHV6ZSD7T7V3ABT6CKBR9HJ",
+              "currency_code": "cad",
+              "amount": 196,
+              "price_set_id": "pset_01KWHV6ZSDT7CVH9HRBXSBGZRV"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWHZ0X6CHGKHYZH4Z1A6XHT8",
+      "handle": "master-class-of-chatgpt-mr3sqbi6",
+      "title": "master class of chatgpt",
+      "variants": [
+        {
+          "id": "variant_01KWHZ0X8N97ZVTCZBK0BGHJF8",
+          "title": "Digital Download",
+          "sku": "DIGITAL-1783014388928",
+          "prices": [
+            {
+              "id": "price_01KWHZ0X9BBJ280ZE5CC0KY5AS",
+              "currency_code": "cad",
+              "amount": 900,
+              "price_set_id": "pset_01KWHZ0X9C4RHJQJCN9MV46MHX"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWHZN4Q2FW2Z78K1SG8SGD4E",
+      "handle": "abcd-mr3t4j4n",
+      "title": "abcd",
+      "variants": [
+        {
+          "id": "variant_01KWHZN4S3PZZGADF85XSCYAG4",
+          "title": "Digital Download",
+          "sku": "DIGITAL-1783015051996",
+          "prices": [
+            {
+              "id": "price_01KWHZN4SYRY31NWS22N8JA7X6",
+              "currency_code": "cad",
+              "amount": 9897,
+              "price_set_id": "pset_01KWHZN4SZCVBF7CVTNYGT5218"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWJ0NRWG4CAMH6V1RF25FB3X",
+      "handle": "kdksks-mr3trg5b",
+      "title": "kdksks",
+      "variants": [
+        {
+          "id": "variant_01KWJ0NRYQB2W72NVMCCT49KGK",
+          "title": "Digital Download",
+          "sku": "DIGITAL-1783016121219",
+          "prices": [
+            {
+              "id": "price_01KWJ0NRZTG949MNBJTPGXY9Q8",
+              "currency_code": "cad",
+              "amount": 23395,
+              "price_set_id": "pset_01KWJ0NRZTV2ZE75BYHPZQ8B21"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWKVPT51K2TP2M0K8WZ19GSS",
+      "handle": "ssff-mr4um6j0",
+      "title": "ssff",
+      "variants": [
+        {
+          "id": "variant_01KWKVPT86GTB2DBN1DBT1HN95",
+          "title": "Digital Download",
+          "sku": "DIGITAL-MR4UM6J0",
+          "prices": [
+            {
+              "id": "price_01KWKVPTAEB42AF1HC8K8TSBRN",
+              "currency_code": "cad",
+              "amount": 9000,
+              "price_set_id": "pset_01KWKVPTAE37MNKE3GE4NX10P0"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWMAM00WTB7B5P6AJ799RYTC",
+      "handle": "codex-digital-upload-verification-mr53xbma",
+      "title": "Codex Digital Upload Verification",
+      "variants": [
+        {
+          "id": "variant_01KWMAM042JP42Y1AX94QRR9V7",
+          "title": "Digital Download",
+          "sku": "DIGITAL-MR53XBMA",
+          "prices": [
+            {
+              "id": "price_01KWMAM05345XFQ0KGYPWY2ZZP",
+              "currency_code": "cad",
+              "amount": 2000,
+              "price_set_id": "pset_01KWMAM053GY6ZH4XSX9MCTMQ1"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWMDFGBBCVK7DC7K1JZCMTJM",
+      "handle": "abcdefg-mr55plcv",
+      "title": "abcdefg",
+      "variants": [
+        {
+          "id": "variant_01KWMDFGDF085SGFC0E8A8CAF4",
+          "title": "Digital Download",
+          "sku": "DIGITAL-MR55PLCV",
+          "prices": [
+            {
+              "id": "price_01KWMDFGE7VWZ4GJS0AJN1QE7G",
+              "currency_code": "cad",
+              "amount": 2900,
+              "price_set_id": "pset_01KWMDFGE7D09HCMW5QZK7Z5WV"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWMFJENJQ0CADDKAPZ142MZA",
+      "handle": "organic-book-mr570m1x",
+      "title": "organic book",
+      "variants": [
+        {
+          "id": "variant_01KWMFJES8MX8JS58Q6MB35Q1G",
+          "title": "Digital Download",
+          "sku": "DIGITAL-MR570M1X",
+          "prices": [
+            {
+              "id": "price_01KWMFJETWXJ8EEE2TEK5B866C",
+              "currency_code": "cad",
+              "amount": 4995,
+              "price_set_id": "pset_01KWMFJETWA6FKDBFASJ0MVKZX"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWNTYHP4K6NRYXGCT9FY4SYG",
+      "handle": "prince-product-mr5y3ika",
+      "title": "prince product",
+      "variants": [
+        {
+          "id": "variant_01KWNTYHSJSMRRQVD3MRJ2T4AT",
+          "title": "Digital Download",
+          "sku": "DIGITAL-MR5Y3IKA",
+          "prices": [
+            {
+              "id": "price_01KWNTYHTPBCTN3H7HWGKAHGRN",
+              "currency_code": "cad",
+              "amount": 2899,
+              "price_set_id": "pset_01KWNTYHTPN2SJ1B0103MDCYMW"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWPXVTWMG9C90F0WCQGWAPFT",
+      "handle": "first-product-mr6jw808",
+      "title": "first product",
+      "variants": [
+        {
+          "id": "variant_01KWPXVTYE8QNG3R2AMFXZ9BQ0",
+          "title": "Digital Download",
+          "sku": "DIGITAL-MR6JW808",
+          "prices": [
+            {
+              "id": "price_01KWPXVTZ50W54XF657VTN9Y38",
+              "currency_code": "cad",
+              "amount": 8900,
+              "price_set_id": "pset_01KWPXVTZ5TXPTHERVJR6PR1D2"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWPYVVN6WMB545K1QD48G368",
+      "handle": "first-product-mr6kipp4",
+      "title": "first product",
+      "variants": [
+        {
+          "id": "variant_01KWPYVVQ4P3AQX6MV1D529JFC",
+          "title": "Digital Download",
+          "sku": "DIGITAL-MR6KIPP4",
+          "prices": [
+            {
+              "id": "price_01KWPYVVQV76FVMNVK746KHH6H",
+              "currency_code": "cad",
+              "amount": 5897,
+              "price_set_id": "pset_01KWPYVVQVCSQ4BNR3YSS26CED"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWPZ751172E2TJGVJD9KNTKA",
+      "handle": "1-st-product-mr6kqn8a",
+      "title": "1 st product",
+      "variants": [
+        {
+          "id": "variant_01KWPZ751Z4X6NS0CQGPY3YS9N",
+          "title": "Digital Download",
+          "sku": "DIGITAL-MR6KQN8A",
+          "prices": [
+            {
+              "id": "price_01KWPZ752C51NCTTSS65JG40KX",
+              "currency_code": "cad",
+              "amount": 6000,
+              "price_set_id": "pset_01KWPZ752CCKX89N542N0P5GVM"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWQ0QFX7S61WFT27SVRE6RMK",
+      "handle": "first-e-book-mr6lolgc",
+      "title": "First E Book",
+      "variants": [
+        {
+          "id": "variant_01KWQ0QFYM01DK8EHXM9ADFW3B",
+          "title": "Digital Download",
+          "sku": "DIGITAL-MR6LOLGC",
+          "prices": [
+            {
+              "id": "price_01KWQ0QFZ3RQ3QHWHQCNJDRKMN",
+              "currency_code": "cad",
+              "amount": 8898,
+              "price_set_id": "pset_01KWQ0QFZ4MPRB90V2S68ZFVSF"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWQ1KPJ353283BZV8W23TE03",
+      "handle": "2nd-book-mr6m8enl",
+      "title": "2nd book",
+      "variants": [
+        {
+          "id": "variant_01KWQ1KPM3PSW0M8R6VD1SR9G1",
+          "title": "Digital Download",
+          "sku": "DIGITAL-MR6M8ENL",
+          "prices": [
+            {
+              "id": "price_01KWQ1KPMNZ2N3END43GGTTAB9",
+              "currency_code": "cad",
+              "amount": 9000,
+              "price_set_id": "pset_01KWQ1KPMNBEPFYQMH8X9ZFVDC"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWQ1NW3DSVAZ40HWKGZ3G8ZG",
+      "handle": "3rd-book-mr6m9xlw",
+      "title": "3rd book",
+      "variants": [
+        {
+          "id": "variant_01KWQ1NW4DCTQZMDVYQJSSJ1PN",
+          "title": "Digital Download",
+          "sku": "DIGITAL-MR6M9XLW",
+          "prices": [
+            {
+              "id": "price_01KWQ1NW4W43DX2SA8CF6Q2GMC",
+              "currency_code": "cad",
+              "amount": 1998,
+              "price_set_id": "pset_01KWQ1NW4W80JEFA635WTT19ZZ"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWQ33JKCZM29X376W8YPMYX5",
+      "handle": "kmdcdlka-mr6n615p",
+      "title": "kmdcdlka",
+      "variants": [
+        {
+          "id": "variant_01KWQ33JNZJQKPXJQBG9YD9TA3",
+          "title": "Digital Download",
+          "sku": "DIGITAL-MR6N615P",
+          "prices": [
+            {
+              "id": "price_01KWQ33JPX865T1YABJ3ZWW1Q6",
+              "currency_code": "cad",
+              "amount": 779400,
+              "price_set_id": "pset_01KWQ33JPXTJR0BJXQMF62851P"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWQ48V3QXBHNKJ3WW92VXHPB",
+      "handle": "open-ebbbok-mr6nw7e2",
+      "title": "open ebbbok",
+      "variants": [
+        {
+          "id": "variant_01KWQ48V5KTFPFVGKB8H7PD2S4",
+          "title": "Digital Download",
+          "sku": "DIGITAL-MR6NW7E2",
+          "prices": [
+            {
+              "id": "price_01KWQ48V67Z0MTPFPG2R6XPYBW",
+              "currency_code": "cad",
+              "amount": 8694,
+              "price_set_id": "pset_01KWQ48V67RYB66YFJP8VQ4298"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWQ57CSJQ1VBVF7BTTYSEDRY",
+      "handle": "physics-book-mr6ohnvo",
+      "title": "physics book",
+      "variants": [
+        {
+          "id": "variant_01KWQ57CVG1FJEREF9QRNT7T47",
+          "title": "Digital Download",
+          "sku": "DIGITAL-MR6OHNVO",
+          "prices": [
+            {
+              "id": "price_01KWQ57CX7X82SRMKWGMVVTBAR",
+              "currency_code": "cad",
+              "amount": 9000,
+              "price_set_id": "pset_01KWQ57CX7W20NFEZNWDETNP5V"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWW0QKYEEXVQEKWXXME70BSX",
+      "handle": "organic-oil-20260706205845-mr9dkmgn",
+      "title": "ORGANIC OIL 20260706205845",
+      "variants": [
+        {
+          "id": "variant_01KWW0QM4SQPZ5RZKAFAFGETBZ",
+          "title": "Standard",
+          "sku": "OIL-20260706205845",
+          "prices": [
+            {
+              "id": "price_01KWW0QM7EE38N9G9BXM3KWTD0",
+              "currency_code": "cad",
+              "amount": 1000,
+              "price_set_id": "pset_01KWW0QM7EVDNG13EAR9J4126N"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    },
+    {
+      "id": "prod_01KWW0R7M8TYHQJMQTWRQ6FXPZ",
+      "handle": "decimal-oil-20260706205906-mr9dl20k",
+      "title": "DECIMAL OIL 20260706205906",
+      "variants": [
+        {
+          "id": "variant_01KWW0R7NT0T4WR9WM88ATBPTR",
+          "title": "Standard",
+          "sku": "DEC-20260706205906",
+          "prices": [
+            {
+              "id": "price_01KWW0R7PWS4X7JV0RQYYCNQ1D",
+              "currency_code": "cad",
+              "amount": 599,
+              "price_set_id": "pset_01KWW0R7PWFQR90MXQPHWXRQKA"
+            }
+          ],
+          "calculated_price": null
+        }
+      ]
+    }
+  ]
+}

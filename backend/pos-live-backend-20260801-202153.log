@@ -1,0 +1,1334 @@
+
+> backend@0.0.1 dev
+> node scripts/start-dev.js
+
+   🔐  JWT_SECRET: 50 characters (minimum 32)
+   🔐  COOKIE_SECRET: 49 characters
+   PostgreSQL connection verified
+   [MARKETPLACE_SCHEMA_DATABASE] medusa-backend (Schema: public, User: postgres)
+   🔧 Automatically running marketplace schema repair...
+[MARKETPLACE_REPAIR_START] Starting standalone schema repair...
+[MARKETPLACE_REPAIR_DATABASE] medusa-backend (Schema: public, User: postgres)
+[MARKETPLACE_REPAIR_TABLE_OK] vendor_order
+[MARKETPLACE_REPAIR_TABLE_OK] vendor_order_item
+[MARKETPLACE_REPAIR_TABLE_OK] vendor_order_activity
+[MARKETPLACE_REPAIR_TABLE_OK] vendor_earning
+[MARKETPLACE_REPAIR_TABLES_OK] All 4 tables created/verified
+[MARKETPLACE_SCHEMA_TABLE_OK] vendor_order
+[MARKETPLACE_SCHEMA_TABLE_OK] vendor_order_item
+[MARKETPLACE_SCHEMA_TABLE_OK] vendor_order_activity
+[MARKETPLACE_SCHEMA_TABLE_OK] vendor_earning
+[MARKETPLACE_SCHEMA_OK] Schema repair successful ✓
+[MARKETPLACE_REPAIR_DONE]
+   ✅ [MARKETPLACE_SCHEMA_OK] Verified to_regclass('public.vendor_order') exists
+ERROR: Access denied
+
+══════════════════════════════════════════════════════
+  ⚠️  PORT CONFLICT DETECTED
+  Port 9000 is already in use.
+══════════════════════════════════════════════════════
+
+  Process(es) using this port:
+    • PID 7016 — unknown
+
+  To free the port, run:
+    taskkill /PID 7016 /F
+
+  Attempting automatic fallback to next available port...
+══════════════════════════════════════════════════════
+
+   ✅  Using port 9001 instead.
+   ⚠️  Update Stripe webhook URLs in Dashboard if they point to port 9000
+   ⚠️  Navigate to http://localhost:9001/app for Admin panel
+
+
+🚀  Starting Medusa on http://localhost:9001
+📡  MEDUSA_BACKEND_URL=http://localhost:9001
+📝  Port saved to .backend-port
+
+[medusa-config] Stripe is disabled: STRIPE_API_KEY is not configured. COD remains available.
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    [Watcher] Using standard dev server (restart on file change)
+[32minfo[39m:    [Watcher] Watching filesystem to reload dev server on file change
+[medusa-config] Stripe is disabled: STRIPE_API_KEY is not configured. COD remains available.
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+- Creating server
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    Skipping instrumentation registration. No register function found.
+[32minfo[39m:    redisUrl not found. A fake redis instance will be used.
+[32minfo[39m:    No link to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\links. skipped.
+[33mwarn[39m:    Local Event Bus installed. This is not recommended for production.
+[32minfo[39m:    Locking module: Using "in-memory" as default.
+[32minfo[39m:    No workflow to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\workflows. skipped.
+[32minfo[39m:    No subscriber to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\subscribers. skipped.
+[32minfo[39m:    No job to load from D:\eatsie-project\backend\node_modules\@medusajs\medusa\dist\jobs. skipped.
+[32minfo[39m:    No job to load from D:\eatsie-project\backend\node_modules\@medusajs\draft-order\.medusa\server\src\jobs. skipped.
+√ Server is ready on port: 9001 – 8397ms
+[32minfo[39m:    Admin URL → http://localhost:9001/app
+[32mhttp[39m:    GET /favicon.ico ← http://localhost:9001/health (404) - 16.477 ms
+{"event":"http_request","request_id":"msak0snawzhmp3","method":"GET","path":"/favicon.ico","status":404,"duration_ms":18}
+[32mhttp[39m:    OPTIONS /pos/me ← http://localhost:5173/ (204) - 2.274 ms
+[32mhttp[39m:    GET /pos/me ← http://localhost:5173/ (401) - 12.030 ms
+{"event":"http_request","request_id":"msak20fxo4pc7b","method":"GET","path":"/pos/me","status":401,"duration_ms":13}
+[32mhttp[39m:    OPTIONS /pos/me/registers ← http://localhost:5173/ (204) - 0.599 ms
+[32mhttp[39m:    GET /pos/me/registers ← http://localhost:5173/ (401) - 3.446 ms
+{"event":"http_request","request_id":"msak20gg18nbpy","method":"GET","path":"/pos/me/registers","status":401,"duration_ms":4}
+[32mhttp[39m:    OPTIONS /auth/user/emailpass ← http://localhost:5173/ (204) - 6.418 ms
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 54.041 ms
+{"event":"http_request","request_id":"msak301zafkpqq","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":33,"rate_limit_remaining":99}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 7.180 ms
+{"event":"http_request","request_id":"msak3030zkor77","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":6,"rate_limit_remaining":98}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 5.568 ms
+{"event":"http_request","request_id":"msak303807e6q0","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":6,"rate_limit_remaining":97}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 7.620 ms
+{"event":"http_request","request_id":"msak303ig7n5vp","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":7,"rate_limit_remaining":96}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 8.616 ms
+{"event":"http_request","request_id":"msak303ukg0bby","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":8,"rate_limit_remaining":95}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 6.007 ms
+{"event":"http_request","request_id":"msak3046mw9yxl","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":6,"rate_limit_remaining":94}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 6.421 ms
+{"event":"http_request","request_id":"msak304g0nzg56","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":6,"rate_limit_remaining":93}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 5.490 ms
+{"event":"http_request","request_id":"msak304p85c8cv","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":92}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 7.693 ms
+{"event":"http_request","request_id":"msak304zcm1cor","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":6,"rate_limit_remaining":91}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 6.246 ms
+{"event":"http_request","request_id":"msak3059l4mud4","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":90}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 7.610 ms
+{"event":"http_request","request_id":"msak305j7lffxe","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":6,"rate_limit_remaining":89}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 5.758 ms
+{"event":"http_request","request_id":"msak305tmtfqtz","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":88}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 6.134 ms
+{"event":"http_request","request_id":"msak3061mhlslt","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":87}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 7.930 ms
+{"event":"http_request","request_id":"msak306c2bbiuf","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":7,"rate_limit_remaining":86}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 6.648 ms
+{"event":"http_request","request_id":"msak306oa9qn86","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":6,"rate_limit_remaining":85}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 7.244 ms
+{"event":"http_request","request_id":"msak306y200li0","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":7,"rate_limit_remaining":84}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 5.808 ms
+{"event":"http_request","request_id":"msak30783hc7pz","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":83}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 5.603 ms
+{"event":"http_request","request_id":"msak307hzojzor","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":82}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 100.498 ms
+{"event":"http_request","request_id":"msak307pi8wkbr","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":101,"rate_limit_remaining":81}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 86.352 ms
+{"event":"http_request","request_id":"msak30am1nfh39","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":87,"rate_limit_remaining":80}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 85.399 ms
+{"event":"http_request","request_id":"msak30d5ld42w9","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":85,"rate_limit_remaining":79}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 86.191 ms
+{"event":"http_request","request_id":"msak30fllxi1oa","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":86,"rate_limit_remaining":78}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 84.570 ms
+{"event":"http_request","request_id":"msak30i3a5k6zc","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":85,"rate_limit_remaining":77}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 85.385 ms
+{"event":"http_request","request_id":"msak30kkvryar8","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":85,"rate_limit_remaining":76}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 4.800 ms
+{"event":"http_request","request_id":"msak30n0sln3q0","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":75}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 5.792 ms
+{"event":"http_request","request_id":"msak30n9hazok0","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":6,"rate_limit_remaining":74}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 4.281 ms
+{"event":"http_request","request_id":"msak30nhd36w7l","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":4,"rate_limit_remaining":73}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 7.119 ms
+{"event":"http_request","request_id":"msak30npey7kp6","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":7,"rate_limit_remaining":72}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 8.745 ms
+{"event":"http_request","request_id":"msak30o0i5c5xe","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":8,"rate_limit_remaining":71}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 6.079 ms
+{"event":"http_request","request_id":"msak30obs6p1yi","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":6,"rate_limit_remaining":70}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 6.983 ms
+{"event":"http_request","request_id":"msak30oj31k1uy","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":8,"rate_limit_remaining":69}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 6.913 ms
+{"event":"http_request","request_id":"msak30ouuplkxu","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":7,"rate_limit_remaining":68}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 4.534 ms
+{"event":"http_request","request_id":"msak30p4dtmaq4","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":4,"rate_limit_remaining":67}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 5.430 ms
+{"event":"http_request","request_id":"msak30pcmecbrf","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":66}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 4.191 ms
+{"event":"http_request","request_id":"msak30pl0iyxgx","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":4,"rate_limit_remaining":65}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 6.841 ms
+{"event":"http_request","request_id":"msak30ptc9ihpn","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":6,"rate_limit_remaining":64}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 79.703 ms
+{"event":"http_request","request_id":"msak30q2wnantd","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":80,"rate_limit_remaining":63}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 81.195 ms
+{"event":"http_request","request_id":"msak30sdw4wogw","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":81,"rate_limit_remaining":62}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 82.306 ms
+{"event":"http_request","request_id":"msak30up8365da","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":82,"rate_limit_remaining":61}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 86.719 ms
+{"event":"http_request","request_id":"msak30x2lpp2hj","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":87,"rate_limit_remaining":60}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 84.382 ms
+{"event":"http_request","request_id":"msak30zk5aoo10","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":84,"rate_limit_remaining":59}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 82.076 ms
+{"event":"http_request","request_id":"msak3120lgd3nm","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":82,"rate_limit_remaining":58}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 4.929 ms
+{"event":"http_request","request_id":"msak314e6irk2b","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":4,"rate_limit_remaining":57}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 4.939 ms
+{"event":"http_request","request_id":"msak314le6arp2","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":56}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 4.927 ms
+{"event":"http_request","request_id":"msak314t3mvqgb","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":55}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 4.380 ms
+{"event":"http_request","request_id":"msak31513zzusu","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":54}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 4.528 ms
+{"event":"http_request","request_id":"msak315ayj4c09","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":53}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 4.768 ms
+{"event":"http_request","request_id":"msak315hptnzsj","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":52}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 4.938 ms
+{"event":"http_request","request_id":"msak315p3u8e4x","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":51}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 5.473 ms
+{"event":"http_request","request_id":"msak315w55nsbz","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":6,"rate_limit_remaining":50}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 5.215 ms
+{"event":"http_request","request_id":"msak316418f4r2","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":49}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 4.704 ms
+{"event":"http_request","request_id":"msak316c6volvc","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":4,"rate_limit_remaining":48}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 5.114 ms
+{"event":"http_request","request_id":"msak316lr58jgo","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":47}
+[32minfo[39m:    Invalid email or password
+[32mhttp[39m:    POST /auth/user/emailpass ← http://localhost:5173/ (401) - 4.580 ms
+{"event":"http_request","request_id":"msak316tf7mq9v","method":"POST","path":"/auth/user/emailpass","status":401,"duration_ms":5,"rate_limit_remaining":46}
+[32minfo[39m:    [Watcher] modified src\utils\pos\register-assignments.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 15660,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\catalog.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 6248,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\__tests__\live-register-list-fix.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 2612,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\security.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 1752,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\security.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 9172,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] created src\api\pos\me\session\route.ts created: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:217:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 26580,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\__tests__\security.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 4360,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\__tests__\security.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 13692,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] removed src\api\__tests__\barcode-admin.unit.spec.ts removed: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:223:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at D:\eatsie-project\backend\node_modules\chokidar\index.js:472:30 {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 12164,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] created src\api\__tests__\barcode-admin.unit.spec.ts created: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:217:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 2056,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\__tests__\security.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 13236,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\__tests__\security.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 15920,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\__tests__\security.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 21640,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\__tests__\session-assignment-403.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 29792,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\__tests__\session-assignment-403.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 30612,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\__tests__\login-assignment-fix.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 29772,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\__tests__\login-assignment-fix.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 23296,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\api\__tests__\phase4RegisterSelect.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 29612,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\register-assignments.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 30844,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\api\pos\me\registers\route.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 23872,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\api\__tests__\phase4RegisterSelect.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 13692,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\catalog.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 26128,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\catalog.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 16568,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] created src\utils\pos\product-availability.ts created: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:217:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 30080,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] created src\api\admin\pos\product-availability\route.ts created: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:217:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 15580,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] created src\api\admin\pos\product-availability\bulk\route.ts created: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:217:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 9112,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\__tests__\catalog.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 25264,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\__tests__\catalog.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 28948,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\__tests__\catalog.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 30440,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\api\__tests__\barcode-admin.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 24132,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\api\__tests__\barcode-admin.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 28384,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\api\__tests__\barcode-admin.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 29844,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\__tests__\catalog.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 30040,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\api\pos\scan\route.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 4884,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] created src\api\__tests__\pos-scan-authorization.unit.spec.ts created: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:217:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 10272,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\api\__tests__\pos-scan-authorization.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 28764,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\catalog.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 29360,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\product-availability.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 7212,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\api\admin\pos\product-availability\route.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 31552,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\utils\pos\__tests__\catalog.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 28540,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\api\__tests__\barcode-admin.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 30740,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[32minfo[39m:    [Watcher] modified src\api\__tests__\barcode-admin.unit.spec.ts modified: restarting dev server
+ERROR: Access denied
+Error: Command failed: taskkill /PID 6928 /F /T
+ERROR: Access denied
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:924:11)
+    at execSync (node:child_process:996:15)
+    at Object.restart (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:159:19)
+    at Object.handleFileChange (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:210:20)
+    at FSWatcher.<anonymous> (D:\eatsie-project\backend\node_modules\@medusajs\medusa\src\commands\develop.ts:220:26)
+    at FSWatcher.emit (node:events:507:28)
+    at FSWatcher.emitWithoutScratchFiles [as emit] (D:\eatsie-project\backend\scripts\patch-medusa-dev-watcher.js:32:27)
+    at FSWatcher.emitWithAll (D:\eatsie-project\backend\node_modules\chokidar\index.js:436:14) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    <Buffer >,
+    <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+  ],
+  pid: 22560,
+  stdout: <Buffer >,
+  stderr: <Buffer 45 52 52 4f 52 3a 20 41 63 63 65 73 73 20 64 65 6e 69 65 64 0d 0d 0a>
+}
+[Coupon Cleanup Job] Scanning for expired coupons...
+[Coupon Cleanup Job] Disabled 0 expired coupons.
+
+D:\eatsie-project\backend>

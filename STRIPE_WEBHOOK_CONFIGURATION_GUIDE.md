@@ -1,0 +1,131 @@
+# Stripe Webhook Configuration & Security Guide
+
+## Overview
+
+This guide details the local setup, production configuration, security architecture, and event handling specifications for Stripe webhooks in the Eatsie / Organic Canada Medusa v2 backend.
+
+---
+
+## 1. Webhook Endpoints & Route Architecture
+
+The backend exposes two dedicated Stripe webhook endpoints:
+
+1. **`POST /store/webhooks/stripe`**
+   - *Primary Webhook Handler*: Handles checkout completion, quote payment intents, charge refunds, and subscription lifecycle events.
+2. **`POST /store/webhook/subscription-payment`**
+   - *Dedicated Subscription Payment Handler*: Handles recurring subscription payment intents and subscription lifecycle sync.
+
+---
+
+## 2. Environment Variable Configuration & Key Rotation Policy
+
+| Variable Name | Required | Description | Format / Placement |
+| --- | --- | --- | --- |
+| `STRIPE_API_KEY` | **Required for API Calls** | Stripe Secret Key for SDK requests | `sk_test_...` (Backend `.env` only) |
+| `STRIPE_WEBHOOK_SECRET` | **Required for Webhooks** | Stripe Endpoint Signing Secret | `whsec_...` (Backend `.env` only) |
+
+> [!CAUTION]
+> **API Key Rotation Policy**:
+> - If any Stripe API key is exposed outside secured server environments, treat it as compromised immediately.
+> - Manually rotate the test key in **Stripe Dashboard -> Developers -> API keys -> Rotate test secret key**.
+> - Place the newly generated secret key into `backend/.env` under `STRIPE_API_KEY`.
+> - Never commit `STRIPE_API_KEY` or `STRIPE_WEBHOOK_SECRET` into Git or client-side code. `backend/.env` is strictly git-ignored.
+
+> [!IMPORTANT]
+> - `STRIPE_WEBHOOK_SECRET` must be set in your server environment `.env` or deployment secret manager.
+> - Never expose `STRIPE_WEBHOOK_SECRET` in client-side bundles, Git repositories, or API responses.
+> - The application reads `process.env.STRIPE_WEBHOOK_SECRET` dynamically per request. If missing, webhook requests are rejected with **HTTP 400 Bad Request** (`"Stripe webhook secret is not configured"`), preventing unverified event processing.
+
+---
+
+## 3. Security Architecture & Signature Verification
+
+Signature verification occurs **before** any request payload parsing or service dispatch:
+
+1. **Header Requirement**: The incoming HTTP request MUST include the `Stripe-Signature` header.
+2. **Raw Body Verification**: Signature verification is computed against the raw unparsed HTTP body (`req.rawBody` or request buffer) using `stripe.webhooks.constructEvent(rawBody, sig, secret)`. Parsed JSON objects are never substituted for raw payload verification.
+3. **Rejection Behavior**:
+   - Missing secret -> **HTTP 400 Bad Request**
+   - Missing `Stripe-Signature` header -> **HTTP 400 Bad Request**
+   - Invalid signature or tampered payload -> **HTTP 400 Bad Request**
+4. **Log Protection**: Secret keys (`whsec_...`, `sk_...`) and raw signatures are scrubbed and never output to log streams.
+5. **No Mutation on Rejection**: Rejected requests terminate immediately before resolving any database services or executing state transitions.
+
+---
+
+## 4. Local Test Setup Workflow (Stripe CLI)
+
+Follow these exact steps to test webhooks locally:
+
+1. **Install and Authenticate Stripe CLI**:
+   ```bash
+   stripe login
+   ```
+2. **Start Backend Server**:
+   ```bash
+   cd backend
+   npm run dev
+   ```
+3. **Forward Webhook Events to Local Endpoint**:
+   ```bash
+   stripe listen --forward-to http://localhost:9000/store/webhooks/stripe
+   ```
+4. **Configure Local Environment**:
+   Copy the endpoint signing secret printed in your terminal (e.g. `whsec_a1b2c3...`) into `backend/.env`:
+   ```env
+   STRIPE_WEBHOOK_SECRET=whsec_a1b2c3...
+   ```
+5. **Restart Backend Server**:
+   Restart the dev server so the environment variable is loaded.
+6. **Trigger Test Events via Stripe CLI**:
+   ```bash
+   stripe trigger payment_intent.succeeded
+   stripe trigger checkout.session.completed
+   stripe trigger payment_intent.payment_failed
+   ```
+7. **Verify Acceptance**:
+   Confirm HTTP `200 OK` response with body `{ "received": true, "type": "payment_intent.succeeded" }`.
+8. **Verify Rejection of Invalid Signatures**:
+   Send an altered signature header or test payload to confirm HTTP `400 Bad Request`.
+9. **Log Audit**:
+   Verify zero secret values (`whsec_...`) appear in terminal output.
+
+---
+
+## 5. Production Configuration Workflow
+
+1. **Create Webhook Endpoint in Stripe Dashboard**:
+   - Navigate to **Developers -> Webhooks** in the Stripe Dashboard.
+   - Click **Add Endpoint**.
+   - Enter your HTTPS endpoint URL: `https://api.yourdomain.com/store/webhooks/stripe`.
+2. **Subscribe Only to Handled Event Types**:
+   - `checkout.session.completed`
+   - `payment_intent.succeeded`
+   - `payment_intent.payment_failed`
+   - `charge.refunded`
+   - `customer.subscription.deleted`
+   - `customer.subscription.updated`
+3. **Inject Secret via Production Secret Manager**:
+   - Copy the Signing Secret (`whsec_...`) generated by Stripe Dashboard for this endpoint.
+   - Save it into your cloud deployment secrets (Vercel, AWS Secrets Manager, Railway, Fly.io) as `STRIPE_WEBHOOK_SECRET`.
+4. **Deploy & Restart Backend Service**.
+5. **Send Test Event from Dashboard**:
+   - In Stripe Dashboard, click **Send test event**.
+   - Select `payment_intent.succeeded`.
+   - Verify HTTP 200 delivery status in Stripe Dashboard and check server logs.
+6. **Separate Test-Mode and Live-Mode Secrets**:
+   - Test mode signing secrets (`whsec_...` from test dashboard) MUST only be used in sandbox/staging.
+   - Production live mode signing secrets (`whsec_...` from live dashboard) MUST be used in production.
+
+---
+
+## 6. Event Type Audit & Handler Specification
+
+| Event Type | Handler Location | Business Purpose | Expected State Change | Failure / Retry Behavior |
+| --- | --- | --- | --- | --- |
+| `checkout.session.completed` | `/store/webhooks/stripe` | Activates new subscription & customer premium status | Subscription status -> `"active"`; customer `is_premium: true`. | Skips safely if metadata is missing. |
+| `payment_intent.succeeded` | `/store/webhooks/stripe` & `/store/webhook/subscription-payment` | Settles B2B quote payment or renews subscription | B2B quote `payment_state` -> `"paid"`; subscription status -> `"active"`, resets failure count. | Idempotent updates; skips if entity not found. |
+| `payment_intent.payment_failed` | `/store/webhooks/stripe` & `/store/webhook/subscription-payment` | Records payment failure & updates subscription risk status | B2B quote `payment_state` -> `"failed"`; subscription status -> `"past_due"` or `"expired"` (if failures >= 3). | Records failure reason in metadata. |
+| `charge.refunded` | `/store/webhooks/stripe` & `/store/webhook/subscription-payment` | Cancels subscription on charge refund | Subscription status -> `"cancelled"`. | Ignores non-subscription refunds. |
+| `customer.subscription.deleted` | `/store/webhooks/stripe` & `/store/webhook/subscription-payment` | Synchronizes Stripe cancellation | Subscription status -> `"cancelled"`. | Idempotent status sync. |
+| `customer.subscription.updated` | `/store/webhooks/stripe` & `/store/webhook/subscription-payment` | Synchronizes period end dates & status changes | Updates subscription status & `next_billing_date`. | Idempotent status sync. |

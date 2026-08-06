@@ -1,0 +1,17 @@
+{
+  "summary": {
+    "label": "canada-listing",
+    "urlWithoutSecret": "http://localhost:9000/store/products?limit=200&region_id=reg_01KVJF9HSCYKAZC677GH1AC6C8&fields=id%2Ctitle%2Chandle%2Cstatus%2Cmetadata%2Cthumbnail%2Cvariants.*%2Cvariants.prices.*%2Cvariants.calculated_price.*",
+    "status": null,
+    "count": 0,
+    "productIds": [],
+    "titles": [],
+    "organicApplesPresent": false,
+    "organicApplesPosition": null,
+    "organicApplesVariantPresent": false,
+    "organicApplesCalculatedPrice": null,
+    "organicApplesPriceCurrency": null,
+    "responseError": "fetch failed"
+  },
+  "body": {}
+}

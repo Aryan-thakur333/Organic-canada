@@ -1,0 +1,410 @@
+{
+  "total": 45,
+  "exclusions": [
+    {
+      "productId": "prod_01KVMKJ3951RGTQFDSA1F2Q30Z",
+      "handle": "test-organic-honey",
+      "title": "Test Organic Honey",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KVMXSVV2MQJZ4RGRFKJ2QRRB",
+      "handle": "audit-test-product-mqnomg5v82uo-mqnomg67",
+      "title": "Audit Test Product mqnomg5v82uo",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KVMXSVYWX6TZ4TYYVZ4QTT9H",
+      "handle": "audit-test-product-2-mqnomg9ca8cy-mqnomg9m",
+      "title": "Audit Test Product 2 mqnomg9ca8cy",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KVMXVEKDRHZAK6BE1283RC6X",
+      "handle": "audit-test-product-mqnonk9qmk45-mqnonka0",
+      "title": "Audit Test Product mqnonk9qmk45",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KVMXVENQX4E26B688BTMVXRA",
+      "handle": "audit-test-product-2-mqnonkbwsjq0-mqnonkc4",
+      "title": "Audit Test Product 2 mqnonkbwsjq0",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KVMXY7FF1D3Q0Z9DP55YE4Q2",
+      "handle": "audit-test-product-mqnopihsgq1s-mqnopii2",
+      "title": "Audit Test Product mqnopihsgq1s",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KVMXY7JQWG9GKXQ0FVJXV162",
+      "handle": "audit-test-product-2-mqnopikuj9ea-mqnopil0",
+      "title": "Audit Test Product 2 mqnopikuj9ea",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KVMY07ACZKKM7Z9HZECBJDR4",
+      "handle": "audit-test-product-mqnoqwxr36fh-mqnoqwy0",
+      "title": "Audit Test Product mqnoqwxr36fh",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KVMY07DCKF71HCY8P68QXYHY",
+      "handle": "audit-test-product-2-mqnoqx0i97dr-mqnoqx0p",
+      "title": "Audit Test Product 2 mqnoqx0i97dr",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|inventory_unavailable_cart_blocked|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KVMY1SDVZGHHZD071ADJX2CB",
+      "handle": "audit-test-product-mqnos0izqqe5-mqnos0ja",
+      "title": "Audit Test Product mqnos0izqqe5",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KVMY1SGXV49GMNKFNB35T713",
+      "handle": "audit-test-product-2-mqnos0lumnu4-mqnos0m2",
+      "title": "Audit Test Product 2 mqnos0lumnu4",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KVMZD6RA9ZERDRXD6K77CYSV",
+      "handle": "audit-test-product-f275b8c1-mqnpmi83",
+      "title": "Audit Test Product f275b8c1",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KVMZH80DYPEHBAGWRAH68ASH",
+      "handle": "test-product-62c6c1fc-mqnppce1",
+      "title": "Test Product 62c6c1fc",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KVMZXPRS2NH2BBQVHH9PXECN",
+      "handle": "audit-test-product-88b24761-mqnpy3gh",
+      "title": "Audit Test Product 88b24761",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KVN0BQ3GQD64A562FYTW3E62",
+      "handle": "debug-mqnq7xl0f0gw-mqnq7xmu",
+      "title": "Debug mqnq7xl0f0gw",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|inventory_unavailable_cart_blocked|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KW1E8K65ZETX0GGC3HFR1PFA",
+      "handle": "empty-file-1782459944121-mqummn5u",
+      "title": "Empty File 1782459944121",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KW1ECWD7YBQVQJKN1Q2CZY9T",
+      "handle": "empty-file-1782460084625-mqumpnkw",
+      "title": "Empty File 1782460084625",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KW1EJCF2XZQGH3DDYWG8EBQW",
+      "handle": "cad-only-1782460264907-mqumtiot",
+      "title": "CAD-Only 1782460264907",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KW1EJCJN58DM4ZHMHQE267VN",
+      "handle": "usd-only-1782460265026-mqumtis1",
+      "title": "USD-Only 1782460265026",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KW1EJCNM7TK49E7TKA60VTHC",
+      "handle": "empty-file-1782460265127-mqumtiuo",
+      "title": "Empty File 1782460265127",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KW1EP9QW8QGBDZZ9Y30DBVSZ",
+      "handle": "cad-only-1782460393194-mqumw9o9",
+      "title": "CAD-Only 1782460393194",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KW1EP9W7SQZB996ZV3HJC9NX",
+      "handle": "usd-only-1782460393333-mqumw9s3",
+      "title": "USD-Only 1782460393333",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KW1EP9ZQCAGS8TN035AZGK7Q",
+      "handle": "empty-file-1782460393451-mqumw9v8",
+      "title": "Empty File 1782460393451",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KW1EYPBAY3JCH8A9K6YHBQJP",
+      "handle": "cad-only-1782460668244-mqun25wm",
+      "title": "CAD-Only 1782460668244",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KW1EYPEBZ45Q74GCD6HTD0RZ",
+      "handle": "usd-only-1782460668350-mqun25zc",
+      "title": "USD-Only 1782460668350",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KW1EYPH6720Z27HHRNM1GX73",
+      "handle": "empty-file-1782460668442-mqun261v",
+      "title": "Empty File 1782460668442",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KW1F8RMWZKTTK52HN4FGZECF",
+      "handle": "browser-test-e-book",
+      "title": "Browser Test E-Book",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWPGEG8JVGK9TJFMK9KAQNZP",
+      "handle": "new-test-mr6biosp",
+      "title": "new test",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWQ08JHXBV4P7PMB7SXVDXAZ",
+      "handle": "e2e-digital-book-1783183460882-mr6le4af",
+      "title": "E2E Digital Book 1783183460882",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWQ0DK5AXAQ4T3FBW1HF6XSM",
+      "handle": "e2e-digital-book-1783183625341-mr6lhn6l",
+      "title": "E2E Digital Book 1783183625341",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWQ0EW4FSVV6DB8ZXQ0MP0X4",
+      "handle": "e2e-digital-book-1783183667294-mr6lijk4",
+      "title": "E2E Digital Book 1783183667294",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWQ0FGWAANHBB3HHJT0K5MYK",
+      "handle": "e2e-digital-book-1783183688543-mr6lizyb",
+      "title": "E2E Digital Book 1783183688543",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWQ19X3DAJNED5GYSJFW1Y2M",
+      "handle": "e2e-digital-book-1783184553026-mr6m1izr",
+      "title": "E2E Digital Book 1783184553026",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWQ1BJ50SDZETZMF4PD7QPV1",
+      "handle": "e2e-digital-book-1783184607341-mr6m2owp",
+      "title": "E2E Digital Book 1783184607341",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWQ1CWBRAVZFZ759ZEBJ6W8K",
+      "handle": "e2e-digital-book-1783184650573-mr6m3m9e",
+      "title": "E2E Digital Book 1783184650573",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWQ1EK1W6P2NWMMY6JHBD1ZV",
+      "handle": "e2e-digital-book-1783184706575-mr6m4th1",
+      "title": "E2E Digital Book 1783184706575",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWQ204DYY6BNP9GCKJBYH4WN",
+      "handle": "e2e-digital-book-1783185281422-mr6mh512",
+      "title": "E2E Digital Book 1783185281422",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWQ21E19635QBYB02ZAF884S",
+      "handle": "e2e-digital-book-1783185324049-mr6mi1wl",
+      "title": "E2E Digital Book 1783185324049",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWQ3W56M656QFHSAJVVAFQ7S",
+      "handle": "e2e-digital-book-1783187248294-mr6nnaoe",
+      "title": "E2E Digital Book 1783187248294",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWRFJ6ZZ0GXXNJ2P4JCGT9T1",
+      "handle": "price-final-test-1783233059658-mr7ex71z",
+      "title": "Price Final Test 1783233059658",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWRFJYDVH2E01NAXMZ1BC03X",
+      "handle": "price-final-test-1783233083614-mr7expka",
+      "title": "Price Final Test 1783233083614",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWRFKBNRBHMEG53DJ52DC9J5",
+      "handle": "price-final-test-1783233097213-mr7ey01e",
+      "title": "Price Final Test 1783233097213",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWRFMJF9850QWX9Y40BD0K9S",
+      "handle": "price-final-test-1783233136935-mr7eyuoy",
+      "title": "Price Final Test 1783233136935",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug|first_variant_missing_usd_amount|first_variant_missing_valid_usd_calculated_price",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWRHFTGWT5PPPV6PDDKGM3AJ",
+      "handle": "currency-test-digital-book-1783235078447-mr7g4gsz",
+      "title": "Currency Test Digital Book 1783235078447",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    },
+    {
+      "productId": "prod_01KWRHGVF51RH6HYB0H5DJ69PJ",
+      "handle": "currency-test-digital-book-1783235112181-mr7g56u6",
+      "title": "Currency Test Digital Book 1783235112181",
+      "primaryClassification": "storefrontClassificationExcluded",
+      "exactExclusionReason": "storefront_test_or_debug",
+      "reviewCsvContainsRow": false,
+      "preventedFromImport": true
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "status": "NOT_RUN",
+  "reason": "No rows have review_status exactly APPROVED.",
+  "livePricesCreated": 0,
+  "livePriceSetsCreated": 0,
+  "livePricesUpdated": 0,
+  "existingUsdPricesChanged": 0,
+  "cadPricesChanged": 0,
+  "businessDataWrites": 0
+}
