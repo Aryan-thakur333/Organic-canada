@@ -107,7 +107,7 @@ describe("GET /admin/analytics", () => {
 
     await GET(req, res)
 
-    const a = res.body.analytics
+    const a = (res as any).body.analytics
     expect(a.totalRevenue).toBe(0)
     expect(a.totalOrders).toBe(0)
     expect(a.activeOrders).toBe(0)
@@ -145,7 +145,7 @@ describe("GET /admin/analytics", () => {
 
     await GET(req, res)
 
-    const a = res.body.analytics
+    const a = (res as any).body.analytics
     // totalRevenue = 10000 + 5000 = 15000 (canceled excluded)
     expect(a.totalRevenue).toBe(15000)
     // totalOrders includes all orders (even canceled)
@@ -184,7 +184,7 @@ describe("GET /admin/analytics", () => {
 
     await GET(req, res)
 
-    const months = res.body.analytics.revenueByMonth
+    const months = (res as any).body.analytics.revenueByMonth
     expect(months).toHaveLength(12)
 
     // All months should have YYYY-MM format
@@ -239,7 +239,7 @@ describe("GET /admin/analytics", () => {
 
     await GET(req, res)
 
-    const breakdown = res.body.analytics.statusBreakdown
+    const breakdown = (res as any).body.analytics.statusBreakdown
     expect(breakdown.completed).toBe(2)
     expect(breakdown.pending).toBe(1)
     expect(breakdown.canceled).toBe(1)
@@ -284,7 +284,7 @@ describe("GET /admin/analytics", () => {
 
     await GET(req, res)
 
-    const topProducts = res.body.analytics.topProducts
+    const topProducts = (res as any).body.analytics.topProducts
     expect(topProducts).toHaveLength(2)
     // Product A: 8000 revenue (rank 1), Product B: 5000 revenue (rank 2)
     expect(topProducts[0].title).toBe("Product A")
@@ -324,7 +324,7 @@ describe("GET /admin/analytics", () => {
 
     await GET(req, res)
 
-    const recent = res.body.analytics.recentOrders
+    const recent = (res as any).body.analytics.recentOrders
     expect(recent).toHaveLength(3)
     expect(recent[0].id).toBe("o2") // newest first
     expect(recent[1].id).toBe("o3")
@@ -368,7 +368,7 @@ describe("GET /admin/analytics", () => {
 
     await GET(req, res)
 
-    const vs = res.body.analytics.vendorSummary
+    const vs = (res as any).body.analytics.vendorSummary
     expect(vs.total).toBe(4)
     expect(vs.approved).toBe(2)
     expect(vs.pending).toBe(1)
@@ -431,7 +431,7 @@ describe("GET /admin/analytics", () => {
 
     await GET(req, res)
 
-    const splits = res.body.analytics.vendor_performance_splits
+    const splits = (res as any).body.analytics.vendor_performance_splits
     expect(splits).toHaveLength(2)
 
     // Farm A: $30.00 + $5.00 = $35.00 across 2 orders
@@ -485,7 +485,7 @@ describe("GET /admin/analytics", () => {
 
     await GET(req, res)
 
-    const a = res.body.analytics
+    const a = (res as any).body.analytics
     expect(a.vendorSummary).toEqual({ total: 0, pending: 0, approved: 0, rejected: 0, suspended: 0 })
     expect(a.vendor_performance_splits).toEqual([])
   })
@@ -517,7 +517,7 @@ describe("GET /admin/analytics", () => {
 
     await GET(req, res)
 
-    const a = res.body.analytics
+    const a = (res as any).body.analytics
     expect(a.totalRevenue).toBe(0) // canceled excluded
     expect(a.totalOrders).toBe(2)    // still counted in total
     expect(a.activeOrders).toBe(0)   // canceled excluded
@@ -541,6 +541,6 @@ describe("GET /admin/analytics", () => {
     await GET(req, res)
 
     expect(res.statusCode).toBe(500)
-    expect(res.body.message).toContain("Database connection failed")
+    expect((res as any).body.message).toContain("Database connection failed")
   })
 })

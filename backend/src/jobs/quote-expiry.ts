@@ -1,5 +1,5 @@
 import { MedusaContainer } from "@medusajs/framework/types"
-import { B2B_MODULE } from "../modules/b2b"
+import { B2B_MODULE } from "../modules/b2b/index"
 
 /**
  * Quote Expiry Scheduled Job

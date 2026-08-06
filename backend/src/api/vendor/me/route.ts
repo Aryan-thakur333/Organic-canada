@@ -12,6 +12,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     vendor: {
       id: vendor.id,
       store_name: vendor.store_name,
+      business_name: vendor.store_name,
       name: vendor.name,
       email: vendor.email,
       phone: vendor.phone || null,

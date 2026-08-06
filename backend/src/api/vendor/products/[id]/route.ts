@@ -11,6 +11,16 @@ function vendorOwnsProduct(product: any, vendorId: string) {
     product?.metadata?.vendor_id === vendorId
 }
 
+function normalizeCatalogMajorPrice(value: any, allowZero = false): number {
+  const n = Number(value)
+  if (!Number.isFinite(n) || (allowZero ? n < 0 : n <= 0)) {
+    const error: any = new Error("At least one variant must have a positive price")
+    error.statusCode = 400
+    throw error
+  }
+  return Math.round((n + Number.EPSILON) * 100) / 100
+}
+
 export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
   const vendor = (req as any).vendor
   const { id } = req.params
@@ -23,6 +33,7 @@ export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
     categories,
     tags,
     status,
+    product_type,
   } = req.body as any
 
   const query = req.scope.resolve("query")
@@ -38,6 +49,7 @@ export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
         "variants.id",
         "variants.title",
         "variants.sku",
+        "variants.barcode",
         "variants.prices.id",
         "variants.prices.amount",
         "variants.prices.currency_code",
@@ -54,7 +66,19 @@ export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
       return res.status(403).json({ message: "You do not own this product" })
     }
 
-    // 2. Prepare update payload
+    // 2. Validate product_type if provided
+    let parsedProductType = product_type;
+    if (parsedProductType) {
+      const VALID_PRODUCT_TYPES = ["standard", "digital", "subscription", "personalized", "bundle"]
+      if (!VALID_PRODUCT_TYPES.includes(parsedProductType)) {
+        return res.status(422).json({
+          code: "INVALID_PRODUCT_TYPE",
+          message: "Unsupported product type."
+        })
+      }
+    }
+
+    // 3. Prepare update payload
     const updatePayload: any = {
       id,
       title: title || undefined,
@@ -64,6 +88,7 @@ export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
         ...(product.metadata || {}),
         vendor_id: vendor.id,
         vendor_store_name: vendor.store_name || null,
+        ...(parsedProductType ? { product_type: parsedProductType } : {}),
       },
     }
 
@@ -98,18 +123,19 @@ export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
         const variantPayload: any = {
           title: v.title || "Variant",
           sku: v.sku || undefined,
+          barcode: v.barcode || undefined,
           manage_inventory: v.manage_inventory !== false,
           allow_backorder: v.allow_backorder === true,
           prices: Array.isArray(v.prices)
             ? v.prices.map((p: any) => ({
                 id: p.id || undefined,
-                amount: Math.round(Number(p.amount)),
+                amount: normalizeCatalogMajorPrice(p.amount),
                 currency_code: p.currency_code || currencyCode,
               }))
             : [
                 {
                   id: existingVariant?.prices?.[0]?.id || undefined,
-                  amount: Math.round(Number(v.price || price || 0) * 100),
+                  amount: normalizeCatalogMajorPrice(v.price || price || 0, true),
                   currency_code: currencyCode,
                 },
               ],
@@ -133,10 +159,11 @@ export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
             prices: [
               {
                 id: priceId || undefined,
-                amount: Math.round(Number(price) * 100),
+                amount: normalizeCatalogMajorPrice(price),
                 currency_code: currencyCode,
               },
             ],
+            barcode: req.body?.barcode || defaultVariant.barcode || undefined,
           },
         ]
       }

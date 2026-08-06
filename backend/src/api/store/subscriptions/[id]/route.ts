@@ -16,12 +16,12 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     if (!subscription) {
       return res.status(404).json({ message: "Subscription not found" })
     }
-    if (subscription.customer_id !== customer_id) {
-      return res.status(403).json({ message: "Forbidden" })
-    }
+    if (subscription.customer_id !== customer_id) return res.status(404).json({ code: "SUBSCRIPTION_NOT_FOUND", message: "Subscription not found." })
 
-    return res.json({ subscription })
+    const items = await subscriptionService.listSubscriptionItems({ subscription_id: id })
+    const orders = await subscriptionService.listSubscriptionBillingOrders({ subscription_id: id }, { order: { created_at: "DESC" } })
+    return res.json({ subscription, items, orders })
   } catch (error: any) {
-    return res.status(500).json({ message: error.message || "Failed to retrieve subscription" })
+    return res.status(500).json({ code: "SUBSCRIPTION_RETRIEVE_FAILED", message: "Unable to retrieve subscription." })
   }
 }

@@ -650,6 +650,14 @@ const OrdersPage = () => {
                               </span>
                             </Tooltip>
                           </div>
+                          {selectedOrder.metadata?.vendor_order_statuses?.[bucket.vendor_id] && (
+                            <div className="mt-2 pt-2 border-t border-ui-border-base flex justify-between items-center text-xs">
+                              <span className="text-ui-fg-subtle">Fulfillment status:</span>
+                              <Badge size="small" color={statusColor(selectedOrder.metadata.vendor_order_statuses[bucket.vendor_id])}>
+                                {selectedOrder.metadata.vendor_order_statuses[bucket.vendor_id].replace(/_/g, " ")}
+                              </Badge>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

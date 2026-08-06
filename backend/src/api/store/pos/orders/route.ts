@@ -1,0 +1,1 @@
+import type{MedusaRequest,MedusaResponse}from"@medusajs/framework/http";const gone=(_req:MedusaRequest,res:MedusaResponse)=>res.status(410).json({code:"POS_INVALID_TRANSITION",message:"Legacy Store POS API disabled; use /pos with register authorization."});export const GET=gone;export const POST=gone

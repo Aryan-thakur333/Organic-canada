@@ -1,5 +1,6 @@
 // @ts-nocheck
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import { MedusaError } from "@medusajs/framework/utils"
 import { DIGITAL_ASSET_MODULE } from "../../../../../modules/digital-asset"
 
 /**
@@ -36,11 +37,16 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       })
     }
 
-    // Get the associated digital asset to find the original download limit
-    const asset = await digitalAssetService.retrieveDigitalAsset(download.digital_asset_id)
+    const metadata = download.metadata || {}
+    let originalLimit = Number(metadata.download_limit) || 0
 
-    // Reset remaining downloads to the original limit (but cap at 5 max by request)
-    const newRemaining = Math.max(1, Math.min(asset.download_limit || 3, 5))
+    if (download.digital_asset_id) {
+      const asset = await digitalAssetService.retrieveDigitalAsset(download.digital_asset_id).catch(() => null)
+      originalLimit = Number(asset?.download_limit) || originalLimit
+    }
+
+    // Reset remaining downloads to the original entitlement limit, capped to the storefront default.
+    const newRemaining = Math.max(1, Math.min(originalLimit || 3, 5))
 
     await digitalAssetService.updateDigitalOrderDownloads({
       id: download.id,

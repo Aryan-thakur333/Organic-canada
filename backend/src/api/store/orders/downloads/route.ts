@@ -17,17 +17,18 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
   }
 
   try {
+    const orderId = String((req.query as any)?.order_id || "").trim()
     const digitalAssetService: any = req.scope.resolve(DIGITAL_ASSET_MODULE)
     const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
     // Fetch all digital order downloads for this customer
     const downloads = await digitalAssetService.listDigitalOrderDownloads(
-      { customer_id: customerId, is_active: true },
+      { customer_id: customerId, is_active: true, ...(orderId ? { order_id: orderId } : {}) },
       { 
         select: [
           "id", "order_id", "line_item_id", "product_id", 
           "digital_asset_id", "license_key", "remaining_downloads",
-          "download_count", "expires_at", "last_downloaded_at", "created_at"
+          "download_count", "expires_at", "last_downloaded_at", "created_at", "metadata"
         ]
       }
     )
@@ -38,7 +39,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
     // Batch fetch product info and digital asset info
     const productIds = [...new Set(downloads.map((d: any) => d.product_id))]
-    const assetIds = [...new Set(downloads.map((d: any) => d.digital_asset_id))]
+    const assetIds = [...new Set(downloads.map((d: any) => d.digital_asset_id).filter(Boolean))]
 
     const { data: products } = await query.graph({
       entity: "product",
@@ -51,10 +52,12 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       productMap.set(p.id, p)
     }
 
-    const assets = await digitalAssetService.listDigitalAssets(
-      { id: assetIds },
-      { select: ["id", "file_name", "mime_type", "file_size", "version", "product_id"] }
-    )
+    const assets = assetIds.length
+      ? await digitalAssetService.listDigitalAssets(
+          { id: assetIds },
+          { select: ["id", "file_name", "mime_type", "file_size", "version", "product_id"] }
+        )
+      : []
     const assetMap = new Map()
     for (const a of assets || []) {
       assetMap.set(a.id, a)
@@ -64,6 +67,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     const enriched = downloads.map((d: any) => {
       const product = productMap.get(d.product_id) || {}
       const asset = assetMap.get(d.digital_asset_id) || {}
+      const recordMeta = d.metadata || {}
       const isExpired = d.expires_at ? new Date(d.expires_at) < new Date() : false
 
       return {
@@ -74,10 +78,10 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         product_handle: product.handle || "",
         product_thumbnail: product.thumbnail || null,
         is_digital: true,
-        file_name: asset.file_name || "",
-        mime_type: asset.mime_type || "",
-        file_size: asset.file_size || 0,
-        version: asset.version || product.metadata?.version || "",
+        file_name: recordMeta.file_name || asset.file_name || product.metadata?.file_name || "",
+        mime_type: recordMeta.mime_type || asset.mime_type || product.metadata?.mime_type || "",
+        file_size: recordMeta.file_size || asset.file_size || product.metadata?.file_size || 0,
+        version: recordMeta.version || asset.version || product.metadata?.version || "",
         license_key: d.license_key,
         remaining_downloads: d.remaining_downloads,
         download_count: d.download_count,

@@ -83,7 +83,7 @@ const VendorDetailsPage = () => {
     return (
       <Container className="p-8 flex flex-col items-center gap-y-4">
         <Text className="text-gray-500 font-semibold">Vendor not found</Text>
-        <Button onClick={() => navigate("/admin/vendors")}>Back to Vendors</Button>
+        <Button onClick={() => navigate("/vendors")}>Back to Vendors</Button>
       </Container>
     )
   }
@@ -94,7 +94,7 @@ const VendorDetailsPage = () => {
       <div>
         <Button
           variant="transparent"
-          onClick={() => navigate("/admin/vendors")}
+          onClick={() => navigate("/vendors")}
           className="flex items-center gap-x-2 text-gray-500 hover:text-gray-900 pl-0"
         >
           <ArrowLeft className="w-4 h-4" />

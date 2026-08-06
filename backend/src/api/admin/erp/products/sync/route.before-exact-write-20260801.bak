@@ -1,0 +1,148 @@
+import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+
+import type {
+  MedusaRequest,
+  MedusaResponse,
+} from "@medusajs/framework/http"
+
+type QueryGraph = {
+  graph(input: Record<string, unknown>): Promise<{
+    data: Array<{
+      id: string
+      sku?: string | null
+      product?: { id?: string; title?: string } | null
+    }>
+  }>
+}
+
+export async function POST(
+  req: MedusaRequest,
+  res: MedusaResponse
+) {
+  try {
+    const dryRun =
+      process.env.ERP_PRODUCT_SYNC_DRY_RUN !== "false"
+
+    if (!dryRun) {
+      return res.status(501).json({
+        success: false,
+        dryRun: false,
+        error: {
+          code: "ERP_PRODUCT_WRITE_NOT_IMPLEMENTED",
+          message:
+            "Real ERP product writes are intentionally disabled until pricing and inventory mappings are approved.",
+        },
+      })
+    }
+
+    const body = req.body as { sku?: unknown } | undefined
+    const querySku =
+      typeof req.query.sku === "string"
+        ? req.query.sku.trim()
+        : undefined
+    const bodySku =
+      typeof body?.sku === "string"
+        ? body.sku.trim()
+        : undefined
+
+    if (querySku && bodySku && querySku !== bodySku) {
+      return res.status(400).json({
+        success: false,
+        dryRun: true,
+        error: {
+          code: "ERP_PRODUCT_FILTER_INVALID",
+          message:
+            "Provide the same SKU in the query or request body, not conflicting values.",
+        },
+      })
+    }
+
+    const requestedLimit =
+      typeof req.query.limit === "string"
+        ? Number(req.query.limit)
+        : Number(
+            process.env.ERP_PRODUCT_SYNC_LIMIT || 20
+          )
+
+    const limit =
+      Number.isInteger(requestedLimit) &&
+      requestedLimit > 0
+        ? Math.min(requestedLimit, 100)
+        : 20
+
+    const erpService = req.scope.resolve<{
+      dryRunProductSync(input: {
+        limit?: number
+        sku?: string
+        findMedusaVariantsBySku(
+          skus: string[]
+        ): Promise<
+          Array<{
+            id: string
+            sku?: string | null
+            product?: {
+              id?: string
+              title?: string
+            } | null
+          }>
+        >
+      }): Promise<Record<string, unknown>>
+    }>("erp")
+
+    const query = req.scope.resolve<QueryGraph>(
+      ContainerRegistrationKeys.QUERY
+    )
+
+    const result =
+      await erpService.dryRunProductSync({
+        limit,
+        sku: querySku || bodySku,
+        findMedusaVariantsBySku: async (
+          skus: string[]
+        ) => {
+          if (!skus.length) {
+            return []
+          }
+
+          const { data } = await query.graph({
+            entity: "variant",
+            fields: [
+              "id",
+              "sku",
+              "product.id",
+              "product.title",
+            ],
+            filters: {
+              sku: skus,
+            },
+            pagination: {
+              take: 100,
+            },
+          })
+
+          return data
+        },
+      })
+
+    return res.status(200).json(result)
+  } catch (error) {
+    const code =
+      error instanceof Error &&
+      "code" in error &&
+      typeof error.code === "string"
+        ? error.code
+        : "ERP_PRODUCT_SYNC_FAILED"
+
+    return res.status(502).json({
+      success: false,
+      dryRun: true,
+      error: {
+        code,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unknown ERP product sync error",
+      },
+    })
+  }
+}

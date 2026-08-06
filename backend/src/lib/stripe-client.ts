@@ -16,6 +16,9 @@ export function getStripeClient(): InstanceType<typeof Stripe> {
   if (!apiKey) {
     throw new Error("STRIPE_API_KEY is required for this payment operation")
   }
+  if (apiKey.startsWith("whsec_")) {
+    throw new Error("Invalid configuration: STRIPE_API_KEY cannot be a webhook signing secret (whsec_...).")
+  }
 
   stripeClient = new Stripe(apiKey, {
     apiVersion: "2025-05-28.basil" as any,

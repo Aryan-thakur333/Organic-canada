@@ -21,6 +21,7 @@ const COMPANY_FIELDS = [
   "email",
   "phone",
   "address",
+  "metadata",
   "created_at",
   "updated_at",
 ]
@@ -52,6 +53,8 @@ function serializeCompany(company: any) {
     email: company.email ?? null,
     phone: company.phone ?? null,
     address: company.address ?? null,
+    metadata: company.metadata ?? null,
+    customer_group_id: company.metadata?.customer_group_id ?? null,
     created_at: company.created_at ?? null,
     updated_at: company.updated_at ?? null,
   }

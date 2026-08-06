@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 export { asArray } from "../../utils/as-array"
 
 export const productBelongsToVendor = (product: any, vendorId: string) => {

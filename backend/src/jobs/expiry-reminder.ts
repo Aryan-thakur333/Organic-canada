@@ -1,5 +1,5 @@
 import { MedusaContainer } from "@medusajs/framework/types"
-import { SUBSCRIPTION_MODULE } from "../modules/subscription"
+import { SUBSCRIPTION_MODULE } from "../modules/subscription/index"
 
 export default async function expiryReminderJob(container: MedusaContainer) {
   const subscriptionService: any = container.resolve(SUBSCRIPTION_MODULE)

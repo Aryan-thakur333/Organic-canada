@@ -1,0 +1,254 @@
+import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+
+import type {
+  MedusaRequest,
+  MedusaResponse,
+} from "@medusajs/framework/http"
+
+type QueryGraph = {
+  graph(input: Record<string, unknown>): Promise<{
+    data: Array<{
+      id: string
+      sku?: string | null
+      manage_inventory?: boolean
+      inventory_items?: Array<{
+        inventory_item_id?: string
+        inventory?: {
+          location_levels?: Array<{
+            id: string
+            location_id: string
+            stocked_quantity: number
+            reserved_quantity: number
+          }>
+        } | null
+      }>
+    }>
+  }>
+}
+
+type ErpService = {
+  getExactInventorySnapshot(sku: string): Promise<{
+    sku: string
+    productId: number
+    globalQuantity: number
+    freeQuantity: number
+    locationId: number
+    locationName: string
+    quantity: number
+    reservedQuantity: number
+    availableQuantity: number
+  }>
+}
+
+function errorCode(error: unknown) {
+  return error instanceof Error &&
+    "code" in error &&
+    typeof error.code === "string"
+    ? error.code
+    : "ERP_INVENTORY_WRITE_FAILED"
+}
+
+export async function POST(
+  req: MedusaRequest,
+  res: MedusaResponse
+) {
+  const sku =
+    typeof req.query.sku === "string"
+      ? req.query.sku.trim()
+      : ""
+
+  if (!sku) {
+    return res.status(400).json({
+      success: false,
+      dryRun: true,
+      error: {
+        code: "ERP_EXACT_SKU_REQUIRED",
+        message: "Inventory sync requires one exact SKU.",
+      },
+    })
+  }
+
+  try {
+    console.info(
+      `[ERP_INVENTORY_SYNC_START] provider=odoo sku=${sku}`
+    )
+
+    const erpService = req.scope.resolve<ErpService>("erp")
+    const query = req.scope.resolve<QueryGraph>(
+      ContainerRegistrationKeys.QUERY
+    )
+    const odoo = await erpService.getExactInventorySnapshot(
+      sku
+    )
+    const { data: variants } = await query.graph({
+      entity: "variant",
+      fields: [
+        "id",
+        "sku",
+        "manage_inventory",
+        "inventory_items.inventory_item_id",
+        "inventory_items.inventory.location_levels.id",
+        "inventory_items.inventory.location_levels.location_id",
+        "inventory_items.inventory.location_levels.stocked_quantity",
+        "inventory_items.inventory.location_levels.reserved_quantity",
+      ],
+      filters: { sku: [sku] },
+    })
+
+    if (!variants.length) {
+      return res.status(404).json({
+        success: false,
+        dryRun: true,
+        error: {
+          code: "ERP_INVENTORY_SKU_NOT_FOUND",
+          message: "No Medusa variant matches the exact ERP SKU.",
+        },
+      })
+    }
+
+    if (variants.length > 1) {
+      return res.status(409).json({
+        success: false,
+        dryRun: true,
+        error: {
+          code: "ERP_INVENTORY_DUPLICATE_SKU",
+          message: "Multiple Medusa variants match the exact ERP SKU.",
+        },
+      })
+    }
+
+    const variant = variants[0]
+    const inventoryItem = variant.inventory_items?.[0]
+    const targetLocationId =
+      process.env.ERP_MEDUSA_STOCK_LOCATION_ID?.trim()
+
+    if (!variant.manage_inventory || !inventoryItem?.inventory_item_id) {
+      return res.status(409).json({
+        success: false,
+        dryRun: true,
+        sku,
+        odoo,
+        medusa: {
+          variantId: variant.id,
+          manageInventory: Boolean(variant.manage_inventory),
+          inventoryItemId: null,
+          stockLocationId: targetLocationId || null,
+        },
+        error: {
+          code: "ERP_INVENTORY_ITEM_NOT_FOUND",
+          message:
+            "The Medusa variant is not inventory-managed and has no inventory item.",
+        },
+      })
+    }
+
+    if (!targetLocationId) {
+      return res.status(409).json({
+        success: false,
+        dryRun: true,
+        sku,
+        odoo,
+        medusa: {
+          variantId: variant.id,
+          manageInventory: true,
+          inventoryItemId: inventoryItem.inventory_item_id,
+          stockLocationId: null,
+        },
+        error: {
+          code: "ERP_INVENTORY_LOCATION_NOT_MAPPED",
+          message:
+            "ERP_MEDUSA_STOCK_LOCATION_ID must select one existing Medusa stock location.",
+        },
+      })
+    }
+
+    const level = inventoryItem.inventory?.location_levels?.find(
+      (candidate) =>
+        candidate.location_id === targetLocationId
+    )
+
+    if (!level) {
+      return res.status(409).json({
+        success: false,
+        dryRun: true,
+        sku,
+        odoo,
+        medusa: {
+          variantId: variant.id,
+          manageInventory: true,
+          inventoryItemId: inventoryItem.inventory_item_id,
+          stockLocationId: targetLocationId,
+          currentQuantity: null,
+        },
+        error: {
+          code: "ERP_INVENTORY_LOCATION_NOT_MAPPED",
+          message:
+            "The Medusa inventory item has no level at the configured stock location.",
+        },
+      })
+    }
+
+    const wouldSetStockedQuantity = odoo.quantity
+    const wouldPreserveReservedQuantity =
+      Number(level.reserved_quantity)
+    const wouldAvailableQuantity =
+      wouldSetStockedQuantity -
+      wouldPreserveReservedQuantity
+    const action =
+      Number(level.stocked_quantity) ===
+      wouldSetStockedQuantity
+        ? "UNCHANGED"
+        : "UPDATE"
+
+    console.info(
+      `[ERP_INVENTORY_DRY_RUN] provider=odoo sku=${sku} action=${action} odooQuantity=${odoo.quantity} reservedQuantity=${wouldPreserveReservedQuantity}`
+    )
+
+    return res.status(200).json({
+      success: true,
+      dryRun: true,
+      sku,
+      odoo,
+      medusa: {
+        variantId: variant.id,
+        manageInventory: true,
+        inventoryItemId: inventoryItem.inventory_item_id,
+        stockLocationId: targetLocationId,
+        currentQuantity: Number(level.stocked_quantity),
+        reservedQuantity: wouldPreserveReservedQuantity,
+      },
+      action,
+      wouldSetStockedQuantity,
+      wouldPreserveReservedQuantity,
+      wouldAvailableQuantity,
+      writeGuards: {
+        inventorySyncEnabled:
+          process.env.ERP_INVENTORY_SYNC_ENABLED ===
+          "true",
+        inventoryDryRun:
+          process.env.ERP_INVENTORY_DRY_RUN !==
+          "false",
+        confirmInventoryWrite:
+          (req.body as { confirmInventoryWrite?: unknown }
+            | undefined)?.confirmInventoryWrite === true,
+      },
+    })
+  } catch (error) {
+    const code = errorCode(error)
+    console.warn(
+      `[ERP_INVENTORY_SYNC_FAILED] provider=odoo sku=${sku} code=${code}`
+    )
+
+    return res.status(502).json({
+      success: false,
+      dryRun: true,
+      error: {
+        code,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unknown ERP inventory error",
+      },
+    })
+  }
+}

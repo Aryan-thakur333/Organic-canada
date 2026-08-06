@@ -1,51 +1,28 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import { getStripeClient } from "../../../../../lib/stripe-client"
 import { SUBSCRIPTION_MODULE } from "../../../../../modules/subscription"
-import { Modules } from "@medusajs/framework/utils"
+import { canTransitionSubscription } from "../../../../../modules/subscription/contract"
 
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
-  const { id } = req.params
-  const customer_id = (req as any).auth_context?.actor_id
-
+  const customerId = (req as any).auth_context?.actor_id
+  const service: any = req.scope.resolve(SUBSCRIPTION_MODULE)
   try {
-    const subscriptionService: any = req.scope.resolve(SUBSCRIPTION_MODULE)
-    const eventBus: any = req.scope.resolve(Modules.EVENT_BUS)
-    const subscription = await subscriptionService.retrieveSubscription(id)
-    if (!subscription) return res.status(404).json({ message: "Subscription not found" })
-    if (subscription.customer_id !== customer_id) return res.status(403).json({ message: "Forbidden" })
-    if (["cancelled", "expired"].includes(subscription.status)) {
-      return res.status(400).json({ message: "Subscription is already cancelled or expired" })
+    const subscription = await service.retrieveSubscription(req.params.id)
+    if (subscription.customer_id !== customerId) return res.status(404).json({ code: "SUBSCRIPTION_NOT_FOUND", message: "Subscription not found." })
+    if (subscription.status === "cancelled") return res.json({ subscription, reused: true })
+    if (!canTransitionSubscription(subscription.status, "cancelled")) {
+      return res.status(409).json({ code: "SUBSCRIPTION_TRANSITION_INVALID", message: "This subscription cannot be cancelled." })
     }
-
-    const updated = await subscriptionService.updateSubscriptions({ id, status: "cancelled" })
-
-    // Update customer premium status
-    try {
-      const customerService: any = req.scope.resolve(Modules.CUSTOMER)
-      const customer = await customerService.retrieveCustomer(customer_id)
-      await customerService.updateCustomers({
-        id: customer_id,
-        metadata: {
-          ...(customer.metadata || {}),
-          is_premium: false,
-          premium_cancelled_at: new Date().toISOString(),
-        },
-      })
-    } catch { /* non-critical */ }
-
-    // Emit cancellation event
-    try {
-      await eventBus.emit({
-        name: "subscription.cancelled",
-        data: {
-          id,
-          customer_email: subscription.customer_email,
-          reason: "Customer requested cancellation",
-        },
-      })
-    } catch { /* non-critical */ }
-
-    return res.json({ subscription: updated })
+    if (subscription.stripe_subscription_id && !subscription.stripe_subscription_id.startsWith("cs_")) {
+      await getStripeClient().subscriptions.cancel(subscription.stripe_subscription_id)
+    } else if (subscription.stripe_subscription_id?.startsWith("cs_")) {
+      await getStripeClient().checkout.sessions.expire(subscription.stripe_subscription_id)
+    }
+    const updated = await service.updateSubscriptions({ id: subscription.id, status: "cancelled", cancelled_at: new Date() })
+    return res.json({ subscription: updated, reused: false })
   } catch (error: any) {
-    return res.status(500).json({ message: error.message || "Failed to cancel subscription" })
+    console.error(`[Subscriptions] cancel failed: ${error?.code || "SUBSCRIPTION_CANCEL_FAILED"}`)
+    return res.status(500).json({ code: "SUBSCRIPTION_CANCEL_FAILED", message: "Unable to cancel subscription." })
   }
 }
+

@@ -93,6 +93,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       "variants.id",
       "variants.title",
       "variants.sku",
+      "variants.barcode",
       "variants.manage_inventory",
       "variants.allow_backorder",
       "variants.inventory_items.inventory_item_id",
@@ -125,6 +126,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         "product.variants.id",
         "product.variants.title",
         "product.variants.sku",
+        "product.variants.barcode",
         "product.variants.manage_inventory",
         "product.variants.allow_backorder",
         "product.variants.inventory_items.inventory.location_levels.stocked_quantity",
@@ -169,6 +171,16 @@ const toHandle = (str: string) =>
 
 const isDuplicateLink = (error: any) =>
   /already exists|duplicate|multiple links|Cannot create multiple links/i.test(String(error?.message || error))
+
+function normalizeCatalogMajorPrice(value: any, allowZero = false): number {
+  const n = Number(value)
+  if (!Number.isFinite(n) || (allowZero ? n < 0 : n <= 0)) {
+    const error: any = new Error("At least one variant must have a positive price")
+    error.statusCode = 400
+    throw error
+  }
+  return Math.round((n + Number.EPSILON) * 100) / 100
+}
 
 async function ensureRemoteLink(remoteLink: any, definition: Record<string, any>) {
   try {
@@ -295,19 +307,37 @@ function normalizeVariant(v: any, index: number, fallbackPrice: number | null, c
   const title = String(v?.title || "Standard").trim() || "Standard"
   const optionValue = variantCount <= 1 ? DEFAULT_OPTION_VALUE : optionValueForVariant({ title })
   const sku = v?.sku || `VENDOR-${Date.now().toString(36)}-${index + 1}`
-  const prices = Array.isArray(v?.prices) && v.prices.length
-    ? v.prices.map((price: any) => ({
-        amount: Math.round(Number(price.amount)),
+  let prices
+
+  if (v?.price !== undefined && v?.price !== "") {
+    prices = [{
+      amount: normalizeCatalogMajorPrice(v.price),
+      currency_code: currencyCode,
+    }]
+  } else if (fallbackPrice !== null) {
+    prices = [{
+      amount: normalizeCatalogMajorPrice(fallbackPrice),
+      currency_code: currencyCode,
+    }]
+  } else if (Array.isArray(v?.prices) && v.prices.length) {
+    prices = v.prices.map((price: any) => {
+      const amount = normalizeCatalogMajorPrice(price.amount)
+      return {
+        amount,
         currency_code: String(price.currency_code || currencyCode).toLowerCase(),
-      }))
-    : [{
-        amount: Math.round(Number(v?.price || fallbackPrice || 0) * 100),
-        currency_code: currencyCode,
-      }]
+      }
+    })
+  } else {
+    prices = [{
+      amount: normalizeCatalogMajorPrice(0, true),
+      currency_code: currencyCode,
+    }]
+  }
 
   return {
     title,
     sku,
+    barcode: v?.barcode || undefined,
     manage_inventory: v?.manage_inventory !== false,
     allow_backorder: v?.allow_backorder === true,
     options: {
@@ -321,9 +351,34 @@ async function ensureVariantInventory(req: MedusaRequest, productId: string, sal
   const query = req.scope.resolve("query")
   const remoteLink = req.scope.resolve(ContainerRegistrationKeys.LINK)
   const inventoryService: any = req.scope.resolve(Modules.INVENTORY)
-  const location = await ensureDefaultStockLocation(req, salesChannelId)
 
+  // Retrieve the vendor ID from the product metadata
   const { data: products } = await query.graph({
+    entity: "product",
+    fields: ["id", "metadata"],
+    filters: { id: productId }
+  })
+  const productMeta = products?.[0]
+  const vendorId = productMeta?.metadata?.vendor_id
+
+  let location: { id: string }
+  if (vendorId) {
+    const { data: vendorLocations } = await query.graph({
+      entity: "vendor_stock_location",
+      fields: ["id", "vendor_id", "stock_location_id"],
+      filters: { vendor_id: vendorId }
+    })
+    if (vendorLocations && vendorLocations.length > 0) {
+      location = { id: vendorLocations[0].stock_location_id }
+      console.log(`[PRODUCT_CREATE] Resolved vendor stock location ${location.id} for vendor ${vendorId}`)
+    } else {
+      location = await ensureDefaultStockLocation(req, salesChannelId)
+    }
+  } else {
+    location = await ensureDefaultStockLocation(req, salesChannelId)
+  }
+
+  const { data: fullProducts } = await query.graph({
     entity: "product",
     fields: [
       "id",
@@ -336,7 +391,7 @@ async function ensureVariantInventory(req: MedusaRequest, productId: string, sal
     ],
     filters: { id: productId },
   })
-  const product = products?.[0]
+  const product = fullProducts?.[0]
   if (!product) return
 
   for (const variant of asArray(product.variants)) {
@@ -392,13 +447,17 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     thumbnail,
     handle: requestedHandle,
     price,
+    currency_code,
     sku,
+    barcode,
     category,
     inventory_quantity,
+    initial_stock,
     variants,
     categories,
     tags,
     status,
+    product_type,
   } = req.body as any
 
   if (!vendorId) {
@@ -411,9 +470,22 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
     // Require at least one variant with a positive price
   const submittedVariants = Array.isArray(variants) && variants.length > 0 ? variants : null
-  const fallbackPrice = price ? Number(price) : null
+  const fallbackPrice = price !== undefined && price !== "" && price !== null ? Number(price) : null
   if (!submittedVariants && (!fallbackPrice || !Number.isFinite(fallbackPrice) || fallbackPrice <= 0)) {
     return res.status(400).json({ message: "At least one variant with a positive price is required" })
+  }
+
+  // Validate product_type
+  const VALID_PRODUCT_TYPES = ["standard", "digital", "subscription", "personalized", "bundle"]
+  let parsedProductType = product_type;
+  if (!parsedProductType) {
+    parsedProductType = "standard"
+  }
+  if (!VALID_PRODUCT_TYPES.includes(parsedProductType)) {
+    return res.status(422).json({
+      code: "INVALID_PRODUCT_TYPE",
+      message: "Unsupported product type."
+    })
   }
 
   // Check if this is a digital product
@@ -441,11 +513,12 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     }
     const baseHandle = toHandle(String(requestedHandle || title))
     const handle = baseHandle ? `${baseHandle}-${Date.now().toString(36)}` : `vendor-product-${Date.now().toString(36)}`
-    const currencyCode = region?.currency_code || "cad"
+    const currencyCode = String(currency_code || region?.currency_code || "cad").toLowerCase()
     const productOptions = normalizeProductOptions(submittedVariants)
     const categoryIds = await resolveCategoryIds(req, categories !== undefined ? categories : category ? [category] : [])
-    const stockedQuantity = Number.isInteger(Number(inventory_quantity)) && Number(inventory_quantity) >= 0
-      ? Number(inventory_quantity)
+    const rawQuantity = initial_stock !== undefined ? initial_stock : inventory_quantity;
+    const stockedQuantity = Number.isInteger(Number(rawQuantity)) && Number(rawQuantity) >= 0
+      ? Number(rawQuantity)
       : DEFAULT_STOCK
 
     const workflowInput: any = {
@@ -458,6 +531,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       metadata: {
         vendor_id: vendorId,
         vendor_store_name: (req as any).vendor?.store_name || null,
+        product_type: parsedProductType,
       },
       shipping_profile_id: shippingProfile.id,
       sales_channels: [{ id: salesChannel.id }],
@@ -474,11 +548,12 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
         {
           title: "Standard",
           sku: sku || `VENDOR-${handle.toUpperCase()}`,
+          barcode: barcode || undefined,
           manage_inventory: true,
           allow_backorder: false,
           prices: [
             {
-              amount: Math.round(Number(fallbackPrice) * 100),
+              amount: normalizeCatalogMajorPrice(fallbackPrice),
               currency_code: currencyCode,
             },
           ],
@@ -568,6 +643,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
         "variants.id",
         "variants.title",
         "variants.sku",
+        "variants.barcode",
         "variants.prices.amount",
         "variants.prices.currency_code",
         "variants.inventory_items.inventory_item_id",
@@ -577,12 +653,32 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       filters: { id: product.id },
     })
 
+    let inventoryLevelId: string | null = null
+    if (!isDigital && createdProducts?.[0]?.variants?.[0]?.inventory_items?.[0]?.inventory_item_id) {
+      try {
+        const inventoryService: any = req.scope.resolve(Modules.INVENTORY)
+        const itemId = createdProducts[0].variants[0].inventory_items[0].inventory_item_id
+        const levels = await inventoryService.listInventoryLevels({
+          inventory_item_id: itemId
+        })
+        if (levels && levels.length > 0) {
+          inventoryLevelId = levels[0].id
+        }
+      } catch (e: any) {
+        console.error("Error retrieving inventory_level_id for created product:", e.message)
+      }
+    }
+
     return res.status(201).json({
       message: "Product created and linked successfully",
       product: createdProducts?.[0] || product,
+      inventory_level_id: inventoryLevelId
     })
   } catch (error: any) {
     console.error("Error creating vendor product:", error)
+    if (error?.statusCode === 400 || /positive price/i.test(error?.message || "")) {
+      return res.status(400).json({ message: error.message })
+    }
     return res.status(500).json({ message: error.message || "Failed to create product" })
   }
 }

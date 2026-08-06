@@ -1,5 +1,6 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { MedusaError } from "@medusajs/framework/utils"
+import { resolveCommercialVariantPrice } from "../../../../lib/pricing/resolve-commercial-variant-price"
 
 const B2B_PRICE_LIST_TITLE = "B2B customer"
 
@@ -24,6 +25,15 @@ function asArray(value: any): any[] {
   if (typeof value === "object" && typeof (value as any).toArray === "function")
     return (value as any).toArray()
   return [value]
+}
+
+function normalizeCurrencyCode(value?: string | null): string {
+  return String(value || "cad").toLowerCase()
+}
+
+function normalizeCountryCode(value?: string | null): string | null {
+  const country = String(value || "").trim().toLowerCase()
+  return country || null
 }
 
 /**
@@ -138,6 +148,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         "company.id",
         "company.company_name",
         "company.status",
+        "company.metadata",
       ],
       filters: { id: customerId },
     })
@@ -167,7 +178,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     if (!regionId) {
       const { data: regions } = await query.graph({
         entity: "region",
-        fields: ["id"],
+        fields: ["id", "currency_code", "countries.iso_2"],
         pagination: { take: 1 },
       })
       regionId = regions?.[0]?.id ?? null
@@ -177,7 +188,30 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       return res.status(400).json({ message: "Store region is unavailable" })
     }
 
-    const currencyCode = String(req.query?.currency_code || "cad").toLowerCase()
+    const currencyCode = normalizeCurrencyCode(req.query?.currency_code as string | undefined)
+    let countryCode = normalizeCountryCode(
+      (req.query?.country_code as string | undefined) ||
+        (req.query?.countryCode as string | undefined)
+    )
+    if (!countryCode && regionId) {
+      const { data: regions } = await query.graph({
+        entity: "region",
+        fields: ["id", "countries.iso_2"],
+        filters: { id: regionId },
+        pagination: { take: 1 },
+      })
+      countryCode = normalizeCountryCode(regions?.[0]?.countries?.[0]?.iso_2)
+    }
+    const salesChannelId =
+      (req.query?.sales_channel_id as string | undefined) ||
+      (req.query?.salesChannelId as string | undefined) ||
+      ((req as any).publishable_key_context?.sales_channel_ids || [])[0] ||
+      null
+    const customerGroupId =
+      (req.query?.customer_group_id as string | undefined) ||
+      (company as any)?.customer_group_id ||
+      (company as any)?.metadata?.customer_group_id ||
+      null
     const limit = Math.min(100, Math.max(1, Number(req.query?.limit) || 48))
     const offset = Math.max(0, Number(req.query?.offset) || 0)
 
@@ -327,11 +361,13 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     const priceBySetId = new Map<string, { amount: number; currency_code: string }>()
     for (const p of prices) {
       if (!p.price_set_id) continue
-      const existing = priceBySetId.get(p.price_set_id)
-      if (!existing || (p.currency_code === currencyCode && existing.currency_code !== currencyCode)) {
+      if (normalizeCurrencyCode(p.currency_code) !== currencyCode) continue
+      const amount = Number(p.amount)
+      if (!Number.isFinite(amount) || amount <= 0) continue
+      if (!priceBySetId.has(p.price_set_id)) {
         priceBySetId.set(p.price_set_id, {
-          amount: p.amount,
-          currency_code: p.currency_code || currencyCode,
+          amount: Math.round(amount),
+          currency_code: currencyCode,
         })
       }
     }
@@ -359,6 +395,26 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       // price are excluded entirely from the B2B product catalog.
       if (!priceInfo) continue
 
+      const resolvedPrice = await resolveCommercialVariantPrice({
+        container: req.scope,
+        variantId: v.id,
+        regionId,
+        countryCode,
+        currencyCode,
+        salesChannelId,
+        customerId,
+        customerGroupId,
+        quantity: 1,
+      })
+
+      if (
+        resolvedPrice.amountMinor <= 0 ||
+        resolvedPrice.currencyCode !== currencyCode ||
+        resolvedPrice.source !== "b2b_price_list_override"
+      ) {
+        continue
+      }
+
       const variantEntry = {
         id: v.id,
         title: v.title,
@@ -374,8 +430,15 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         mid_code: v.mid_code,
         material: v.material,
         metadata: v.metadata,
-        b2b_price: priceInfo.amount,
-        b2b_currency_code: priceInfo.currency_code ?? currencyCode,
+        b2b_price: resolvedPrice.amountMinor,
+        b2b_currency_code: resolvedPrice.currencyCode,
+        price_set_id: resolvedPrice.priceSetId || priceSetId,
+        price_source: resolvedPrice.source,
+        calculated_price: {
+          calculated_amount: resolvedPrice.amountMinor,
+          currency_code: resolvedPrice.currencyCode,
+          price_set_id: resolvedPrice.priceSetId || priceSetId,
+        },
         is_b2b_override: true,
       }
 
@@ -459,6 +522,13 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         status: priceList.status,
         override_count: prices.length,
         resolved_products_count: totalCount,
+      },
+      pricing_context: {
+        region_id: regionId,
+        country_code: countryCode,
+        currency_code: currencyCode,
+        sales_channel_id: salesChannelId,
+        customer_group_id: customerGroupId,
       },
       company: {
         id: company.id,

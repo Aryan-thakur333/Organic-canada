@@ -2,7 +2,7 @@ import { defineRouteConfig } from "@medusajs/admin-sdk"
 import { Users, CheckCircle, XCircle, ExclamationCircle, EllipsisHorizontal } from "@medusajs/icons"
 import { Container, Heading, Table, StatusBadge, Button, DropdownMenu, Text, toast } from "@medusajs/ui"
 import { useEffect, useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 
 const VendorsPage = () => {
   const [vendors, setVendors] = useState<any[]>([])
@@ -105,7 +105,7 @@ const VendorsPage = () => {
                 <Table.Row
                   key={vendor.id}
                   className="cursor-pointer hover:bg-gray-50 transition-colors"
-                  onClick={() => navigate(`/admin/vendors/${vendor.id}`)}
+                  onClick={() => navigate(`/vendors/${vendor.id}`)}
                 >
                   <Table.Cell className="font-medium text-gray-900">{vendor.name}</Table.Cell>
                   <Table.Cell className="text-gray-600">{vendor.email}</Table.Cell>
@@ -130,7 +130,7 @@ const VendorsPage = () => {
                       </DropdownMenu.Trigger>
                       <DropdownMenu.Content>
                         <DropdownMenu.Item
-                          onClick={() => navigate(`/admin/vendors/${vendor.id}`)}
+                          onClick={() => navigate(`/vendors/${vendor.id}`)}
                         >
                           View Details
                         </DropdownMenu.Item>

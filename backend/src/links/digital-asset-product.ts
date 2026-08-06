@@ -1,5 +1,5 @@
 import { defineLink } from "@medusajs/framework/utils"
-import DigitalAssetModule from "../modules/digital-asset"
+import DigitalAssetModule from "../modules/digital-asset/index"
 import ProductModule from "@medusajs/medusa/product"
 
 export default defineLink(

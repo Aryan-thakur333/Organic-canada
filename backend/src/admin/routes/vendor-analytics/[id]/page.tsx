@@ -1,4 +1,3 @@
-import { defineRouteConfig } from "@medusajs/admin-sdk"
 import { ChartBar, ShoppingCart, CurrencyDollar, ArchiveBox, Users } from "@medusajs/icons"
 import { Container, Heading, Table, Text, StatusBadge, Badge, toast } from "@medusajs/ui"
 import { useEffect, useMemo, useState } from "react"
@@ -352,10 +351,5 @@ const VendorAnalyticsPage = () => {
     </Container>
   )
 }
-
-export const config = defineRouteConfig({
-  label: "Vendor Analytics",
-  icon: ChartBar,
-})
 
 export default VendorAnalyticsPage

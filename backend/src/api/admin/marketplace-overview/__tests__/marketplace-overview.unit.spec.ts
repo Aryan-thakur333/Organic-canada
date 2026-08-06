@@ -139,7 +139,7 @@ describe("GET /admin/marketplace-overview", () => {
 
     await GET(req, res)
 
-    const body = res.body
+    const body = (res as any).body
     expect(body).not.toBeNull()
     expect(body.marketplace).toBeDefined()
     expect(body.marketplace.vendor_health).toEqual({
@@ -191,7 +191,7 @@ describe("GET /admin/marketplace-overview", () => {
 
     await GET(req, res)
 
-    expect(res.body.marketplace.total_products).toBe(3)
+    expect((res as any).body.marketplace.total_products).toBe(3)
   })
 
   it("computes vendor rankings from completed orders", async () => {
@@ -259,7 +259,7 @@ describe("GET /admin/marketplace-overview", () => {
 
     await GET(req, res)
 
-    const rankings = res.body.marketplace.vendor_rankings
+    const rankings = (res as any).body.marketplace.vendor_rankings
     expect(rankings).toHaveLength(2)      // Store A has $70.00 revenue (rank 1), Store B has $50.00 revenue (rank 2)
       expect(rankings[0].vendor_name).toBe("Store A")
       expect(rankings[0].revenue_cents).toBe(7000)
@@ -292,7 +292,7 @@ describe("GET /admin/marketplace-overview", () => {
 
     await GET(req, res)
 
-    const body = res.body.marketplace
+    const body = (res as any).body.marketplace
     expect(body.vendor_health.total).toBe(0)
     expect(body.vendor_health.pending).toBe(0)
     expect(body.vendor_health.approved).toBe(0)
@@ -338,7 +338,7 @@ describe("GET /admin/marketplace-overview", () => {
 
     await GET(req, res)
 
-    const body = res.body.marketplace
+    const body = (res as any).body.marketplace
     expect(body.total_completed_orders).toBe(0)
     expect(body.vendor_rankings).toHaveLength(2)
     expect(body.vendor_rankings[0].revenue_cents).toBe(0)
@@ -394,7 +394,7 @@ describe("GET /admin/marketplace-overview", () => {
 
     await GET(req, res)
 
-    const ranking = res.body.marketplace.vendor_rankings[0]
+    const ranking = (res as any).body.marketplace.vendor_rankings[0]
     // 1 order (deduplicated), 3 items, $50.00 revenue
     expect(ranking.order_count).toBe(1)
     expect(ranking.items_sold).toBe(3)
@@ -446,7 +446,7 @@ describe("GET /admin/marketplace-overview", () => {
 
     await GET(req, res)
 
-    const vendorStat = res.body.marketplace.vendors[0]
+    const vendorStat = (res as any).body.marketplace.vendors[0]
     expect(vendorStat.name).toBe("Green Farm")
     expect(vendorStat.email).toBe("farm@test.com")
     expect(vendorStat.status).toBe("approved")
@@ -479,6 +479,6 @@ describe("GET /admin/marketplace-overview", () => {
     await GET(req, res)
 
     expect(res.statusCode).toBe(500)
-    expect(res.body.message).toContain("DB connection failed")
+    expect((res as any).body.message).toContain("DB connection failed")
   })
 })

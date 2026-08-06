@@ -3,26 +3,53 @@ import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { VENDOR_MODULE } from "../../../modules/vendor"
 import { hashPassword } from "../auth"
 
+function toSafeVendor(vendor: any) {
+  const { password_hash: _, ...safeVendor } = vendor
+  return {
+    ...safeVendor,
+    business_name: vendor.store_name,
+  }
+}
+
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
-  const { name, store_name, email, password, phone, description, company_details } = req.body as any
+  const {
+    business_name,
+    owner_name,
+    name,
+    store_name,
+    email,
+    password,
+    confirm_password,
+    phone,
+    description,
+    company_details,
+  } = req.body as any
 
   const normalizedEmail = String(email || "").trim().toLowerCase()
-  const normalizedStoreName = String(store_name || "").trim()
-  const normalizedOwnerName = String(name || normalizedStoreName).trim()
+  const normalizedStoreName = String(business_name || store_name || "").trim()
+  const normalizedOwnerName = String(owner_name || name || "").trim()
   const normalizedPhone = phone ? String(phone).trim() : null
 
   if (!normalizedStoreName) {
-    return res.status(400).json({ message: "store_name is required" })
+    return res.status(400).json({ message: "Business name is required" })
+  }
+
+  if (!normalizedOwnerName) {
+    return res.status(400).json({ message: "Owner name is required" })
   }
 
   if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
     return res.status(400).json({ message: "A valid email is required" })
   }
 
-  if (typeof password !== "string" || password.length < 12) {
+  if (typeof password !== "string" || password.length < 8) {
     return res.status(400).json({
-      message: "Password must be at least 12 characters long",
+      message: "Password must be at least 8 characters long",
     })
+  }
+
+  if (confirm_password !== undefined && password !== confirm_password) {
+    return res.status(400).json({ message: "Passwords do not match" })
   }
 
   try {
@@ -46,10 +73,10 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       status: "pending",
     })
 
-    const { password_hash: _, ...safeVendor } = vendor
     return res.status(201).json({
+      status: vendor.status,
       message: "Vendor registration submitted. Awaiting administrator approval.",
-      vendor: safeVendor,
+      vendor: toSafeVendor(vendor),
     })
   } catch (error: any) {
     console.error("Vendor registration error:", error)

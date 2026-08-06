@@ -1,5 +1,6 @@
 import { Badge, Container, Heading, Text } from "@medusajs/ui"
 import { useEffect, useState } from "react"
+import { defineWidgetConfig } from "@medusajs/admin-sdk"
 
 /**
  * Digital Product Info Widget
@@ -140,8 +141,8 @@ const DigitalProductInfoWidget = ({ product }) => {
   )
 }
 
-export const config = {
-  zone: ["product.detail.after"],
-}
+export const config = defineWidgetConfig({
+  zone: "product.details.after",
+})
 
 export default DigitalProductInfoWidget

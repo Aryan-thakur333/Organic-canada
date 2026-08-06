@@ -1,9 +1,23 @@
-// @ts-nocheck
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Modules } from "@medusajs/framework/utils"
 import { asArray, getVendorProductIdSets } from "../../_ownership"
 
-async function getVendorOrderAccess(req: MedusaRequest, orderId: string) {
+type VendorOrderAccess =
+  | { accessible: false; reason: string }
+  | {
+      accessible: true
+      vendor: { id: string }
+      order: { metadata?: Record<string, unknown> | null }
+      vendorItems: Array<{
+        id?: string | null
+        product_id?: string | null
+        variant_id?: string | null
+        title?: string | null
+        quantity?: unknown
+      } | null>
+    }
+
+async function getVendorOrderAccess(req: MedusaRequest, orderId: string): Promise<VendorOrderAccess> {
   const vendor = (req as any).vendor
   const query = req.scope.resolve("query")
 

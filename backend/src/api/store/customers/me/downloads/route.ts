@@ -9,27 +9,6 @@ import { DIGITAL_ASSET_MODULE } from "../../../../../modules/digital-asset"
  * Returns all purchased digital downloads for the authenticated customer.
  * Only returns items from paid/captured orders.
  * Never exposes raw file storage paths.
- *
- * Response shape:
- * {
- *   downloads: [
- *     {
- *       asset_id: "asset_xxx",
- *       order_id: "order_xxx",
- *       item_id: "item_xxx",
- *       product_title: "PDF Guide",
- *       filename: "guide.pdf",
- *       mime_type: "application/pdf",
- *       size: 12345,
- *       version: "1.0",
- *       remaining_downloads: 4,
- *       download_limit: 5,
- *       expires_at: "2027-01-01T00:00:00.000Z",
- *       status: "available",
- *       download_url: "/store/downloads/asset_xxx"
- *     }
- *   ]
- * }
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const customerId = (req as any).auth_context?.actor_id as string | undefined
@@ -46,10 +25,10 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       { customer_id: customerId },
       { 
         select: [
-          "id", "order_id", "line_item_id", "product_id",
+          "id", "order_id", "line_item_id", "product_id", "customer_id",
           "digital_asset_id", "license_key", "remaining_downloads",
           "download_count", "expires_at", "last_downloaded_at", "created_at",
-          "is_active"
+          "is_active", "metadata"
         ],
         order: { created_at: "DESC" }
       }
@@ -88,12 +67,54 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     const orderIds = [...new Set(downloads.map((d: any) => d.order_id))]
     const { data: orders } = await query.graph({
       entity: "order",
-      fields: ["id", "payment_status", "status"],
+      fields: [
+        "id", "payment_status", "status",
+        "items.id", "items.variant_id", "items.variant.id",
+        "payment_collections.payments.id",
+        "payment_collections.payments.status",
+        "payment_collections.payments.amount",
+        "payment_collections.payments.captured_at",
+        "payment_collections.payments.provider_id",
+        "payment_collections.payments.payment_session.data"
+      ],
       filters: { id: orderIds },
     })
+    
     const orderPaymentMap = new Map()
+    const orderItemVariantMap = new Map()
+
     for (const o of orders || []) {
-      orderPaymentMap.set(o.id, o.payment_status || o.status)
+      // Determine if paid
+      let isPaid = ["captured", "partially_refunded", "paid"].includes(o.payment_status || "")
+      if (!isPaid) {
+        if (o.status === "paid") {
+          isPaid = true
+        } else {
+          const collections = Array.isArray(o.payment_collections) ? o.payment_collections : []
+          for (const collection of collections) {
+            const payments = Array.isArray(collection?.payments) ? collection.payments : []
+            for (const payment of payments) {
+              const sessionData = payment?.payment_session?.data || {}
+              const sessionStatus = String(sessionData.status || "").toLowerCase()
+              const amountReceived = Number(sessionData.amount_received || 0)
+              const capturedAt = payment?.captured_at
+              const paymentStatusStr = String(payment?.status || "").toLowerCase()
+
+              if (capturedAt || sessionStatus === "succeeded" || paymentStatusStr === "captured" || paymentStatusStr === "succeeded" || paymentStatusStr === "paid" || amountReceived > 0) {
+                isPaid = true
+                break
+              }
+            }
+            if (isPaid) break
+          }
+        }
+      }
+      orderPaymentMap.set(o.id, isPaid)
+      
+      const items = Array.isArray(o.items) ? o.items : []
+      for (const item of items) {
+        orderItemVariantMap.set(item.id, item.variant_id || item.variant?.id || null)
+      }
     }
 
     // Enrich and shape the response
@@ -102,20 +123,36 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       const asset = assetMap.get(d.digital_asset_id) || {}
       const productMeta = product.metadata || {}
       const isExpired = d.expires_at ? new Date(d.expires_at) < new Date() : false
-      const paymentStatus = orderPaymentMap.get(d.order_id) || "pending"
-
-      // Determine payment status - only allow download from paid orders
-      const isPaid = ["captured", "partially_refunded", "paid"].includes(paymentStatus)
+      const isPaid = orderPaymentMap.get(d.order_id) || false
 
       // Determine status
-      let status = "available"
+      let computed_status = "available"
       if (!isPaid) {
-        status = "payment_required"
+        computed_status = "payment_required"
       } else if (isExpired) {
-        status = "expired"
+        computed_status = "expired"
       } else if (d.remaining_downloads <= 0) {
-        status = "limit_reached"
+        computed_status = "limit_reached"
       }
+
+      const computed_is_active = d.is_active !== false && computed_status === "available"
+      const raw_customer_id = d.customer_id
+      const raw_variant_id = orderItemVariantMap.get(d.line_item_id) || d.metadata?.variant_id || null
+      
+      const return_status = computed_status === "available" ? "active" : computed_status
+
+      console.log("[Downloads API Debug]", {
+        id: d.id,
+        raw_customer_id,
+        raw_variant_id,
+        raw_status: d.status,
+        raw_is_paid: d.is_paid,
+        computed_status: return_status,
+        computed_is_paid: isPaid,
+        order_id: d.order_id,
+        order_payment_status: isPaid ? "paid_derived" : "unpaid",
+        order_status: "unknown" // We mapped it to boolean above
+      })
 
       // Get file info from download record metadata (stored during order placement)
       const recordMeta = d.metadata || {}
@@ -140,9 +177,13 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         || asset.version
         || productMeta.version
         || ""
+      const downloadLimit = Number(recordMeta.download_limit)
+        || Math.max(Number(d.remaining_downloads || 0) + Number(d.download_count || 0), Number(d.remaining_downloads || 0))
 
       return {
         id: d.id,
+        customer_id: raw_customer_id,
+        variant_id: raw_variant_id,
         asset_id: d.digital_asset_id || `asset_${d.id?.slice(-12)}`,
         order_id: d.order_id,
         item_id: d.line_item_id,
@@ -157,14 +198,14 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         version,
         download_count: d.download_count || 0,
         remaining_downloads: d.remaining_downloads || 0,
-        download_limit: Math.max(d.remaining_downloads || 0, d.download_count || 0) + (d.remaining_downloads || 0),
+        download_limit: downloadLimit,
         expires_at: d.expires_at,
         license_key: d.license_key || null,
-        status,
+        status: return_status,
         is_digital: true,
-        is_expired: status === "expired",
+        is_expired: computed_status === "expired",
         is_paid: isPaid,
-        is_active: d.is_active !== false && status === "available",
+        is_active: computed_is_active,
         download_url: isPaid
           ? `/store/downloads/${d.id}`
           : null,

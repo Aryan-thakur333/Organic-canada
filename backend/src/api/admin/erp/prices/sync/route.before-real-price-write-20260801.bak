@@ -1,0 +1,265 @@
+import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+
+import type {
+  MedusaRequest,
+  MedusaResponse,
+} from "@medusajs/framework/http"
+
+type Price = {
+  id: string
+  amount: number
+  currency_code: string
+  price_set_id?: string | null
+}
+
+type Variant = {
+  id: string
+  sku?: string | null
+  prices?: Price[]
+}
+
+type QueryGraph = {
+  graph(input: Record<string, unknown>): Promise<{
+    data: Variant[]
+  }>
+}
+
+type ErpService = {
+  getExactProductForSync(sku: string): Promise<{
+    id: number
+    name: string
+    default_code: string | false
+    list_price: number
+    active: boolean
+  }>
+}
+
+const SUPPORTED_CURRENCIES = new Set(["usd", "cad"])
+
+function errorResponse(
+  res: MedusaResponse,
+  status: number,
+  code: string,
+  message: string,
+  details: Record<string, unknown> = {}
+) {
+  return res.status(status).json({
+    success: false,
+    dryRun: true,
+    ...details,
+    error: { code, message },
+  })
+}
+
+export async function POST(
+  req: MedusaRequest,
+  res: MedusaResponse
+) {
+  const sku =
+    typeof req.query.sku === "string"
+      ? req.query.sku.trim()
+      : ""
+  const priceSyncEnabled =
+    process.env.ERP_PRICE_SYNC_ENABLED === "true"
+  const priceDryRun =
+    process.env.ERP_PRICE_DRY_RUN !== "false"
+  const source = process.env.ERP_PRICE_SOURCE?.trim()
+  const configuredBaseCurrency =
+    process.env.ERP_BASE_PRICE_CURRENCY?.trim() || ""
+  const baseCurrency =
+    configuredBaseCurrency.toLowerCase()
+
+  if (!sku) {
+    return errorResponse(
+      res,
+      400,
+      "ERP_EXACT_SKU_REQUIRED",
+      "Price sync requires one exact SKU."
+    )
+  }
+
+  if (source !== "odoo") {
+    return errorResponse(
+      res,
+      409,
+      "ERP_PRICE_SOURCE_MISSING",
+      "ERP_PRICE_SOURCE must be explicitly set to odoo.",
+      { sku }
+    )
+  }
+
+  if (!configuredBaseCurrency) {
+    return errorResponse(
+      res,
+      409,
+      "ERP_PRICE_CURRENCY_UNRESOLVED",
+      "ERP_BASE_PRICE_CURRENCY must explicitly be USD or CAD before a price can be proposed.",
+      { sku, configuredBaseCurrency: null }
+    )
+  }
+
+  if (!SUPPORTED_CURRENCIES.has(baseCurrency)) {
+    return errorResponse(
+      res,
+      409,
+      "ERP_PRICE_CURRENCY_UNSUPPORTED",
+      "ERP_BASE_PRICE_CURRENCY supports only USD or CAD.",
+      { sku, configuredBaseCurrency }
+    )
+  }
+
+  try {
+    console.info(
+      `[ERP_PRICE_DRY_RUN_START] provider=odoo sku=${sku} currency=${baseCurrency}`
+    )
+    const erp = req.scope.resolve<ErpService>("erp")
+    const query = req.scope.resolve<QueryGraph>(
+      ContainerRegistrationKeys.QUERY
+    )
+    const [odooProduct, variantsResult] = await Promise.all([
+      erp.getExactProductForSync(sku),
+      query.graph({
+        entity: "variant",
+        fields: [
+          "id",
+          "sku",
+          "prices.id",
+          "prices.amount",
+          "prices.currency_code",
+          "prices.price_set_id",
+        ],
+        filters: { sku: [sku] },
+      }),
+    ])
+
+    const variants = variantsResult.data
+    if (!variants.length) {
+      return errorResponse(
+        res,
+        404,
+        "ERP_PRICE_SKU_NOT_FOUND",
+        "No Medusa variant matches the exact ERP SKU.",
+        { sku }
+      )
+    }
+
+    if (variants.length > 1) {
+      return errorResponse(
+        res,
+        409,
+        "ERP_PRICE_DUPLICATE_SKU",
+        "Multiple Medusa variants match the exact ERP SKU.",
+        { sku }
+      )
+    }
+
+    const sourceAmount = Number(odooProduct.list_price)
+    if (!Number.isFinite(sourceAmount) || sourceAmount < 0) {
+      return errorResponse(
+        res,
+        409,
+        "ERP_PRICE_INVALID_AMOUNT",
+        "Odoo list_price must be a finite non-negative selling price.",
+        { sku, odooProductId: odooProduct.id }
+      )
+    }
+
+    const variant = variants[0]
+    const prices = variant.prices || []
+    const priceSetIds = Array.from(
+      new Set(
+        prices
+          .map((price) => price.price_set_id?.trim())
+          .filter((id): id is string => Boolean(id))
+      )
+    )
+    const currentPrices = Object.fromEntries(
+      prices
+        .filter((price) =>
+          SUPPORTED_CURRENCIES.has(
+            price.currency_code.toLowerCase()
+          )
+        )
+        .map((price) => [
+          price.currency_code.toLowerCase(),
+          { id: price.id, amount: Number(price.amount) },
+        ])
+    )
+
+    if (priceSetIds.length > 1) {
+      return errorResponse(
+        res,
+        409,
+        "ERP_PRICE_SET_AMBIGUOUS",
+        "The Medusa variant has multiple price sets and cannot be priced safely.",
+        {
+          sku,
+          odoo: {
+            productId: odooProduct.id,
+            listPrice: sourceAmount,
+            currency: baseCurrency,
+          },
+          medusa: {
+            variantId: variant.id,
+            currentPrices,
+            priceSetIds,
+          },
+        }
+      )
+    }
+
+    const existingPrice = currentPrices[baseCurrency]
+    const action = existingPrice ? "UPDATE" : "CREATE"
+    console.info(
+      `[ERP_PRICE_DRY_RUN_COMPLETE] provider=odoo sku=${sku} currency=${baseCurrency} action=${action}`
+    )
+
+    return res.status(200).json({
+      success: true,
+      dryRun: true,
+      sku,
+      odoo: {
+        productId: odooProduct.id,
+        price: sourceAmount,
+        currency: baseCurrency.toUpperCase(),
+      },
+      medusa: {
+        variantId: variant.id,
+        priceSetId: priceSetIds[0] || null,
+        currentUsdPrice: currentPrices.usd?.amount ?? null,
+        currentCadPrice: currentPrices.cad?.amount ?? null,
+      },
+      plan: [{
+        action,
+        currency: baseCurrency.toUpperCase(),
+        currentAmount: existingPrice?.amount ?? null,
+        proposedAmount: sourceAmount,
+      }],
+      writeGuards: {
+        priceSyncEnabled,
+        priceDryRun,
+        amountUnit: "major",
+        writesImplemented: false,
+      },
+    })
+  } catch (error) {
+    const code =
+      error instanceof Error &&
+      "code" in error &&
+      typeof error.code === "string"
+        ? error.code
+        : "ERP_PRICE_SOURCE_MISSING"
+
+    console.warn(
+      `[ERP_PRICE_DRY_RUN_FAILED] provider=odoo sku=${sku} code=${code}`
+    )
+    return errorResponse(
+      res,
+      502,
+      code,
+      error instanceof Error
+        ? error.message
+        : "Unable to prepare the ERP price proposal."
+    )
+  }
+}

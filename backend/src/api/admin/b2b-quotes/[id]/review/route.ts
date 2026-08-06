@@ -87,9 +87,9 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     }
 
     // ── 3. Validate the quote is in a reviewable state ──────────────────
-    if (!["pending_review", "draft", "pending"].includes(quote.status)) {
+    if (!["pending_merchant", "pending_review", "draft", "pending"].includes(quote.status)) {
       return res.status(409).json({
-        message: `Quote is already in status "${quote.status}". Only 'pending_review' quotes can be reviewed.`,
+        message: `Quote is already in status "${quote.status}". Only pending merchant review quotes can be reviewed.`,
       })
     }
 

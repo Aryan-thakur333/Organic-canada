@@ -1,39 +1,46 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Modules } from "@medusajs/framework/utils"
-import { SUBSCRIPTION_MODULE } from "../../../../modules/subscription"
+import { SUBSCRIPTION_MODULE } from "../../../../modules/subscription/index"
+import { B2B_MODULE } from "../../../../modules/b2b/index"
 import { getStripeClient } from "../../../../lib/stripe-client"
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || ""
+import { updateQuoteOrderPaymentMetadata } from "../../../../utils/b2b/quote-payment"
+import { processStripeSubscriptionEvent } from "../../../../modules/subscription/stripe-event-processor"
 
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
-  const sig = req.headers["stripe-signature"] as string
-  let event: any
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+  if (!webhookSecret) {
+    console.warn("[Stripe Webhook] STRIPE_WEBHOOK_SECRET is not configured.")
+    return res.status(400).json({ message: "Stripe webhook secret is not configured" })
+  }
+  if (webhookSecret.startsWith("sk_") || webhookSecret.startsWith("rk_")) {
+    console.error("[Stripe Webhook] Invalid configuration: STRIPE_WEBHOOK_SECRET cannot be an API key.")
+    return res.status(400).json({ message: "Invalid webhook secret configuration" })
+  }
 
+  const sig = req.headers["stripe-signature"] as string | undefined
+  if (!sig) {
+    console.warn("[Stripe Webhook] Missing stripe-signature header.")
+    return res.status(400).json({ message: "Missing Stripe-Signature header" })
+  }
+
+  let event: any
   try {
-    const rawBody = (req as any).rawBody || JSON.stringify(req.body)
-    if (!sig || !webhookSecret || webhookSecret === "whsec_test") {
-      if (process.env.NODE_ENV === "production") {
-        return res.status(400).json({ message: "A valid Stripe webhook signature is required" })
-      }
-      console.warn("[Stripe Webhook] Using an unverified event outside production.")
-      event = typeof req.body === "string" ? JSON.parse(req.body) : req.body
-    } else {
-      event = getStripeClient().webhooks.constructEvent(rawBody, sig, webhookSecret)
-    }
+    const rawBody = (req as any).rawBody ?? (typeof req.body === "string" ? req.body : Buffer.isBuffer(req.body) ? req.body : JSON.stringify(req.body))
+    event = getStripeClient().webhooks.constructEvent(rawBody, sig, webhookSecret)
   } catch (err: any) {
     console.error("[Stripe Webhook] Signature verification failed:", err.message)
-    if (process.env.NODE_ENV !== "production") {
-      console.log("[Stripe Webhook] Dev fallback to unverified payload")
-      event = typeof req.body === "string" ? JSON.parse(req.body) : req.body
-    } else {
-      return res.status(400).json({ message: `Webhook Error: ${err.message}` })
-    }
+    return res.status(400).json({ message: `Webhook Error: Stripe webhook signature verification failed: ${err.message}` })
   }
 
   const subscriptionService: any = req.scope.resolve(SUBSCRIPTION_MODULE)
   const customerModuleService: any = req.scope.resolve(Modules.CUSTOMER)
+  const b2bService: any = req.scope.resolve(B2B_MODULE)
 
   try {
+    const subscriptionResult = await processStripeSubscriptionEvent(event, req.scope)
+    if (subscriptionResult.handled) {
+      return res.json({ received: true, type: event.type, duplicate: subscriptionResult.duplicate === true })
+    }
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as any
@@ -101,13 +108,35 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       case "payment_intent.succeeded": {
         const pi = event.data.object as any
         console.log("[Stripe Webhook] Payment succeeded:", pi.id, "Amount:", pi.amount_received)
-        // Update subscription status if metadata contains subscription_id
-        if (pi.metadata?.subscription_id) {
-          await subscriptionService.updateSubscriptions({
-            id: pi.metadata.subscription_id,
-            status: "active",
-            failed_payment_count: 0,
-            last_billed_at: new Date(),
+        if (pi.metadata?.source === "b2b_quote" && pi.metadata?.quote_id) {
+          const quote = await b2bService.retrieveQuote(pi.metadata.quote_id)
+          await b2bService.updateQuotes({
+            id: pi.metadata.quote_id,
+            payment_state: "paid",
+            selected_payment_provider_id: "stripe",
+            paid_at: new Date(),
+            metadata: {
+              ...(quote?.metadata || {}),
+              payment_state: "paid",
+              selected_payment_provider_id: "stripe",
+              payments: {
+                ...(quote?.metadata?.payments || {}),
+                stripe: {
+                  ...(quote?.metadata?.payments?.stripe || {}),
+                  payment_intent_id: pi.id,
+                  amount: pi.amount_received || pi.amount,
+                  currency_code: pi.currency,
+                  status: pi.status,
+                  paid_at: new Date().toISOString(),
+                },
+              },
+            },
+          })
+          await updateQuoteOrderPaymentMetadata(req.scope.resolve(Modules.ORDER), quote, {
+            payment_state: "paid",
+            selected_payment_provider_id: "stripe",
+            payment_reference: pi.id,
+            paid_at: new Date().toISOString(),
           })
         }
         break
@@ -116,13 +145,33 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       case "payment_intent.payment_failed": {
         const pi = event.data.object as any
         console.error("[Stripe Webhook] Payment failed:", pi.id)
-        if (pi.metadata?.subscription_id) {
-          const sub = await subscriptionService.retrieveSubscription(pi.metadata.subscription_id)
-          const failCount = (sub?.failed_payment_count || 0) + 1
-          await subscriptionService.updateSubscriptions({
-            id: pi.metadata.subscription_id,
-            status: failCount >= 3 ? "expired" : "past_due",
-            failed_payment_count: failCount,
+        if (pi.metadata?.source === "b2b_quote" && pi.metadata?.quote_id) {
+          const quote = await b2bService.retrieveQuote(pi.metadata.quote_id)
+          await b2bService.updateQuotes({
+            id: pi.metadata.quote_id,
+            payment_state: "failed",
+            selected_payment_provider_id: "stripe",
+            metadata: {
+              ...(quote?.metadata || {}),
+              payment_state: "failed",
+              selected_payment_provider_id: "stripe",
+              payments: {
+                ...(quote?.metadata?.payments || {}),
+                stripe: {
+                  ...(quote?.metadata?.payments?.stripe || {}),
+                  payment_intent_id: pi.id,
+                  amount: pi.amount,
+                  currency_code: pi.currency,
+                  status: pi.status,
+                  failed_at: new Date().toISOString(),
+                },
+              },
+            },
+          })
+          await updateQuoteOrderPaymentMetadata(req.scope.resolve(Modules.ORDER), quote, {
+            payment_state: "failed",
+            selected_payment_provider_id: "stripe",
+            payment_reference: pi.id,
           })
         }
         break
@@ -131,21 +180,8 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       case "charge.refunded": {
         const charge = event.data.object as any
         console.log("[Stripe Webhook] Charge refunded:", charge.id)
-        const piId = typeof charge.payment_intent === "string" ? charge.payment_intent : null
-        if (piId) {
-          try {
-            const pi = await getStripeClient().paymentIntents.retrieve(piId)
-            if (pi.metadata?.subscription_id) {
-              console.log(`[Stripe Webhook] Refunding subscription ${pi.metadata.subscription_id}, marking as cancelled...`)
-              await subscriptionService.updateSubscriptions({
-                id: pi.metadata.subscription_id,
-                status: "cancelled",
-              })
-            }
-          } catch (err: any) {
-            console.error("[Stripe Webhook] Failed to process charge refund for subscription:", err.message)
-          }
-        }
+        // Refund processing belongs to the order/payment refund workflow.
+        // A refund must not silently cancel or reactivate a subscription.
         break
       }
 

@@ -42,6 +42,7 @@ export function hashPassword(password: string): string {
 
 export function comparePassword(password: string, stored: string): boolean {
   try {
+    if (!stored) return false
     if (stored.startsWith("$2")) return bcrypt.compareSync(password, stored)
     // Backward-compatible verification for recovered accounts. Successful
     // logins are upgraded to bcrypt by the login route.

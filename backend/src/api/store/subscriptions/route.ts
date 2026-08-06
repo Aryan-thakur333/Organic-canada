@@ -1,300 +1,172 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { Modules, MedusaError } from "@medusajs/framework/utils"
-import Stripe from "stripe"
+import { Modules } from "@medusajs/framework/utils"
+import { z } from "@medusajs/framework/zod"
+import { getStripeClient } from "../../../lib/stripe-client"
 import { SUBSCRIPTION_MODULE } from "../../../modules/subscription"
-import { addPlanPeriod, normalizeSubscriptionPlan } from "../../../modules/subscription/plan-utils"
+import {
+  calculateSubscriptionUnitPrice,
+  createSubscriptionFingerprint,
+  INTERVAL_TO_PLAN,
+  SUBSCRIPTION_INTERVALS,
+  type SubscriptionInterval,
+} from "../../../modules/subscription/contract"
 
-// ── Constants ──────────────────────────────────────────────────────────────
+const CreateSubscriptionSchema = z.object({
+  cart_id: z.string().trim().min(1).max(128),
+  interval: z.enum(SUBSCRIPTION_INTERVALS),
+  interval_count: z.number().int().min(1).max(12),
+  idempotency_key: z.string().trim().min(8).max(128).regex(/^[A-Za-z0-9._:-]+$/),
+}).strict()
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173"
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-function getStripe() {
-  return new Stripe(process.env.STRIPE_API_KEY || "", {
-    apiVersion: "2025-05-28.basil" as any,
-  })
+function publicSubscription(subscription: any) {
+  const { stripe_payment_method_id: _paymentMethod, ...safe } = subscription || {}
+  return safe
 }
 
-/**
- * Updates the Medusa customer's metadata to reflect premium membership status.
- * Merges with any existing metadata to avoid data loss.
- */
-async function setCustomerPremiumStatus(
-  container: any,
-  customerId: string,
-  isPremium: boolean,
-  extraMetadata?: Record<string, any>
-): Promise<void> {
-  const customerModuleService: any = container.resolve(Modules.CUSTOMER)
-  const customer = await customerModuleService.retrieveCustomer(customerId)
-  const existingMetadata = customer?.metadata || {}
-
-  await customerModuleService.updateCustomers({
-    id: customerId,
-    metadata: {
-      ...existingMetadata,
-      is_premium: isPremium,
-      ...(extraMetadata || {}),
-    },
-  })
-}
-
-// ────────────────────────────────────────────────────────────────────────────
-//  GET /store/subscriptions
-//  ─ Verification endpoint called by the frontend after Stripe Checkout
-//    redirects the user back to {FRONTEND_URL}/dashboard/subscriptions?
-//    session_id=cs_test_xxx
-//
-//  Flow:
-//    1. Extract session_id from query string
-//    2. Retrieve the Stripe Checkout Session to verify payment status
-//    3. If payment is complete, load the local subscription via metadata
-//    4. Activate the subscription and set customer metadata: is_premium: true
-//    5. Return the updated subscription + customer status to the frontend
-// ────────────────────────────────────────────────────────────────────────────
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-  const sessionId = req.query.session_id as string | undefined
-  const authenticatedCustomerId = (req as any).auth_context?.actor_id as string | undefined
+  const customerId = (req as any).auth_context?.actor_id as string | undefined
+  if (!customerId) return res.status(401).json({ code: "SUBSCRIPTION_AUTH_REQUIRED", message: "Authentication required." })
 
-  if (!sessionId) {
-    const subscriptionService: any = req.scope.resolve(SUBSCRIPTION_MODULE)
-    const subscriptions = await subscriptionService.listSubscriptions(
-      { customer_id: authenticatedCustomerId },
-      { order: { created_at: "DESC" } }
-    )
-    return res.json({ subscriptions, count: subscriptions.length })
-  }
-
-  try {
-    const stripe = getStripe()
-
-    // 1. Retrieve the Stripe Checkout Session
-    const session = await stripe.checkout.sessions.retrieve(sessionId)
-
-    if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") {
-      return res.status(402).json({
-        success: false,
-        message: `Payment not completed. Status: ${session.payment_status}`,
-        payment_status: session.payment_status,
-      })
-    }
-
-    // 2. Extract the subscription and customer IDs from session metadata
-    const subscriptionId = session.metadata?.subscription_id
-    const customerId = session.metadata?.customer_id
-
-    if (!subscriptionId || !customerId) {
-      return res.status(400).json({
-        success: false,
-        message: "Session metadata missing subscription_id or customer_id",
-      })
-    }
-
-    if (customerId !== authenticatedCustomerId) {
-      return res.status(403).json({ success: false, message: "This checkout session belongs to another customer" })
-    }
-
-    // 3. Load and activate the local subscription record
-    const subscriptionService: any = req.scope.resolve(SUBSCRIPTION_MODULE)
-
-    const subscription = await subscriptionService.retrieveSubscription(subscriptionId)
-    if (!subscription) {
-      return res.status(404).json({
-        success: false,
-        message: "Subscription record not found",
-      })
-    }
-
-    // Calculate next billing date based on plan
-    const nextBillingDate = addPlanPeriod(
-      new Date(),
-      subscription.metadata?.interval || (subscription.plan === "weekly" ? "week" : subscription.plan === "yearly" ? "year" : "month"),
-      Number(subscription.metadata?.period || 1)
-    )
-
-    // Update local subscription to active with billing dates
-    await subscriptionService.updateSubscriptions({
-      id: subscriptionId,
-      status: "active",
-      stripe_subscription_id: session.subscription || sessionId,
-      next_billing_date: nextBillingDate,
-      last_billed_at: new Date(),
-      failed_payment_count: 0,
-    })
-
-    // 4. Update customer metadata: set premium status
-    await setCustomerPremiumStatus(req.scope, customerId, true, {
-      subscription_id: subscriptionId,
-      subscription_plan: subscription.plan,
-      subscription_plan_id: subscription.metadata?.plan_id,
-      fast_delivery: subscription.metadata?.fast_delivery === true,
-      premium_activated_at: new Date().toISOString(),
-      premium_session_id: sessionId,
-    })
-
-    console.log(
-      `[Subscriptions] Premium activated for customer ${customerId} via session ${sessionId}`
-    )
-
-    // 5. Return success to the frontend
-    return res.json({
-      success: true,
-      message: "Premium membership activated",
-      customer: {
-        id: customerId,
-        metadata: {
-          is_premium: true,
-          subscription_id: subscriptionId,
-        },
-      },
-    })
-  } catch (error: any) {
-    console.error("[Subscriptions] Session verification error:", error)
-
-    // Handle Stripe-specific errors gracefully
-    if (error.type === "StripeInvalidRequestError") {
-      return res.status(400).json({
-        success: false,
-        message: `Invalid Stripe session: ${error.message}`,
-      })
-    }
-
-    if (error instanceof MedusaError) {
-      const status = error.type === "not_found" ? 404 : 400
-      return res.status(status).json({ success: false, message: error.message })
-    }
-
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Failed to verify subscription payment",
-    })
-  }
+  const service: any = req.scope.resolve(SUBSCRIPTION_MODULE)
+  const subscriptions = await service.listSubscriptions(
+    { customer_id: customerId },
+    { order: { created_at: "DESC" } }
+  )
+  return res.json({ subscriptions: subscriptions.map(publicSubscription), count: subscriptions.length })
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-//  POST /store/subscriptions
-//  ─ Create a new subscription and initialize the Stripe Checkout Session
-//
-//  Flow:
-//    1. Validate auth and required inputs
-//    2. Create a local subscription record with status "trialing"
-//    3. Create a Stripe Checkout Session that redirects back to the frontend
-//    4. Return the Checkout URL so the frontend can redirect the user
-// ────────────────────────────────────────────────────────────────────────────
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
-  const customer_id = (req as any).auth_context?.actor_id
-  const { product_id, plan_id, plan } = req.body as any
+  const customerId = (req as any).auth_context?.actor_id as string | undefined
+  if (!customerId) return res.status(401).json({ code: "SUBSCRIPTION_AUTH_REQUIRED", message: "Authentication required." })
 
-  if (!customer_id) {
-    return res.status(401).json({ message: "Authentication required" })
+  const parsed = CreateSubscriptionSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return res.status(400).json({ code: "SUBSCRIPTION_INPUT_INVALID", message: "Invalid subscription request.", issues: parsed.error.issues })
   }
-  if (!plan_id && !plan) {
-    return res.status(400).json({ message: "plan_id is required" })
+
+  const { cart_id: cartId, interval, interval_count: intervalCount, idempotency_key: idempotencyKey } = parsed.data
+  const service: any = req.scope.resolve(SUBSCRIPTION_MODULE)
+  const fingerprint = createSubscriptionFingerprint({ customerId, cartId, interval, intervalCount })
+  const existing = (await service.listSubscriptions({ customer_id: customerId, idempotency_key: idempotencyKey }))[0]
+  if (existing) {
+    if (existing.input_fingerprint !== fingerprint) {
+      return res.status(409).json({ code: "SUBSCRIPTION_IDEMPOTENCY_CONFLICT", message: "The idempotency key was already used for different input." })
+    }
+    return res.status(200).json({ subscription: publicSubscription(existing), reused: true })
+  }
+
+  if (!process.env.STRIPE_API_KEY) {
+    return res.status(503).json({ code: "SUBSCRIPTION_PAYMENT_UNAVAILABLE", message: "Subscription checkout is unavailable." })
   }
 
   try {
-    const subscriptionService: any = req.scope.resolve(SUBSCRIPTION_MODULE)
+    const cartService: any = req.scope.resolve(Modules.CART)
     const customerService: any = req.scope.resolve(Modules.CUSTOMER)
-    const availablePlans = await subscriptionService.listSubscriptionPlans(
-      plan_id ? { id: plan_id, is_active: true } : { plan, is_active: true },
-      { order: { sort_order: "ASC" }, take: 1 }
-    )
-    const selectedPlan = availablePlans[0]
-    if (!selectedPlan) return res.status(404).json({ message: "Active subscription plan not found" })
-    const normalizedPlan = normalizeSubscriptionPlan(selectedPlan)
-    const customer = await customerService.retrieveCustomer(customer_id)
-    const nextBillingDate = addPlanPeriod(new Date(), normalizedPlan.interval, normalizedPlan.period)
-    const customerSubscriptions = await subscriptionService.listSubscriptions({ customer_id })
-    const existingActive = customerSubscriptions.find((item: any) =>
-      ["active", "trialing"].includes(item.status) && item.metadata?.plan_id === selectedPlan.id
-    )
-    if (existingActive) return res.status(200).json({ subscription: existingActive, reused: true })
-
-    const stripeKey = process.env.STRIPE_API_KEY
-    if (!stripeKey || stripeKey === "sk_test_placeholder") {
-      return res.status(503).json({ message: "Subscription checkout is unavailable because Stripe is not configured" })
-    }
-
-    // 1. Create local subscription record (pending until Stripe confirms)
-    const subscription = await subscriptionService.createSubscriptions({
-      customer_id,
-      customer_email: customer.email,
-      product_id: product_id || null,
-      product_title: normalizedPlan.name,
-      plan: selectedPlan.plan,
-      amount: selectedPlan.amount,
-      currency: selectedPlan.currency,
-      status: "trialing",
-      next_billing_date: nextBillingDate,
-      failed_payment_count: 0,
-      metadata: {
-        plan_id: selectedPlan.id,
-        plan_name: normalizedPlan.name,
-        interval: normalizedPlan.interval,
-        period: normalizedPlan.period,
-        display: normalizedPlan.display,
-        fast_delivery: normalizedPlan.metadata?.fast_delivery === true,
-      },
+    const cart = await cartService.retrieveCart(cartId, {
+      relations: ["items", "items.variant", "shipping_address", "billing_address"],
     })
 
-    // 2. Create Stripe Checkout Session with frontend return URLs
-    if (stripeKey) {
-      const stripe = getStripe()
+    if (!cart || cart.customer_id !== customerId) {
+      return res.status(404).json({ code: "SUBSCRIPTION_CART_NOT_FOUND", message: "Cart not found." })
+    }
+    if (cart.completed_at) return res.status(409).json({ code: "SUBSCRIPTION_CART_COMPLETED", message: "The cart is already completed." })
+    if (!cart.region_id || !cart.currency_code || !Array.isArray(cart.items) || !cart.items.length) {
+      return res.status(400).json({ code: "SUBSCRIPTION_CART_INVALID", message: "The cart is not ready for subscription checkout." })
+    }
+    if (cart.items.some((item: any) => item.metadata?.personalization_id || item.metadata?.bundle_id || item.metadata?.is_bundle)) {
+      return res.status(400).json({ code: "SUBSCRIPTION_MIXED_CART_UNSUPPORTED", message: "Subscription checkout supports subscription items only." })
+    }
+    if (cart.items.some((item: any) => item.metadata?.is_subscription !== true)) {
+      return res.status(400).json({ code: "SUBSCRIPTION_MIXED_CART_UNSUPPORTED", message: "Subscription checkout supports subscription items only." })
+    }
+    if (cart.items.some((item: any) => String(item.metadata?.subscription_interval || "").toUpperCase() !== interval)) {
+      return res.status(400).json({ code: "SUBSCRIPTION_INTERVAL_MISMATCH", message: "Cart subscription interval does not match the request." })
+    }
 
-      const session = await stripe.checkout.sessions.create({
-        mode: "subscription",
-        payment_method_types: ["card"],
-        customer_email: customer.email || undefined,
-        line_items: [
-          {
-            price_data: {
-              currency: selectedPlan.currency,
-              product_data: {
-                name: normalizedPlan.name,
-                metadata: { subscription_id: subscription.id },
-              },
-              recurring: {
-                interval: normalizedPlan.interval,
-                interval_count: normalizedPlan.period,
-              },
-              unit_amount: selectedPlan.amount,
-            },
-            quantity: 1,
+    const itemSnapshots: any[] = []
+    let amount = 0
+    let pauseAllowed = true
+    for (const item of cart.items) {
+      const variantId = String(item.variant_id || item.variant?.id || "")
+      const productId = String(item.product_id || item.variant?.product_id || "")
+      const configs = await service.listSubscriptionProductConfigurations({
+        enabled: true,
+        product_id_reference: productId,
+      })
+      const config = configs.find((entry: any) => !entry.variant_id_reference || entry.variant_id_reference === variantId)
+      const allowed = Array.isArray(config?.allowed_intervals) ? config.allowed_intervals.map((value: unknown) => String(value).toUpperCase()) : []
+      if (!config || !allowed.includes(interval)) {
+        return res.status(400).json({ code: "SUBSCRIPTION_ITEM_INELIGIBLE", message: "A cart item is not eligible for the selected subscription interval.", variant_id: variantId })
+      }
+      pauseAllowed = pauseAllowed && config.pause_allowed !== false
+      const quantity = Number(item.quantity)
+      const sourcePrice = Number(item.unit_price)
+      if (!variantId || !Number.isInteger(quantity) || quantity < 1 || !Number.isInteger(sourcePrice) || sourcePrice < 0) {
+        return res.status(400).json({ code: "SUBSCRIPTION_CART_PRICE_INVALID", message: "A cart item has no valid server-calculated price." })
+      }
+      const unitPrice = calculateSubscriptionUnitPrice(sourcePrice, config)
+      amount += unitPrice * quantity
+      itemSnapshots.push({
+        variant_id_reference: variantId,
+        product_id_reference: productId || null,
+        quantity,
+        unit_price_snapshot: unitPrice,
+        title_snapshot: String(item.title || "Subscription item"),
+        variant_title_snapshot: item.variant_title ? String(item.variant_title) : null,
+        metadata: { source_cart_item_id: item.id, configuration_id: config.id },
+      })
+    }
+
+    const customer = await customerService.retrieveCustomer(customerId)
+    const subscription = await service.createSubscriptions({
+      customer_id: customerId,
+      customer_email: customer.email,
+      idempotency_key: idempotencyKey,
+      input_fingerprint: fingerprint,
+      plan: INTERVAL_TO_PLAN[interval as SubscriptionInterval],
+      interval_count: intervalCount,
+      status: "draft",
+      amount,
+      currency: String(cart.currency_code).toLowerCase(),
+      region_id_reference: cart.region_id,
+      sales_channel_id_reference: cart.sales_channel_id || null,
+      shipping_address_snapshot: cart.shipping_address || null,
+      billing_address_snapshot: cart.billing_address || null,
+      payment_provider: "stripe_billing",
+      metadata: { source_cart_id: cartId, interval, item_count: itemSnapshots.length, pause_allowed: pauseAllowed },
+    })
+
+    await service.createSubscriptionItems(itemSnapshots.map((item) => ({ ...item, subscription_id: subscription.id })))
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173"
+    const session = await getStripeClient().checkout.sessions.create({
+      mode: "subscription",
+      customer_email: customer.email || undefined,
+      line_items: itemSnapshots.map((item) => ({
+        quantity: item.quantity,
+        price_data: {
+          currency: String(cart.currency_code).toLowerCase(),
+          unit_amount: item.unit_price_snapshot,
+          product_data: { name: item.variant_title_snapshot ? `${item.title_snapshot} — ${item.variant_title_snapshot}` : item.title_snapshot },
+          recurring: {
+            interval: interval === "WEEK" ? "week" : interval === "YEAR" ? "year" : "month",
+            interval_count: interval === "QUARTER" ? intervalCount * 3 : intervalCount,
           },
-        ],
-        metadata: {
-          subscription_id: subscription.id,
-          customer_id,
         },
-        // The frontend handles the redirect and calls GET /store/subscriptions?session_id=xxx
-        success_url: `${FRONTEND_URL}/dashboard/subscriptions?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${FRONTEND_URL}/dashboard/subscriptions?canceled=true`,
-      })
+      })),
+      metadata: { subscription_id: subscription.id, customer_id: customerId, cart_id: cartId },
+      subscription_data: { metadata: { subscription_id: subscription.id, customer_id: customerId } },
+      success_url: `${frontendUrl}/dashboard/subscriptions?created=true`,
+      cancel_url: `${frontendUrl}/cart?subscription_canceled=true`,
+    }, { idempotencyKey: `subscription:create:${customerId}:${idempotencyKey}` })
 
-      // Store the Stripe session reference
-      await subscriptionService.updateSubscriptions({
-        id: subscription.id,
-        stripe_subscription_id: session.id,
-      })
-
-      return res.status(201).json({
-        subscription,
-        url: session.url,
-        session_id: session.id,
-      })
-    }
-
-    // 3. No Stripe key configured — mock mode for development
-    //    Directly activate the subscription and set premium status.
-    return res.status(503).json({ message: "Subscription checkout is unavailable" })
+    await service.updateSubscriptions({
+      id: subscription.id,
+      stripe_subscription_id: session.id,
+      metadata: { ...(subscription.metadata || {}), checkout_session_id: session.id },
+    })
+    return res.status(201).json({ subscription: publicSubscription(subscription), checkout_url: session.url, reused: false })
   } catch (error: any) {
-    console.error("[Subscriptions] Create subscription error:", error)
-
-    if (error instanceof MedusaError) {
-      const status = error.type === "not_found" ? 404 : 400
-      return res.status(status).json({ message: error.message })
-    }
-
-    return res.status(500).json({ message: error.message || "Failed to create subscription" })
+    console.error(`[Subscriptions] create failed: ${error?.code || "SUBSCRIPTION_CREATE_FAILED"}`)
+    return res.status(500).json({ code: "SUBSCRIPTION_CREATE_FAILED", message: "Unable to create subscription checkout." })
   }
 }

@@ -1,3 +1,5 @@
+import { defineRouteConfig } from "@medusajs/admin-sdk"
+import { DocumentText } from "@medusajs/icons"
 import { Button, Container, Heading, StatusBadge, Table, Text, toast, Badge } from "@medusajs/ui"
 import { useEffect, useState } from "react"
 
@@ -295,4 +297,5 @@ const SubscriptionsPage = () => {
 }
 
 // 🚫 Sidebar config removed — only core extensions (B2B Quotes, Vendor Approvals, Analytics, Marketplace Overview) are shown.
+export const config = defineRouteConfig({ label: "Subscriptions", icon: DocumentText })
 export default SubscriptionsPage

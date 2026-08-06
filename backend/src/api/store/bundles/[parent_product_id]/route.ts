@@ -1,98 +1,134 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { Modules } from "@medusajs/framework/utils"
 import { BUNDLE_MODULE } from "../../../../modules/bundle"
+import { loadBundleOperationalContext } from "../../../../modules/bundle/utils/availability"
+
+// Configuration errors that should return 422
+const CONFIG_ERROR_PATTERNS = [
+  "no components",
+  "duplicate component",
+  "not published",
+  "not available in this sales channel",
+  "no longer exist",
+  "bundle has no component",
+]
+
+function isConfigurationError(message: string): boolean {
+  const lower = message.toLowerCase()
+  return CONFIG_ERROR_PATTERNS.some((pattern) => lower.includes(pattern))
+}
+
+async function getActiveBundle(service: any, productId: string) {
+  const bundles = await service.listBundleDefinitions({ product_id: productId, status: "active" })
+  if (!bundles[0]) throw Object.assign(new Error("Active bundle not found"), { code: "BUNDLE_NOT_FOUND" })
+  return bundles[0]
+}
 
 /**
  * GET /store/bundles/:parent_product_id
  *
- * Returns all child products that belong to a parent bundle product.
- * Enriches each child with product details (title, thumbnail, handle)
- * so the storefront can render them directly.
- *
- * Example response:
- * {
- *   "parent_product_id": "prod_xxx",
- *   "items": [
- *     {
- *       "child_product_id": "prod_yyy",
- *       "quantity": 1,
- *       "sort_order": 0,
- *       "product": { "id": "prod_yyy", "title": "Organic Almonds", "thumbnail": "...", "handle": "..." }
- *     }
- *   ]
- * }
+ * Legacy endpoint — requires region_id and country_code query params.
+ * Prefer GET /store/bundles/by-product/:productId for new integrations.
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-  const parent_product_id = req.params.parent_product_id
+  const regionId = String(req.query.region_id || "")
+  let salesChannelId = String(req.query.sales_channel_id || "")
+  const countryCode = String(req.query.country_code || "")
 
-  if (!parent_product_id) {
-    return res.status(400).json({ message: "parent_product_id is required" })
+  if (!regionId || !countryCode) {
+    return res.status(400).json({
+      code: "BUNDLE_REGION_CONTEXT_REQUIRED",
+      message: "region_id and country_code are required",
+    })
   }
 
   try {
-    const bundleService: any = req.scope.resolve(BUNDLE_MODULE)
-    const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+    const service: any = req.scope.resolve(BUNDLE_MODULE)
+    const bundle = await getActiveBundle(service, req.params.parent_product_id)
 
-    // Fetch all child bundle items for this parent product, ordered by sort_order
-    const bundle_items = await bundleService.listBundleItems(
-      { parent_product_id },
-      { order: { sort_order: "ASC" }, take: 5 }
-    )
-
-    if (bundle_items.length === 0) {
-      return res.json({
-        parent_product_id,
-        items: [],
-        total_items: 0,
+    if (!salesChannelId) {
+      salesChannelId = (req as any).publishable_key_context?.sales_channel_ids?.[0] || bundle.sales_channel_ids?.[0] || ""
+    }
+    if (!salesChannelId) {
+      return res.status(400).json({
+        code: "BUNDLE_REGION_CONTEXT_REQUIRED",
+        message: "No storefront sales channel is available",
       })
     }
 
-    // Collect unique child product IDs for enrichment
-    const childProductIds = [...new Set(bundle_items.map((bi: any) => bi.child_product_id))]
+    // Retrieve regional price via Medusa query graph
+    const query: any = req.scope.resolve("query")
+    let bundlePrice: number | null = null
+    let bundleCurrency: string | null = null
 
-    // Enrich with product details via the Medusa query engine
-    const childIds: string[] = childProductIds as string[]
+    try {
+      const { data: variants } = await query.graph({
+        entity: "variant",
+        fields: ["id", "calculated_price.calculated_amount", "calculated_price.currency_code", "prices.amount", "prices.currency_code"],
+        filters: { id: bundle.variant_id },
+        context: { region_id: regionId },
+        pagination: { take: 1 },
+      })
+      const variant = variants[0]
+      if (variant?.calculated_price?.calculated_amount !== undefined && variant.calculated_price.calculated_amount !== null) {
+        bundlePrice = Number(variant.calculated_price.calculated_amount)
+        bundleCurrency = String(variant.calculated_price.currency_code || "").toLowerCase()
+      } else if (variant?.prices?.length) {
+        const regionService: any = req.scope.resolve(Modules.REGION)
+        const region = await regionService.retrieveRegion(regionId)
+        const regionCurrency = String(region?.currency_code || "").toLowerCase()
+        const match = (variant.prices || []).find((p: any) => String(p.currency_code || "").toLowerCase() === regionCurrency)
+        if (match) { bundlePrice = Number(match.amount); bundleCurrency = regionCurrency }
+      }
+    } catch { /* non-fatal */ }
 
-    const { data: childProducts } = await query.graph({
-      entity: "product",
-      fields: [
-        "id",
-        "title",
-        "handle",
-        "thumbnail",
-        "subtitle",
-        "status",
-        "variants.id",
-        "variants.title",
-        "variants.prices.amount",
-        "variants.prices.currency_code",
-      ],
-      filters: { id: childIds },
+    const operational = await loadBundleOperationalContext(req.scope, bundle, 1, {
+      sales_channel_id: salesChannelId,
+      country_code: countryCode,
     })
 
-    // Build a lookup map for O(1) access
-    const productMap = new Map<string, any>()
-    for (const product of childProducts || []) {
-      productMap.set(product.id, product)
-    }
-
-    // Merge bundle item data with product details
-    const items = bundle_items.map((bi: any) => ({
-      child_product_id: bi.child_product_id,
-      quantity: bi.quantity,
-      sort_order: bi.sort_order,
-      product: productMap.get(bi.child_product_id) || null,
-    }))
-
-    return res.json({
-      parent_product_id,
-      items,
-      total_items: items.length,
+    return res.status(200).json({
+      bundle: {
+        id: bundle.id,
+        title: bundle.title,
+        handle: bundle.handle,
+        product_id: bundle.product_id,
+        variant_id: bundle.variant_id,
+        bundle_type: bundle.bundle_type,
+        pricing_strategy: bundle.pricing_strategy,
+        currency_code: bundleCurrency,
+        price: bundlePrice,
+        available_quantity: operational.available_quantity,
+        location_availability: operational.location_availability.map((location: any) => ({
+          location_id: location.location_id,
+          available_quantity: location.available_quantity,
+        })),
+        components: operational.components.map((component: any) => ({
+          variant_id: component.id,
+          title: component.title,
+          sku: component.sku,
+          quantity: component.quantity,
+          product: { id: component.product.id, title: component.product.title, thumbnail: component.product.thumbnail },
+        })),
+      },
     })
   } catch (error: any) {
-    console.error("[Store Bundles] Failed to fetch bundle items:", error)
-    return res.status(500).json({
-      message: error.message || "Failed to fetch bundle products",
-    })
+    if (error?.code === "BUNDLE_NOT_FOUND") {
+      return res.status(404).json({ code: "BUNDLE_NOT_FOUND", message: error.message })
+    }
+    const msg = String(error?.message || "")
+    if (isConfigurationError(msg)) {
+      return res.status(422).json({ code: "BUNDLE_CONFIGURATION_INVALID", message: msg })
+    }
+    // Internal/unexpected errors → 500
+    console.error("[bundle/parent_product_id] Internal error:", msg)
+    return res.status(500).json({ code: "BUNDLE_QUERY_FAILED", message: "An internal error occurred" })
   }
+}
+
+export async function POST(req: MedusaRequest, res: MedusaResponse) {
+  return res.status(410).json({
+    code: "ENDPOINT_MOVED",
+    message: "Use POST /store/carts/:cartId/bundled-line-items instead",
+  })
 }

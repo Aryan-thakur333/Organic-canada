@@ -1,0 +1,45 @@
+import type {
+  MedusaRequest,
+  MedusaResponse,
+} from "@medusajs/framework/http"
+
+export async function GET(
+  req: MedusaRequest,
+  res: MedusaResponse
+) {
+  try {
+    const erpService = req.scope.resolve<{
+      getProducts(input?: {
+        sku?: string
+        limit?: number
+      }): Promise<unknown[]>
+    }>("erp")
+
+    const sku =
+      typeof req.query.sku === "string"
+        ? req.query.sku.trim()
+        : undefined
+
+    const products = await erpService.getProducts({
+      sku,
+      limit: 20,
+    })
+
+    return res.status(200).json({
+      success: true,
+      count: products.length,
+      products,
+    })
+  } catch (error) {
+    return res.status(502).json({
+      success: false,
+      error: {
+        code: "ERP_PRODUCT_FETCH_FAILED",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unknown ERP product error",
+      },
+    })
+  }
+}

@@ -1,29 +1,80 @@
-import { RouteConfig } from "@medusajs/admin-shared"
+import { defineRouteConfig } from "@medusajs/admin-sdk"
 import { Plus } from "@medusajs/icons"
-import { Button, Container, Heading, Input, Label, Text, Textarea, Badge, toast } from "@medusajs/ui"
-import { FormEvent, useState, useEffect } from "react"
+import { Badge, Button, Container, Heading, Input, Label, Text, Textarea, toast } from "@medusajs/ui"
+import { FormEvent, useState } from "react"
 
-// This config explicitly registers the link into the Extensions sidebar navigation tree
-export const config: RouteConfig = {
-  link: {
-    label: "Add Digital Product",
-    icon: Plus,
-  },
+export const config = defineRouteConfig({
+  label: "Add Digital Product",
+  icon: Plus,
+})
+
+const ADMIN_TOKEN_STORAGE_KEYS = [
+  "medusa_admin_token",
+  "medusa_admin_access_token",
+  "admin_token",
+  "access_token",
+  "jwt",
+]
+
+const readStringFromStorage = (storage: Storage | undefined, key: string): string => {
+  if (!storage) {
+    return ""
+  }
+
+  try {
+    const value = storage.getItem(key)
+    if (!value) {
+      return ""
+    }
+
+    if (value.startsWith("{")) {
+      const parsed = JSON.parse(value)
+      return String(parsed?.token || parsed?.access_token || parsed?.jwt || "")
+    }
+
+    return value
+  } catch {
+    return ""
+  }
 }
 
+const getAdminBearerToken = (): string => {
+  if (typeof window === "undefined") {
+    return ""
+  }
 
-interface PriceField {
-  currency_code: string
-  label: string
-  value: string
+  for (const key of ADMIN_TOKEN_STORAGE_KEYS) {
+    const localToken = readStringFromStorage(window.localStorage, key)
+    if (localToken) {
+      return localToken
+    }
+
+    const sessionToken = readStringFromStorage(window.sessionStorage, key)
+    if (sessionToken) {
+      return sessionToken
+    }
+  }
+
+  return ""
 }
+
+const getUploadErrorMessage = (error: any): string => {
+  if (error?.name === "TypeError" && /fetch|network|failed/i.test(String(error?.message || ""))) {
+    return "Backend is not reachable. Please restart Medusa."
+  }
+
+  return error?.message || "Upload failed."
+}
+
+const hasValidDecimalFormat = (value: string): boolean => /^\d+(\.\d{1,2})?$/.test(value.trim())
 
 const CreateDigitalProductPage = () => {
   const [loading, setLoading] = useState(false)
+  const [showValidationErrors, setShowValidationErrors] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [prices, setPrices] = useState<PriceField[]>([])
+  const [prices, setPrices] = useState({ cad: "", usd: "" })
   const [version, setVersion] = useState("1.0.0")
   const [downloadLimit, setDownloadLimit] = useState("5")
   const [downloadExpiryDays, setDownloadExpiryDays] = useState("365")
@@ -32,51 +83,6 @@ const CreateDigitalProductPage = () => {
   const [autoGenerateHandle, setAutoGenerateHandle] = useState(true)
   const [releaseNotes, setReleaseNotes] = useState("")
 
-  // Load active regions/currencies from Medusa
-  useEffect(() => {
-    const loadCurrencies = async () => {
-      try {
-        const response = await fetch("/admin/regions", {
-          credentials: "include",
-        })
-        const data = await response.json()
-        if (data?.regions) {
-          // Collect unique currency codes from all regions
-          const currencySet = new Set<string>()
-          const currencyLabels: Record<string, string> = {}
-          for (const region of data.regions) {
-            if (region.currency_code) {
-              currencySet.add(region.currency_code.toLowerCase())
-              currencyLabels[region.currency_code.toLowerCase()] = region.name || region.currency_code.toUpperCase()
-            }
-          }
-          // Also check if "usd" or "eur" exist, add if not
-          if (!currencySet.has("cad")) {
-            currencySet.add("cad")
-            currencyLabels["cad"] = "Canada (CAD)"
-          }
-          // Create price fields from discovered currencies
-          const priceFields: PriceField[] = Array.from(currencySet).map((code) => ({
-            currency_code: code,
-            label: currencyLabels[code] || code.toUpperCase(),
-            value: "",
-          }))
-          setPrices(priceFields)
-        }
-      } catch (err) {
-        console.error("Failed to load regions for currencies", err)
-        // Fallback to common currencies
-        setPrices([
-          { currency_code: "cad", label: "Canada (CAD)", value: "" },
-          { currency_code: "usd", label: "United States (USD)", value: "" },
-          { currency_code: "eur", label: "Europe (EUR)", value: "" },
-        ])
-      }
-    }
-    loadCurrencies()
-  }, [])
-
-  // Auto-generate handle from title
   const generateHandle = (val: string) => {
     return val.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
   }
@@ -88,8 +94,8 @@ const CreateDigitalProductPage = () => {
     }
   }
 
-  const updatePrice = (code: string, value: string) => {
-    setPrices(prices.map(p => p.currency_code === code ? { ...p, value } : p))
+  const updatePrice = (code: "cad" | "usd", value: string) => {
+    setPrices((current) => ({ ...current, [code]: value }))
   }
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,25 +106,37 @@ const CreateDigitalProductPage = () => {
   const fileSizeMB = file ? (file.size / 1024 / 1024).toFixed(2) : "0"
   const isOverLimit = file && file.size > 50 * 1024 * 1024
 
-  // Validation
   const getValidationErrors = (): string[] => {
     const errors: string[] = []
+    const cadPrice = prices.cad.trim()
+    const usdPrice = prices.usd.trim()
+
     if (!title.trim()) errors.push("Product title is required.")
     if (!file) errors.push("A digital asset file is required.")
     if (isOverLimit) errors.push("File exceeds 50 MB limit.")
-    // Check if at least one price is set
-    const hasPrice = prices.some(p => p.value && parseFloat(p.value) > 0)
-    if (!hasPrice) errors.push("At least one price is required (e.g. CAD).")
-    // CAD specifically
-    const cadPrice = prices.find(p => p.currency_code === "cad")
-    if (!cadPrice || !cadPrice.value || parseFloat(cadPrice.value) <= 0) {
-      errors.push("CAD price is required (primary store currency).")
+
+    if (!cadPrice) {
+      errors.push("CAD price is required.")
+    } else if (!hasValidDecimalFormat(cadPrice)) {
+      errors.push("CAD price must use a maximum of 2 decimals.")
+    } else if (Number(cadPrice) <= 0) {
+      errors.push("CAD price must be greater than 0.")
     }
+
+    if (usdPrice) {
+      if (!hasValidDecimalFormat(usdPrice)) {
+        errors.push("USD price must use a maximum of 2 decimals.")
+      } else if (Number(usdPrice) <= 0) {
+        errors.push("USD price must be greater than 0 when provided.")
+      }
+    }
+
     return errors
   }
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    setShowValidationErrors(true)
 
     const errors = getValidationErrors()
     if (errors.length > 0) {
@@ -128,103 +146,133 @@ const CreateDigitalProductPage = () => {
       return
     }
 
-    if (!file) {
-      toast.error("Validation error", { description: "A digital asset file is required." })
+    if (!file || loading) {
       return
     }
 
     setLoading(true)
 
     try {
-      // ── Step 1: Upload file to Medusa Admin Upload API ──
-      const uploadForm = new FormData()
-      uploadForm.set("file", file)
+      const cadPriceInput = prices.cad.trim()
+      const usdPriceInput = prices.usd.trim()
 
-      const uploadRes = await fetch("/admin/uploads", {
-        method: "POST",
-        credentials: "include",
-        body: uploadForm,
+      console.log("[Digital Product Admin] Raw price payload:", {
+        cad: cadPriceInput,
+        usd: usdPriceInput || null,
       })
 
-      const uploadData = await uploadRes.json()
-      if (!uploadRes.ok) {
-        throw new Error(uploadData.message || "Failed to upload file")
-      }
-
-      // Medusa returns an array of uploaded files
-      const uploadedFile = Array.isArray(uploadData.uploads) ? uploadData.uploads[0] : uploadData
-      const storageKey = uploadedFile?.url || uploadedFile?.key || uploadedFile?.path
-      if (!storageKey) {
-        throw new Error("File uploaded but no storage key returned")
-      }
-
-      // ── Step 2: Build multi-currency prices array ──
-      const pricesPayload = prices
-        .filter(p => p.value && parseFloat(p.value) > 0)
-        .map(p => ({
-          currency_code: p.currency_code,
-          amount: Math.round(parseFloat(p.value) * 100), // convert to cents
-        }))
-
-      if (!pricesPayload.length) {
-        throw new Error("At least one price is required")
-      }
-
-      // ── Step 3: Create product with digital asset metadata ──
-      const productPayload = {
-        title: title.trim(),
-        description: description.trim() || undefined,
+      const metadata = {
+        source: "medusa-admin-digital-product-wizard",
         handle: handle.trim() || undefined,
-        is_digital_product: true,
-        variants: [
-          {
-            title: "Default",
-            manage_inventory: false,
-            prices: pricesPayload,
-            metadata: {
-              digital_asset_key: storageKey,
-              file_name: file.name,
-              mime_type: file.type || "application/octet-stream",
-              file_size: file.size,
-              version: version || "1.0.0",
-              download_limit: parseInt(downloadLimit, 10) || 5,
-              download_expiry_days: parseInt(downloadExpiryDays, 10) || 365,
-              license_required: Boolean(licenseRequired),
-              release_notes: releaseNotes.trim() || undefined,
-            },
-          },
-        ],
+        digital_product: true,
       }
 
-      const productRes = await fetch("/admin/products", {
+      const form = new FormData()
+      form.append("file", file)
+      form.set("title", title.trim())
+      form.set("description", description.trim() || "")
+      form.set("version", version || "1.0.0")
+      form.set("download_expiry_days", downloadExpiryDays)
+      form.set("download_limit", downloadLimit)
+      form.set("license_required", licenseRequired ? "true" : "false")
+      form.set("release_notes", releaseNotes.trim() || "")
+      form.set("price", cadPriceInput)
+      form.set("price_cad", cadPriceInput)
+      if (usdPriceInput) {
+        form.set("price_usd", usdPriceInput)
+      }
+      form.set("metadata", JSON.stringify(metadata))
+
+      const adminToken = getAdminBearerToken()
+      const headers: Record<string, string> = {
+        Accept: "application/json",
+      }
+
+      if (adminToken) {
+        headers.Authorization = `Bearer ${adminToken}`
+      }
+
+      const productRes = await fetch("/admin/products/digital", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(productPayload),
+        body: form,
+        headers,
       })
 
-      const productData = await productRes.json()
+      const productData = await productRes.json().catch(() => ({}))
       if (!productRes.ok) {
-        throw new Error(productData.message || "Failed to create digital product")
+        if (productRes.status === 401) {
+          throw new Error("Admin session expired. Please login again.")
+        }
+
+        if (productRes.status >= 500) {
+          console.error("[Digital Product Upload] Backend error response:", productData)
+          throw new Error(productData.message || "Backend failed while creating the digital product.")
+        }
+
+        throw new Error(productData.message || productData.error || "Failed to create digital product.")
       }
 
-      toast.success("Digital product published", {
-        description: productData.product?.title || title,
+      const debug = productData?.debug || {}
+      const cadPriceValid =
+        debug.cad_price_valid === true &&
+        Number(debug.cad_price_in_cents) === Number(debug.cad_stored_amount)
+      const usdPriceValid =
+        !usdPriceInput ||
+        (
+          debug.usd_price_valid === true &&
+          Number(debug.usd_price_in_cents) === Number(debug.usd_stored_amount)
+        )
+
+      if (!cadPriceValid || !usdPriceValid) {
+        console.error("[Digital Product Upload] Price verification failed:", debug)
+        throw new Error(!cadPriceValid ? "DIGITAL_PRODUCT_CAD_PRICE_NOT_LINKED" : "DIGITAL_PRODUCT_USD_PRICE_NOT_LINKED")
+      }
+
+      console.log("[Digital Product Created Successfully]", {
+        product_id: debug.product_id || productData?.product?.id,
+        status: debug.status,
+        sales_channel_linked: debug.sales_channel_linked,
+        variant_count: debug.variant_count,
+        cad_input_price: debug.cad_input_price,
+        cad_price_in_cents: debug.cad_price_in_cents,
+        cad_stored_amount: debug.cad_stored_amount,
+        cad_price_valid: debug.cad_price_valid,
+        usd_input_price: debug.usd_input_price,
+        usd_price_in_cents: debug.usd_price_in_cents,
+        usd_stored_amount: debug.usd_stored_amount,
+        usd_price_valid: debug.usd_price_valid,
+        metadata_is_digital: debug.metadata_is_digital,
       })
 
-      // Reset form
+      const productId = debug.product_id || productData?.product?.id || ""
+      const cadStatus = debug.cad_price_valid ? "CAD price linked ✅" : "CAD price missing"
+      const usdStatus = usdPriceInput
+        ? (debug.usd_price_valid ? "USD price linked ✅" : "USD price missing")
+        : "USD price skipped"
+      const salesChannelStatus = debug.sales_channel_linked ? "Sales channel linked ✅" : "Sales channel pending"
+
+      toast.success("Digital product published ✅", {
+        description: `${cadStatus} | ${usdStatus} | ${salesChannelStatus} | Product ID: ${productId}`,
+      })
+
       setTitle("")
       setDescription("")
       setHandle("")
-      setPrices(prices.map(p => ({ ...p, value: "" })))
+      setPrices({ cad: "", usd: "" })
       setVersion("1.0.0")
       setDownloadLimit("5")
       setDownloadExpiryDays("365")
       setLicenseRequired(false)
       setReleaseNotes("")
       setFile(null)
+
+      const fileInput = document.getElementById("file") as HTMLInputElement
+      if (fileInput) fileInput.value = ""
+
+      setShowValidationErrors(false)
     } catch (error: any) {
-      toast.error("Upload failed", { description: error.message })
+      toast.error("Upload failed", { description: getUploadErrorMessage(error) })
     } finally {
       setLoading(false)
     }
@@ -240,7 +288,6 @@ const CreateDigitalProductPage = () => {
           </Text>
         </div>
 
-        {/* ── Basic Info ─────────────────────────────────────────── */}
         <div className="flex flex-col gap-4 border rounded-lg p-5">
           <div className="flex flex-col gap-2">
             <Label htmlFor="title">Product title *</Label>
@@ -300,7 +347,6 @@ const CreateDigitalProductPage = () => {
           </div>
         </div>
 
-        {/* ── Dynamic Pricing ──────────────────────────────────────── */}
         <div className="flex flex-col gap-4 border rounded-lg p-5">
           <div>
             <Heading level="h2" className="text-base">Pricing</Heading>
@@ -308,31 +354,35 @@ const CreateDigitalProductPage = () => {
               Set prices for active currencies. CAD is required (primary store currency).
             </Text>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {prices.map((price) => (
-              <div key={price.currency_code} className="flex flex-col gap-2">
-                <Label htmlFor={`price-${price.currency_code}`}>
-                  {price.label}
-                  {price.currency_code === "cad" && " *"}
-                </Label>
-                <div className="relative">
-                  <Input
-                    id={`price-${price.currency_code}`}
-                    value={price.value}
-                    onChange={(e) => updatePrice(price.currency_code, e.target.value)}
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder={`0.00 ${price.currency_code.toUpperCase()}`}
-                    required={price.currency_code === "cad"}
-                  />
-                </div>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="price-cad">Canada (CAD) *</Label>
+              <Input
+                id="price-cad"
+                value={prices.cad}
+                onChange={(e) => updatePrice("cad", e.target.value)}
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="78.00"
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="price-usd">United States (USD)</Label>
+              <Input
+                id="price-usd"
+                value={prices.usd}
+                onChange={(e) => updatePrice("usd", e.target.value)}
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="78.00"
+              />
+            </div>
           </div>
         </div>
 
-        {/* ── Digital Settings ────────────────────────────────────── */}
         <div className="flex flex-col gap-4 border rounded-lg p-5">
           <Heading level="h2" className="text-base">Download Settings</Heading>
           <div className="grid grid-cols-2 gap-4">
@@ -386,7 +436,6 @@ const CreateDigitalProductPage = () => {
           </div>
         </div>
 
-        {/* ── File Upload ─────────────────────────────────────────── */}
         <div className="flex flex-col gap-4 border border-dashed rounded-lg p-6">
           <Label htmlFor="file">Digital asset file * (maximum 50 MB)</Label>
           <input
@@ -423,8 +472,7 @@ const CreateDigitalProductPage = () => {
           )}
         </div>
 
-        {/* ── Form Actions ─────────────────────────────────────────── */}
-        {getValidationErrors().length > 0 && (
+        {showValidationErrors && getValidationErrors().length > 0 && (
           <div className="bg-ui-bg-subtle border border-ui-border-error rounded-lg p-4">
             <Text size="small" className="text-ui-fg-error font-medium">
               Please fix the following before submitting:
@@ -437,7 +485,7 @@ const CreateDigitalProductPage = () => {
           </div>
         )}
 
-        <Button type="submit" isLoading={loading} disabled={isOverLimit || !file}>
+        <Button type="submit" isLoading={loading} disabled={loading || Boolean(isOverLimit) || !file}>
           {loading ? "Uploading & publishing..." : "Upload & Publish Digital Product"}
         </Button>
       </form>

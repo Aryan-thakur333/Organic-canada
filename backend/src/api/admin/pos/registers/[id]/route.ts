@@ -1,0 +1,4 @@
+import type { MedusaRequest,MedusaResponse } from "@medusajs/framework/http"
+import { POS_MODULE } from "../../../../../modules/pos"
+import type { PosService } from "../../../../../utils/pos/contracts"
+export async function GET(req:MedusaRequest,res:MedusaResponse){const service=req.scope.resolve(POS_MODULE) as PosService;try{const register=await service.retrievePosRegister(req.params.id);const [operators,sessions,transactions]=await Promise.all([service.listPosOperatorAssignments({register_id:req.params.id}),service.listPosRegisterSessions({register_id:req.params.id},{order:{created_at:"DESC"}}),service.listPosTransactions({register_id:req.params.id},{order:{created_at:"DESC"},take:100})]);return res.json({register,operators,sessions,transactions})}catch{return res.status(404).json({code:"POS_REGISTER_NOT_FOUND",message:"Register not found"})}}
