@@ -1,0 +1,29 @@
+﻿# temp logs/config
+.tmp-config/
+*.log
+backend/*.log
+backend-err.log
+backend-output.log
+
+# reports/backups
+reports/
+backend/reports/
+frontend/reports/
+backups/
+
+# env backups / secrets
+.env
+.env.local
+.env.*.local
+*.bak
+*.backup
+backend/.env.*
+backend/.medusa-cli-config/
+
+# generated files
+backend/.eatsie-admin-build.json
+backend/_test-digital.pdf
+backend/products.json
+
+# Medusa generated snapshots
+backend/src/modules/**/migrations/.snapshot-medusa-*.json
