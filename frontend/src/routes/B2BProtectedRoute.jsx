@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import { b2bApi } from "../services/b2bApi";
+import { getB2BCompanyContext, hasCustomerToken } from "../services/medusa/tokenStorage";
 
 const B2B_SESSION_TIMEOUT_MS = 10_000;
 
@@ -10,7 +11,7 @@ function getStatusPath(status) {
   if (status === "pending") return "/b2b/pending";
   if (status === "rejected") return "/b2b/rejected";
   if (status === "suspended") return "/b2b/suspended";
-  return "/b2b/register-company";
+  return "/register/b2b";
 }
 
 function isCanceled(error) {
@@ -25,10 +26,10 @@ function isCanceled(error) {
 
 function getAuthFailurePath(error) {
   const status = error?.response?.status;
-  if (status === 401 || status === 403 || error?.code === "B2B_SESSION_TIMEOUT") {
+  if (status === 401) {
     return "/b2b/login";
   }
-  return "/b2b/register-company";
+  return "/register/b2b";
 }
 
 function withTimeout(promise, controller) {
@@ -64,7 +65,7 @@ export default function B2BProtectedRoute({ children }) {
       return undefined;
     }
 
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !hasCustomerToken()) {
       setState({ loading: false, allowed: false, redirectTo: "/b2b/login" });
       return undefined;
     }
@@ -100,7 +101,16 @@ export default function B2BProtectedRoute({ children }) {
         if (!mounted) return;
 
         if (isCanceled(error) && error?.code !== "B2B_SESSION_TIMEOUT") {
-          setState({ loading: false, allowed: false, redirectTo: "/b2b/login" });
+          setState({ loading: true, allowed: false, redirectTo: null });
+          return;
+        }
+
+        const cachedCompany = getB2BCompanyContext();
+        if (
+          hasCustomerToken() &&
+          (cachedCompany?.status === "approved" || cachedCompany?.status === "active")
+        ) {
+          setState({ loading: false, allowed: true, redirectTo: null });
           return;
         }
 
@@ -125,7 +135,7 @@ export default function B2BProtectedRoute({ children }) {
     return <LoadingSpinner fullScreen label="Checking your session..." />;
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !hasCustomerToken()) {
     return (
       <Navigate
         to={state.redirectTo || "/b2b/login"}
@@ -138,7 +148,7 @@ export default function B2BProtectedRoute({ children }) {
   if (!state.allowed) {
     return (
       <Navigate
-        to={state.redirectTo || "/b2b/register-company"}
+        to={state.redirectTo || "/register/b2b"}
         replace
         state={{ from: location.pathname + location.search }}
       />

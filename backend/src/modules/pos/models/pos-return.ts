@@ -1,0 +1,2 @@
+import { model } from "@medusajs/framework/utils"
+export const PosReturn = model.define("pos_return", { id: model.id().primaryKey(), transaction_id: model.text(), original_order_id: model.text(), return_order_id: model.text().nullable(), operator_id: model.text(), refund_method: model.text(), refund_amount_minor: model.number(), status: model.text().default("COMPLETED"), items: model.json(), metadata: model.json().nullable() })

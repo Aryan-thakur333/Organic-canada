@@ -9,20 +9,14 @@ import QuantityStepper from "./common/QuantityStepper";
 import { PRODUCT_IMAGE_FALLBACK, resolveMedusaImageUrl } from "../utils/medusaImage";
 import { isMedusaConfigured } from "../config/publicEnv";
 import useMedusaCart from "../hooks/useMedusaCart";
-
-function priceOf(product) {
-  const v = product?.variants?.[0];
-  if (v?.calculated_price?.calculated_amount != null) {
-    return Number(v.calculated_price.calculated_amount) / 100;
-  }
-  const amt = v?.prices?.[0]?.amount;
-  return amt != null ? amt / 100 : 0;
-}
+import { useRegion } from "../contexts/RegionContext";
+import { getDisplayPrice } from "../utils/pricing";
 
 export default function QuickViewModal({ product, onClose }) {
   const dispatch = useDispatch();
   const { showToast } = useToast();
   const { addVariant } = useMedusaCart();
+  const { region, regionSlug } = useRegion();
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
 
@@ -35,7 +29,7 @@ export default function QuickViewModal({ product, onClose }) {
 
   const image = resolveMedusaImageUrl(product.thumbnail);
 
-  const price = priceOf(product);
+  const price = getDisplayPrice(product, { region });
   const subtitle =
     product.subtitle ||
     product.vendor ||
@@ -49,16 +43,20 @@ export default function QuickViewModal({ product, onClose }) {
   };
 
   const handleAdd = async () => {
+    if (!price.hasPrice) {
+      showToast("Price unavailable in this region", "error");
+      return;
+    }
     setAdding(true);
     try {
       if (isMedusaConfigured() && variantId) {
-        await addVariant({ variantId, quantity });
+        await addVariant({ variantId, quantity, currencyCode: price.currencyCode });
       } else {
         dispatch(
           addToCart({
             id: product.id,
             title: product.title,
-            price,
+            price: price.amount,
             image,
             quantity,
           })
@@ -117,8 +115,7 @@ export default function QuickViewModal({ product, onClose }) {
             {product.title}
           </h2>
           <p className="mt-3 text-lg font-semibold text-organic-terracotta">
-            {CURRENCY_SYMBOL}
-            {price.toFixed(2)}
+            {price.formatted}
           </p>
           {product.description ? (
             <p className="mt-3 text-sm leading-relaxed text-gray-600">
@@ -137,13 +134,13 @@ export default function QuickViewModal({ product, onClose }) {
             <button
               type="button"
               onClick={() => void handleAdd()}
-              disabled={adding || (isMedusaConfigured() && !variantId)}
+              disabled={adding || !price.hasPrice || (isMedusaConfigured() && !variantId)}
               className="flex-1 rounded-xl bg-organic-brown py-3 text-sm font-semibold text-white transition hover:bg-organic-brownMuted disabled:cursor-not-allowed disabled:opacity-50"
             >
               {adding ? "Adding…" : "Add to cart"}
             </button>
             <Link
-              to={`/product/${product.id}`}
+              to={regionSlug ? `/shop/${regionSlug}/product/${product.id}` : `/product/${product.id}`}
               onClick={onClose}
               className="flex flex-1 items-center justify-center rounded-xl border border-organic-brown/20 py-3 text-center text-sm font-semibold text-organic-brown transition hover:bg-organic-cream"
             >

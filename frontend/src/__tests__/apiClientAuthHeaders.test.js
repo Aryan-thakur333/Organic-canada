@@ -26,6 +26,10 @@ vi.mock('axios', () => ({
   },
 }));
 
+vi.mock('../config/publicEnv', () => ({
+  getMedusaPublishableKey: () => 'pk_test_env',
+}));
+
 const storage = new Map();
 globalThis.localStorage = {
   getItem: (key) => storage.get(key) || null,
@@ -47,12 +51,20 @@ describe('API authentication header separation', () => {
   it('attaches the customer token to protected Store customer routes', () => {
     const config = axiosMock.state.requestHandler({
       url: '/store/customers',
-      headers: { 'x-publishable-api-key': 'pk_test' },
+      headers: {},
     });
     expect(config.headers).toMatchObject({
       Authorization: 'Bearer customer-jwt',
-      'x-publishable-api-key': 'pk_test',
+      'x-publishable-api-key': 'pk_test_env',
     });
+  });
+
+  it('preserves an explicit publishable key header when one is supplied by a caller', () => {
+    const config = axiosMock.state.requestHandler({
+      url: '/store/products',
+      headers: { 'x-publishable-api-key': 'pk_existing' },
+    });
+    expect(config.headers['x-publishable-api-key']).toBe('pk_existing');
   });
 
   it('attaches only the vendor token to vendor routes', () => {

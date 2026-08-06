@@ -11,6 +11,7 @@ import {
   listStoreProducts,
   retrieveStoreProduct,
 } from "./medusa/productService";
+import { STOREFRONT_PRODUCT_CANDIDATE_LIMIT } from "../constants/storefront-products";
 
 const BASE_URL = getMedusaBackendUrl();
 
@@ -58,7 +59,7 @@ export const getProducts = async () => {
 
   try {
     const { products } = await listStoreProducts({
-      limit: 200,
+      limit: STOREFRONT_PRODUCT_CANDIDATE_LIMIT,
     });
 
     return products || [];
@@ -88,7 +89,7 @@ export const searchProducts = async (query) => {
 
   try {
     const { products } = await listStoreProducts({
-      limit: 100,
+      limit: STOREFRONT_PRODUCT_CANDIDATE_LIMIT,
       q: String(query || "").trim(),
     });
 
@@ -106,7 +107,7 @@ export const filterProducts = async (filters = {}) => {
 
   try {
     const { products } = await listStoreProducts({
-      limit: 100,
+      limit: STOREFRONT_PRODUCT_CANDIDATE_LIMIT,
       q: filters?.query || undefined,
     });
 

@@ -1,0 +1,33 @@
+import { Migration } from "@medusajs/framework/mikro-orm/migrations"
+
+export class Migration20260728010001 extends Migration {
+  override async up(): Promise<void> {
+    const audit = `"created_at" timestamptz not null default now(), "updated_at" timestamptz not null default now(), "deleted_at" timestamptz null`
+    this.addSql(`create table if not exists "pos_register" ("id" text primary key, "name" text not null, "code" text not null, "sales_channel_id" text not null, "stock_location_id" text not null, "region_id" text not null, "currency_code" text not null, "status" text not null default 'ACTIVE', "metadata" jsonb null, ${audit});`)
+    this.addSql(`create unique index if not exists "IDX_pos_register_code" on "pos_register"("code") where "deleted_at" is null;`)
+    this.addSql(`create table if not exists "pos_register_session" ("id" text primary key, "register_id" text not null references "pos_register"("id"), "operator_id" text not null, "opened_at" timestamptz not null, "closed_at" timestamptz null, "opening_cash_minor" bigint not null, "expected_cash_minor" bigint not null default 0, "counted_cash_minor" bigint null, "cash_difference_minor" bigint null, "status" text not null default 'OPEN', "metadata" jsonb null, ${audit});`)
+    this.addSql(`create unique index if not exists "IDX_pos_one_open_session" on "pos_register_session"("register_id") where "deleted_at" is null and "status" = 'OPEN';`)
+    this.addSql(`create table if not exists "pos_operator_assignment" ("id" text primary key, "register_id" text not null references "pos_register"("id"), "operator_id" text not null, "role" text not null default 'POS_OPERATOR', "active" boolean not null default true, "metadata" jsonb null, ${audit});`)
+    this.addSql(`create unique index if not exists "IDX_pos_operator_register" on "pos_operator_assignment"("register_id", "operator_id") where "deleted_at" is null;`)
+    this.addSql(`create table if not exists "pos_transaction" ("id" text primary key, "register_id" text not null, "session_id" text not null, "operator_id" text not null, "order_id" text null, "draft_order_id" text null, "cart_id" text null, "customer_id" text null, "region_id" text not null, "currency_code" text not null, "subtotal_minor" bigint not null default 0, "discount_total_minor" bigint not null default 0, "tax_total_minor" bigint not null default 0, "total_minor" bigint not null default 0, "status" text not null default 'DRAFT', "transaction_type" text not null default 'SALE', "idempotency_key" text not null, "metadata" jsonb null, ${audit});`)
+    this.addSql(`create unique index if not exists "IDX_pos_transaction_idempotency" on "pos_transaction"("idempotency_key") where "deleted_at" is null;`)
+    this.addSql(`create index if not exists "IDX_pos_transaction_register" on "pos_transaction"("register_id", "created_at") where "deleted_at" is null;`)
+    this.addSql(`create table if not exists "pos_payment" ("id" text primary key, "transaction_id" text not null references "pos_transaction"("id"), "provider" text not null, "method" text not null, "amount_minor" bigint not null, "currency_code" text not null, "reference" text null, "status" text not null default 'PENDING', "metadata" jsonb null, ${audit});`)
+    this.addSql(`create table if not exists "pos_receipt" ("id" text primary key, "transaction_id" text not null references "pos_transaction"("id"), "receipt_number" text not null, "order_id" text not null, "customer_id" text null, "receipt_payload" jsonb not null, "printed_at" timestamptz null, "emailed_at" timestamptz null, ${audit});`)
+    this.addSql(`create index if not exists "IDX_pos_receipt_transaction" on "pos_receipt"("transaction_id") where "deleted_at" is null;`)
+    this.addSql(`create unique index if not exists "IDX_pos_receipt_number" on "pos_receipt"("receipt_number") where "deleted_at" is null;`)
+    this.addSql(`create table if not exists "pos_cash_movement" ("id" text primary key, "register_session_id" text not null references "pos_register_session"("id"), "operator_id" text not null, "movement_type" text not null, "amount_minor" bigint not null, "reason" text null, "metadata" jsonb null, ${audit});`)
+    this.addSql(`create table if not exists "pos_return" ("id" text primary key, "transaction_id" text not null, "original_order_id" text not null, "return_order_id" text null, "operator_id" text not null, "refund_method" text not null, "refund_amount_minor" bigint not null, "status" text not null default 'COMPLETED', "items" jsonb not null, "metadata" jsonb null, ${audit});`)
+    this.addSql(`create table if not exists "pos_exchange" ("id" text primary key, "return_id" text not null, "original_order_id" text not null, "new_transaction_id" text null, "outcome" text not null, "difference_minor" bigint not null, "status" text not null default 'COMPLETED', "metadata" jsonb null, ${audit});`)
+    this.addSql(`create table if not exists "pos_offline_draft" ("id" text primary key, "client_uuid" text not null, "register_id" text not null, "session_id" text not null, "operator_id" text not null, "cart_id" text null, "region_id" text not null, "currency_code" text not null, "status" text not null default 'LOCAL_DRAFT', "idempotency_key" text not null, "payload" jsonb not null, "metadata" jsonb null, ${audit});`)
+    this.addSql(`create unique index if not exists "IDX_pos_draft_client" on "pos_offline_draft"("client_uuid") where "deleted_at" is null;`)
+    this.addSql(`create unique index if not exists "IDX_pos_draft_idempotency" on "pos_offline_draft"("idempotency_key") where "deleted_at" is null;`)
+    this.addSql(`create table if not exists "pos_audit_event" ("id" text primary key, "register_id" text null, "session_id" text null, "transaction_id" text null, "operator_id" text null, "event_type" text not null, "message" text not null, "metadata" jsonb null, ${audit});`)
+    this.addSql(`create or replace function reject_pos_audit_mutation() returns trigger as $$ begin raise exception 'POS audit events are append-only'; end; $$ language plpgsql;`)
+    this.addSql(`create trigger "TRG_pos_audit_append_only" before update or delete on "pos_audit_event" for each row execute function reject_pos_audit_mutation();`)
+  }
+  override async down(): Promise<void> {
+    for (const table of ["pos_audit_event","pos_exchange","pos_return","pos_cash_movement","pos_receipt","pos_payment","pos_transaction","pos_offline_draft","pos_operator_assignment","pos_register_session","pos_register"]) this.addSql(`drop table if exists "${table}" cascade;`)
+    this.addSql(`drop function if exists reject_pos_audit_mutation();`)
+  }
+}

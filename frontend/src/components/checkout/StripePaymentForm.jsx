@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Lock, AlertCircle } from 'lucide-react';
@@ -9,11 +9,13 @@ const StripePaymentForm = ({ onPaid, disabled, customerDetails }) => {
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const isConfirmingRef = useRef(false);
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || isConfirmingRef.current) return;
 
+    isConfirmingRef.current = true;
     setIsProcessing(true);
     setErrorMessage('');
 
@@ -28,6 +30,7 @@ const StripePaymentForm = ({ onPaid, disabled, customerDetails }) => {
 
       if (error) {
         setErrorMessage(error.message || 'Payment failed');
+        isConfirmingRef.current = false;
         return;
       }
 
@@ -37,10 +40,14 @@ const StripePaymentForm = ({ onPaid, disabled, customerDetails }) => {
       }
 
       setErrorMessage('Payment was not completed. Please try again.');
+      isConfirmingRef.current = false;
     } catch (err) {
       setErrorMessage(err?.message || 'A payment error occurred');
+      isConfirmingRef.current = false;
     } finally {
       setIsProcessing(false);
+      // NOTE: We don't reset isConfirmingRef here if successful because we want to block until redirect or onPaid completes.
+      // If there's an error, we reset it above.
     }
   };
 

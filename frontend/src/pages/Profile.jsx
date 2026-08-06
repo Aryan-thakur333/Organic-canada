@@ -34,6 +34,7 @@ import useToast from '../hooks/useToast';
 import B2BSidebarCard from '../components/B2BSidebarCard';
 import useB2BCompany from '../hooks/useB2BCompany';
 import { isB2BUser } from '../utils/accountType';
+import { commerceFeatures } from '../config/commerceFeatures';
 
 const Profile = () => {
   const user = useSelector(state => state.user.profile);
@@ -54,12 +55,17 @@ const Profile = () => {
   // ── Subscription State ──
   const [activeSubscriptions, setActiveSubscriptions] = useState([]);
   const [subLoading, setSubLoading] = useState(true);
-  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(!user);
 
   const latestSub = activeSubscriptions.find((item) => ['active', 'trialing'].includes(item.status)) || null;
   const isSubscribed = !!latestSub && ['active', 'trialing'].includes(latestSub.status);
 
   const fetchSubscriptions = useCallback(async () => {
+    if (!commerceFeatures.subscriptions) {
+      setSubLoading(false);
+      setActiveSubscriptions([]);
+      return;
+    }
     setSubLoading(true);
     try {
       const res = await subscriptionService.list();
@@ -72,7 +78,7 @@ const Profile = () => {
   }, []);
 
   useEffect(() => {
-    if (!isApprovedB2B) {
+    if (commerceFeatures.subscriptions && !isApprovedB2B) {
       fetchSubscriptions();
     } else {
       setSubLoading(false);
@@ -173,7 +179,7 @@ const Profile = () => {
                   <span className="flex items-center gap-3"><CreditCard size={18} /> Payments</span>
                   <ChevronRight size={16} />
                 </button>
-                {!isApprovedB2B && (
+                {commerceFeatures.subscriptions && !isApprovedB2B && (
                   <button
                     onClick={() => navigate('/dashboard/subscriptions')}
                     className="flex items-center justify-between p-3 rounded-2xl hover:bg-stone-50 dark:hover:bg-slate-700 text-text-secondary text-sm font-bold transition-colors"
@@ -224,7 +230,7 @@ const Profile = () => {
             </div>
 
             {/* Subscription Card */}
-            {!isApprovedB2B && (
+            {commerceFeatures.subscriptions && !isApprovedB2B && (
             <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-6 shadow-premium border border-stone-100 dark:border-slate-700">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg shadow-emerald-500/20">

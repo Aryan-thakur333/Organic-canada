@@ -447,22 +447,21 @@ const B2BDashboard = () => {
                 You can now access bulk pricing and corporate checkout.
               </p>
             </div>
-            <div className="flex gap-3">
-              <Button
-                className="bg-white text-emerald-700 hover:bg-emerald-50 shadow-lg"
-                size="lg"
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-emerald-700 shadow-sm border border-white/70 hover:bg-emerald-50 hover:text-emerald-800 transition-all duration-200"
+                onClick={() => navigate('/b2b/products')}
+              >
+                <ShoppingBag size={18} /> Browse Products
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-emerald-700 shadow-sm border border-white/70 hover:bg-emerald-50 hover:text-emerald-800 transition-all duration-200"
                 onClick={() => navigate('/b2b/request-quote')}
               >
                 <Send size={18} /> Request Quote
-              </Button>
-              <Button
-                variant="secondary"
-                size="lg"
-                className="bg-emerald-700/30 text-white border-emerald-400/30 hover:bg-emerald-700/50"
-                onClick={() => navigate('/account/b2b-quotes')}
-              >
-                <FileText size={18} /> Quote History
-              </Button>
+              </button>
             </div>
           </div>
         </motion.div>

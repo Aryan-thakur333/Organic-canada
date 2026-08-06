@@ -1,6 +1,6 @@
 import apiClient from "./apiClient";
 import { authService } from "./medusa/authService";
-import { getCustomerToken } from "./medusa/tokenStorage";
+import { getB2BCompanyContext, getCustomerToken, setB2BCompanyContext } from "./medusa/tokenStorage";
 
 const COMPANY_CACHE_TTL_MS = 60_000;
 const B2B_SESSION_CACHE_TTL_MS = 60_000;
@@ -39,6 +39,11 @@ function normalizeCompany(value) {
     ...value,
     status: typeof value.status === "string" ? value.status : null,
   };
+}
+
+function persistCompany(company) {
+  if (!company) return;
+  setB2BCompanyContext(company);
 }
 
 function normalizeCustomer(value) {
@@ -91,6 +96,11 @@ function getCompany({ signal, forceRefresh = false } = {}) {
     return Promise.resolve(companyCache.data);
   }
 
+  const cachedCompany = getB2BCompanyContext();
+  if (!forceRefresh && cachedCompany?.id) {
+    return Promise.resolve({ company: cachedCompany });
+  }
+
   if (forceRefresh) {
     companyCache = null;
     companyInFlight = null;
@@ -108,6 +118,7 @@ function getCompany({ signal, forceRefresh = false } = {}) {
         },
       })
       .then((data) => {
+        persistCompany(data?.company);
         companyCache = {
           data,
           expiresAt: Date.now() + COMPANY_CACHE_TTL_MS,
@@ -173,6 +184,7 @@ function hydrateB2BSession({ signal, forceRefresh = false } = {}) {
       };
 
       if (company) {
+        persistCompany(company);
         companyCache = {
           data: { company },
           expiresAt: Date.now() + COMPANY_CACHE_TTL_MS,
@@ -237,15 +249,38 @@ export const b2bApi = {
    *   items: Array<{ product_id: string, variant_id: string, quantity: number, note?: string }>,
    *   buyer_note?: string,
    *   currency_code: string,
-   *   region_id: string
+   *   region_id: string,
+   *   country_code?: string
    * }} payload
    * @returns {Promise<{ message: string, quote: { id: string, status: string } }>}
    */
-  submitQuote: (payload) => apiClient.post("/store/b2b/quotes", payload, {
+  submitQuote: async (quoteData) => {
+    if (!quoteData?.region_id || !quoteData?.currency_code) {
+      const error = new Error("region_id and currency_code are required to submit a B2B quote.");
+      error.code = "B2B_QUOTE_MARKET_REQUIRED";
+      throw error;
+    }
+
+    const payload = {
+      ...quoteData,
+      company_id: quoteData.company_id,
+      items: quoteData.items,
+      notes: quoteData.notes || quoteData.buyer_note,
+      currency_code: (quoteData.currency_code || "cad").toLowerCase(),
+      region_id: quoteData.region_id,
+      country_code: quoteData.country_code || undefined,
+      sales_channel_id: quoteData.sales_channel_id || undefined,
+    };
+    return await apiClient.post("/store/b2b/quotes", payload, {
+      __skipRetry: true,
+      withCredentials: true
+    });
+  },
+  createQuote: (payload) => apiClient.post("/store/customers/me/quotes", payload, {
     __skipRetry: true,
     withCredentials: true,
   }),
-  createQuote: (payload) => apiClient.post("/store/b2b/quotes", payload, {
+  requestQuoteFromCart: (payload) => apiClient.post("/store/customers/me/quotes", payload, {
     __skipRetry: true,
     withCredentials: true,
   }),
@@ -272,8 +307,53 @@ export const b2bApi = {
     withCredentials: true,
     signal,
   }),
-  acceptQuote: (id, payload = {}) => apiClient.post(`/store/b2b/quotes/${id}/accept`, payload),
-  rejectQuote: (id) => apiClient.post(`/store/b2b/quotes/${id}/reject`),
+  getQuoteMessages: (id, { signal } = {}) => apiClient.get(`/store/b2b/quotes/${id}/messages`, {
+    __skipRetry: true,
+    withCredentials: true,
+    signal,
+  }),
+  sendQuoteMessage: (id, payload = {}) => apiClient.post(`/store/b2b/quotes/${id}/messages`, payload, {
+    __skipRetry: true,
+    withCredentials: true,
+  }),
+  acceptQuote: (id, payload = {}) => apiClient.post(`/store/b2b/quotes/${id}/accept`, payload, {
+    __skipRetry: true,
+    withCredentials: true,
+  }),
+  rejectQuote: (id, payload = {}) => apiClient.post(`/store/b2b/quotes/${id}/reject`, payload, {
+    __skipRetry: true,
+    withCredentials: true,
+  }),
+  getQuotePaymentInstructions: (id, { signal } = {}) => apiClient.get(`/store/b2b/quotes/${id}/payment-instructions`, {
+    __skipRetry: true,
+    withCredentials: true,
+    signal,
+  }),
+  getQuotePaymentOptions: (id, { signal } = {}) => apiClient.get(`/store/b2b/quotes/${id}/payment-options`, {
+    __skipRetry: true,
+    withCredentials: true,
+    signal,
+  }),
+  createQuoteStripeSession: (id, payload = {}) => apiClient.post(`/store/b2b/quotes/${id}/payment-sessions`, payload, {
+    __skipRetry: true,
+    withCredentials: true,
+  }),
+  authorizeQuotePayment: (id, payload = {}) => apiClient.post(`/store/b2b/quotes/${id}/payments/authorize`, payload, {
+    __skipRetry: true,
+    withCredentials: true,
+  }),
+  createQuotePayPalOrder: (id, payload = {}) => apiClient.post(`/store/b2b/quotes/${id}/payments/paypal/create-order`, payload, {
+    __skipRetry: true,
+    withCredentials: true,
+  }),
+  captureQuotePayPalOrder: (id, payload = {}) => apiClient.post(`/store/b2b/quotes/${id}/payments/paypal/capture`, payload, {
+    __skipRetry: true,
+    withCredentials: true,
+  }),
+  requestQuoteInvoicePayment: (id, payload = {}) => apiClient.post(`/store/b2b/quotes/${id}/payments/invoice`, payload, {
+    __skipRetry: true,
+    withCredentials: true,
+  }),
 
   /**
    * GET /admin/b2b-quotes
@@ -293,6 +373,9 @@ export const b2bApi = {
    * @returns {Promise<{ message: string, quote: object }>}
    */
   adminReviewQuote: (id, payload) => apiClient.post(`/admin/b2b-quotes/${id}/review`, payload),
+  adminSaveNegotiatedTotal: (id, payload) => apiClient.patch(`/admin/b2b-quotes/${id}/negotiated-total`, payload),
+  adminSendQuoteOffer: (id, payload = {}) => apiClient.post(`/admin/b2b-quotes/${id}/send`, payload),
+  adminMarkQuotePaymentReceived: (id, payload = {}) => apiClient.post(`/admin/b2b-quotes/${id}/mark-payment-received`, payload),
 
   /**
    * PATCH /store/b2b/company

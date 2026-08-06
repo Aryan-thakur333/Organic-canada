@@ -2,17 +2,19 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Store, Mail, Lock, FileText, CheckCircle2, ArrowRight, Loader2, Phone } from "lucide-react";
+import { Store, Mail, Lock, User, FileText, CheckCircle2, ArrowRight, Loader2, Phone } from "lucide-react";
 import { vendorApi } from "../../services/vendorApi";
 import { vendorStart, vendorSuccess, vendorFailure } from "../../redux/vendorSlice";
 import toast from "react-hot-toast";
 
 export default function Register() {
   const [name, setName] = useState("");
+  const [ownerName, setOwnerName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [description, setDescription] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
   const { loading, error } = useSelector((state) => state.vendor);
@@ -22,22 +24,29 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const storeName = name.trim();
+    const owner = ownerName.trim();
     const businessEmail = email.trim();
-    if (!storeName || !businessEmail || !password) {
+    if (!storeName || !owner || !businessEmail || !password || !confirmPassword) {
       return toast.error("Please fill in all required fields");
     }
-    if (password.length < 12) {
-      return toast.error("Password must be at least 12 characters long");
+    if (password.length < 8) {
+      return toast.error("Password must be at least 8 characters long");
+    }
+    if (password !== confirmPassword) {
+      return toast.error("Passwords do not match");
     }
 
     dispatch(vendorStart());
     try {
       await vendorApi.register({
-        name: storeName,
+        business_name: storeName,
+        owner_name: owner,
+        name: owner,
         store_name: storeName,
         email: businessEmail,
         phone: phone.trim() || undefined,
         password,
+        confirm_password: confirmPassword,
         description,
       });
       dispatch(vendorSuccess());
@@ -119,6 +128,21 @@ export default function Register() {
           </div>
 
           <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Owner Name</label>
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500" size={16} />
+              <input
+                type="text"
+                placeholder="Avery Patel"
+                value={ownerName}
+                onChange={(e) => setOwnerName(e.target.value)}
+                className="w-full bg-stone-900 border border-stone-800 focus:border-emerald-500 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder-stone-600 outline-none transition-colors text-sm font-bold"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
             <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Business Email</label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500" size={16} />
@@ -169,6 +193,21 @@ export default function Register() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-stone-900 border border-stone-800 focus:border-emerald-500 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder-stone-600 outline-none transition-colors text-sm font-bold"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Confirm Password</label>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500" size={16} />
+              <input
+                type="password"
+                placeholder="********"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full bg-stone-900 border border-stone-800 focus:border-emerald-500 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder-stone-600 outline-none transition-colors text-sm font-bold"
                 required
               />

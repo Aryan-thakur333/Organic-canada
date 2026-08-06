@@ -1,5 +1,4 @@
 import { pickProductImageRaw, resolveMedusaImageUrl } from "../../utils/medusaImage";
-import { minorToMajor } from "./money";
 
 /**
  * Normalize Medusa store product for existing UI components.
@@ -14,9 +13,11 @@ export function normalizeStoreProduct(product, regionId = null) {
 
   const nextVariants = variants.map((v) => {
     const cp = v?.calculated_price;
+    const calcAmount = v?.calculated_amount ?? cp?.calculated_amount ?? cp?.amount;
 
-    if (cp && cp.calculated_amount != null) {
-      const amount = Number(cp.calculated_amount);
+    if (calcAmount != null) {
+      const amount = Number(calcAmount);
+      const currencyCode = v.currency_code || cp?.currency_code || "usd";
 
       if (Array.isArray(v.prices) && v.prices.length) {
         return v;
@@ -27,7 +28,7 @@ export function normalizeStoreProduct(product, regionId = null) {
         prices: [
           {
             amount,
-            currency_code: cp.currency_code || "usd",
+            currency_code: currencyCode,
           },
         ],
       };
@@ -64,13 +65,19 @@ export function normalizeProductList(products, regionId = null) {
  * @param {Record<string, unknown> | undefined} line
  * @returns {number}
  */
+/**
+ * Line amounts from Medusa in this project are MAJOR units (documented catalog contract),
+ * so no minor->major conversion is applied here.
+ * @param {Record<string, unknown> | undefined} line
+ * @returns {number}
+ */
 export function lineItemUnitPriceMajor(line) {
   if (!line) return 0;
-  const up = line.unit_price;
-  if (up != null) return minorToMajor(up);
-  const sub = line.subtotal;
+  const up = Number(line.unit_price);
+  if (Number.isFinite(up) && up > 0) return up;
+  const sub = Number(line.subtotal);
   const qty = Number(line.quantity) || 1;
-  if (sub != null) return minorToMajor(sub) / qty;
+  if (Number.isFinite(sub) && sub > 0) return sub / qty;
   return 0;
 }
 
@@ -117,14 +124,19 @@ export function mapCartLineToItem(line) {
 /**
  * @param {Record<string, unknown>} cart
  */
+/**
+ * Cart totals from Medusa are MAJOR units in this project, so they are passed through
+ * without any rescaling.
+ * @param {Record<string, unknown>} cart
+ */
 export function mapMedusaCartToServerTotals(cart) {
   const currency = String(cart.currency_code || "usd").toLowerCase();
   return {
     currency_code: currency,
-    subtotal: minorToMajor(cart.item_subtotal ?? cart.subtotal),
-    tax: minorToMajor(cart.tax_total),
-    discount: minorToMajor(cart.discount_total),
-    shipping: minorToMajor(cart.shipping_total),
-    total: minorToMajor(cart.total),
+    subtotal: Number(cart.item_subtotal ?? cart.subtotal) || 0,
+    tax: Number(cart.tax_total) || 0,
+    discount: Number(cart.discount_total) || 0,
+    shipping: Number(cart.shipping_total) || 0,
+    total: Number(cart.total) || 0,
   };
 }

@@ -22,7 +22,7 @@ import MobileNav from '../components/MobileNav';
 import Button from '../components/common/Button';
 import Skeleton from '../components/common/Skeleton';
 import apiClient from '../services/apiClient';
-import { getCustomerToken } from '../services/medusa/tokenStorage';
+import { digitalDownloadsApi } from '../services/digitalDownloadsApi';
 import useToast from '../hooks/useToast';
 import { resolveMedusaImageUrl, PRODUCT_IMAGE_FALLBACK } from '../utils/medusaImage';
 
@@ -45,6 +45,15 @@ const formatFileSize = (bytes) => {
   return `${size.toFixed(1)} ${units[unitIdx]}`;
 };
 
+const normalizeDownload = (download) => ({
+  ...download,
+  file_name: download.file_name || download.filename || 'Digital Download',
+  file_size: download.file_size || download.size || 0,
+  remaining_downloads: download.remaining_downloads ?? (download.status === 'available' ? 1 : 0),
+  download_count: download.download_count || 0,
+  is_expired: Boolean(download.is_expired || download.status === 'expired'),
+});
+
 export default function MyDownloads() {
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -58,7 +67,7 @@ export default function MyDownloads() {
     setLoading(true);
     try {
       const res = await apiClient.get('/store/customers/me/downloads');
-      setDownloads(res.downloads || []);
+      setDownloads((res.downloads || []).map(normalizeDownload));
     } catch (error) {
       if (error.response?.status !== 401) {
         console.error('[MyDownloads] Fetch error:', error);
@@ -105,34 +114,42 @@ export default function MyDownloads() {
 
     setDownloadingId(download.id);
     try {
-      const token = getCustomerToken();
-      const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
-
-      // Use the download record ID (dld_xxx) directly with the backend
-      // The /store/downloads/:id endpoint handles: authentication, ownership,
-      // expiry validation, download limit enforcement, and file streaming.
-      const downloadUrl = download.id
-        ? `/store/downloads/${download.id}`
-        : `/store/downloads/${download.item_id}?order_id=${download.order_id}`;
-
-      const response = await fetch(downloadUrl, {
-        headers: authHeaders,
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.message || `Download failed (${response.status})`);
+      // If there's a pre-signed URL (external), use it directly
+      if (download.download_url && /^https?:\/\//i.test(download.download_url)) {
+        const a = document.createElement('a');
+        a.href = download.download_url;
+        a.download = download.file_name || 'download';
+        a.rel = 'noopener noreferrer';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast('Download started!', 'success');
+        return;
       }
 
-      // Get filename from Content-Disposition header
-      const disposition = response.headers.get('Content-Disposition') || '';
+      // Use the digitalDownloadsApi service which goes through centralized apiClient
+      // apiClient automatically attaches: x-publishable-api-key + Authorization header
+      const apiResponse = download.id
+        ? await digitalDownloadsApi.downloadByRecordId(download.id)
+        : await digitalDownloadsApi.downloadAsset(download.item_id, download.order_id);
+
+      if (!apiResponse) {
+        throw new Error('Download failed: no response from server');
+      }
+
+      const responsePayload = apiResponse?.data || apiResponse;
+      if (!(responsePayload instanceof Blob)) {
+        throw new Error('Download link was not returned by the server.');
+      }
+
+      // Get filename from Content-Disposition header when a raw Axios response is returned.
+      const disposition = apiResponse.headers?.['content-disposition'] || '';
       const filenameMatch = disposition.match(/filename="?(.+?)"?$/);
       const filename = filenameMatch ? filenameMatch[1] : download.file_name || 'download';
 
-      // Create blob and trigger download
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
+      // Trigger blob download
+      const url = URL.createObjectURL(responsePayload);
       const a = document.createElement('a');
       a.href = url;
       a.download = filename;
@@ -145,7 +162,7 @@ export default function MyDownloads() {
       showToast('Download started!', 'success');
       fetchDownloads(); // Refresh to update counts
     } catch (error) {
-      const msg = error.message || 'Download failed';
+      const msg = error.response?.data?.message || error.message || 'Download failed';
       showToast(msg, 'error');
     } finally {
       setDownloadingId(null);

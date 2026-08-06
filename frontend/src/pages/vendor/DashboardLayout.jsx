@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../redux/vendorSlice";
+import { vendorAuth } from "../../services/vendorAuth";
 import { 
   Store, 
   LayoutDashboard, 
@@ -24,11 +25,15 @@ export default function DashboardLayout({ children }) {
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.vendor.profile);
 
-  const handleLogout = () => {
+  const handleLogout = (event) => {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
     setProfileDropdownOpen(false);
+    setSidebarOpen(false);
+    vendorAuth.clear();
     dispatch(logout());
     toast.success("Signed out successfully");
-    navigate("/vendor/login");
+    navigate("/login/seller", { replace: true });
   };
 
   const navItems = [
@@ -74,6 +79,7 @@ export default function DashboardLayout({ children }) {
 
         <div className="p-4 border-t border-stone-800">
           <button
+            type="button"
             onClick={handleLogout}
             className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-sm font-black text-red-400 hover:bg-red-500/5 hover:text-red-300 transition-all text-left"
           >
@@ -133,6 +139,7 @@ export default function DashboardLayout({ children }) {
 
         <div className="p-4 border-t border-stone-800">
           <button
+            type="button"
             onClick={handleLogout}
             className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-sm font-black text-red-400 hover:bg-red-500/5 hover:text-red-300 transition-all text-left"
           >
@@ -185,6 +192,10 @@ export default function DashboardLayout({ children }) {
                     <p className="text-[10px] text-stone-500 truncate">{profile?.email}</p>
                   </div>
                   <button
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                    }}
                     onClick={handleLogout}
                     className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-black text-red-400 hover:bg-red-500/10 transition-colors"
                   >

@@ -5,7 +5,7 @@ import {
   WorkflowResponse,
 } from "@medusajs/framework/workflows-sdk"
 import { MedusaError } from "@medusajs/framework/utils"
-import { VENDOR_MODULE } from "../modules/vendor"
+import { VENDOR_MODULE } from "../modules/vendor/index"
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

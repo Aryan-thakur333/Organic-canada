@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 
 import {
   getAuth,
@@ -25,8 +25,7 @@ const firebaseConfig = {
 /*                           INITIALIZE APP                                   */
 /* -------------------------------------------------------------------------- */
 
-const firebaseApp =
-  initializeApp(firebaseConfig);
+const firebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 /* -------------------------------------------------------------------------- */
 /*                                AUTH                                        */

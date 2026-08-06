@@ -1,0 +1,226 @@
+import { PERSONALIZATION_FIELD_TYPES } from "../constants/field-types"
+import { PERSONALIZATION_IMAGE_TYPES } from "./image-security"
+import { personalizationError } from "../errors"
+
+export function validateFieldConfiguration(input: any) {
+  const key = String(input.key || "").trim()
+  const label = String(input.label || "").trim()
+  if (!key) {
+    personalizationError(
+      "PERSONALIZATION_FIELD_KEY_REQUIRED",
+      "Personalization field key is required."
+    )
+  }
+  if (!/^[a-z][a-z0-9_]{0,63}$/.test(key)) {
+    personalizationError(
+      "PERSONALIZATION_FIELD_KEY_INVALID",
+      "Field key must use lowercase letters, numbers, and underscores."
+    )
+  }
+  if (!label) {
+    personalizationError(
+      "PERSONALIZATION_FIELD_LABEL_REQUIRED",
+      "Personalization field label is required."
+    )
+  }
+
+  const fieldType = String(input.field_type || "text")
+  if (!(PERSONALIZATION_FIELD_TYPES as readonly string[]).includes(fieldType)) {
+    personalizationError(
+      "INVALID_PERSONALIZATION_FIELD_TYPE",
+      "Unsupported personalization field type."
+    )
+  }
+
+  const adjustment = Number(input.price_adjustment ?? 0)
+  if (!Number.isInteger(adjustment) || adjustment < 0 || adjustment > 1_000_000) {
+    personalizationError(
+      "PERSONALIZATION_FIELD_SURCHARGE_INVALID",
+      "Price adjustment must be a non-negative integer minor-unit amount."
+    )
+  }
+
+  const minLength = (input.min_length === null || input.min_length === undefined || input.min_length === "") ? null : Number(input.min_length)
+  const maxLength = (input.max_length === null || input.max_length === undefined || input.max_length === "") ? null : Number(input.max_length)
+  const minValue = (input.min_value === null || input.min_value === undefined || input.min_value === "") ? null : Number(input.min_value)
+  const maxValue = (input.max_value === null || input.max_value === undefined || input.max_value === "") ? null : Number(input.max_value)
+
+  // Validate incompatible validation properties per field type
+  if (fieldType === "text" || fieldType === "textarea") {
+    if (minValue !== null || maxValue !== null) {
+      personalizationError(
+        "PERSONALIZATION_TEXT_NUMERIC_RANGE_NOT_ALLOWED",
+        "Text and textarea fields do not support numeric range validation."
+      )
+    }
+  } else if (fieldType === "number") {
+    if (minLength !== null || maxLength !== null) {
+      personalizationError(
+        "PERSONALIZATION_NUMBER_LENGTH_NOT_ALLOWED",
+        "Number fields do not support character length validation."
+      )
+    }
+  } else if (fieldType === "image_upload") {
+    // Image upload fields do not support length or numeric range validation
+    if (minLength !== null || maxLength !== null || minValue !== null || maxValue !== null) {
+      personalizationError(
+        "PERSONALIZATION_FIELD_VALIDATION_INVALID",
+        'Field type "image_upload" does not support length or range validation properties.'
+      )
+    }
+  } else if (["select", "radio", "boolean", "checkbox", "color", "date"].includes(fieldType)) {
+    if (minLength !== null || maxLength !== null || minValue !== null || maxValue !== null) {
+      personalizationError(
+        "PERSONALIZATION_FIELD_VALIDATION_INVALID",
+        `Field type "${fieldType}" does not support length or range validation properties.`
+      )
+    }
+  }
+
+  if (
+    (minLength !== null && (!Number.isInteger(minLength) || minLength < 0 || minLength > 5_000)) ||
+    (maxLength !== null && (!Number.isInteger(maxLength) || maxLength < 1 || maxLength > 5_000)) ||
+    (minLength !== null && maxLength !== null && minLength > maxLength)
+  ) {
+    personalizationError(
+      "PERSONALIZATION_FIELD_LENGTH_INVALID",
+      "Field minimum length must be between 0 and 5000, maximum length must be between 1 and 5000, and minimum must not exceed maximum."
+    )
+  }
+
+  if (
+    (minValue !== null && !Number.isFinite(minValue)) ||
+    (maxValue !== null && !Number.isFinite(maxValue)) ||
+    (minValue !== null && maxValue !== null && minValue > maxValue)
+  ) {
+    personalizationError(
+      "PERSONALIZATION_FIELD_RANGE_INVALID",
+      "Field minimum value must not exceed its maximum value."
+    )
+  }
+
+  const sortOrder = Number(input.sort_order ?? 0)
+  if (!Number.isInteger(sortOrder) || sortOrder < 0 || sortOrder > 10_000) {
+    personalizationError(
+      "PERSONALIZATION_FIELD_SORT_ORDER_INVALID",
+      "Field sort order must be a non-negative integer."
+    )
+  }
+
+  let allowedValues = input.allowed_values ?? null
+  let validationRules = input.validation_rules ?? null
+
+  if (fieldType === "image_upload") {
+    // Image upload fields use allowed_values for MIME types and
+    // validation_rules for max_file_size_mb and max_files.
+    const allowedMimes = new Set(Object.keys(PERSONALIZATION_IMAGE_TYPES))
+
+    if (!Array.isArray(allowedValues) || allowedValues.length === 0) {
+      personalizationError(
+        "PERSONALIZATION_IMAGE_MIME_TYPES_REQUIRED",
+        "Image upload fields require at least one allowed MIME type."
+      )
+    }
+    // Normalize and validate each MIME type
+    allowedValues = allowedValues.map((value: unknown) => String(value).trim().toLowerCase()).filter(Boolean)
+    if (allowedValues.length === 0) {
+      personalizationError(
+        "PERSONALIZATION_IMAGE_MIME_TYPES_REQUIRED",
+        "Image upload fields require at least one allowed MIME type."
+      )
+    }
+    for (const mime of allowedValues) {
+      if (!allowedMimes.has(mime)) {
+        personalizationError(
+          "PERSONALIZATION_IMAGE_MIME_TYPE_INVALID",
+          `Allowed image types are JPEG, PNG, and WEBP. Received: ${mime}`
+        )
+      }
+    }
+    // Deduplicate
+    allowedValues = [...new Set(allowedValues)]
+
+    // Validate validation_rules if present
+    if (validationRules !== null && typeof validationRules === "object") {
+      const maxFileSizeMb = validationRules.max_file_size_mb
+      if (maxFileSizeMb !== undefined && maxFileSizeMb !== null) {
+        const sizeNum = Number(maxFileSizeMb)
+        if (!Number.isFinite(sizeNum) || sizeNum <= 0 || sizeNum > 50) {
+          personalizationError(
+            "PERSONALIZATION_IMAGE_MAX_SIZE_INVALID",
+            "Maximum file size must be a positive supported value (1-50 MB)."
+          )
+        }
+      }
+      const maxFiles = validationRules.max_files
+      if (maxFiles !== undefined && maxFiles !== null) {
+        const filesNum = Number(maxFiles)
+        if (!Number.isInteger(filesNum) || filesNum < 1 || filesNum > 10) {
+          personalizationError(
+            "PERSONALIZATION_IMAGE_MAX_FILES_INVALID",
+            "Maximum files must be an integer between 1 and 10."
+          )
+        }
+      }
+    } else {
+      // Default validation rules for image upload
+      validationRules = {
+        max_file_size_mb: 5,
+        max_files: 1,
+      }
+    }
+  } else if (["select", "radio"].includes(fieldType)) {
+    if (
+      !Array.isArray(allowedValues) ||
+      allowedValues.length === 0 ||
+      allowedValues.length > 100 ||
+      allowedValues.some((value: unknown) => !String(value ?? "").trim())
+    ) {
+      personalizationError(
+        "PERSONALIZATION_SELECT_OPTIONS_REQUIRED",
+        "Select fields require between 1 and 100 non-empty allowed values."
+      )
+    }
+    allowedValues = allowedValues.map((value: unknown) => String(value).trim())
+    if (new Set(allowedValues.map((value: string) => value.toLocaleLowerCase("en"))).size !== allowedValues.length) {
+      personalizationError(
+        "PERSONALIZATION_FIELD_OPTIONS_INVALID",
+        "Select field options must be unique."
+      )
+    }
+  } else if (fieldType === "color") {
+    if (allowedValues !== null) {
+      if (!Array.isArray(allowedValues)) {
+        personalizationError(
+          "PERSONALIZATION_FIELD_VALIDATION_INVALID",
+          "Color options must be an array."
+        )
+      }
+      allowedValues = allowedValues.map((value: unknown) => String(value).trim())
+    }
+  } else {
+    if (allowedValues !== null) {
+      personalizationError(
+        "PERSONALIZATION_FIELD_VALIDATION_INVALID",
+        `Field type "${fieldType}" does not support allowed values/options.`
+      )
+    }
+    allowedValues = null
+  }
+
+  return {
+    ...input,
+    key,
+    label,
+    field_type: fieldType,
+    min_length: minLength,
+    max_length: maxLength,
+    min_value: minValue,
+    max_value: maxValue,
+    allowed_values: allowedValues,
+    price_adjustment: adjustment,
+    price_adjustment_type: "fixed",
+    sort_order: sortOrder,
+    validation_rules: validationRules,
+  }
+}

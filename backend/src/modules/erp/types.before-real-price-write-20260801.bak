@@ -1,0 +1,133 @@
+export type ErpModuleOptions = {
+  enabled: boolean
+  provider: "odoo"
+  baseUrl: string
+  databaseName: string
+  username: string
+  password: string
+  timeoutMs: number
+  skuPrefix: string
+  inventorySyncEnabled: boolean
+  inventoryDryRun: boolean
+  odooLocationId?: number
+  medusaStockLocationId?: string
+}
+
+export type ErpErrorCode =
+  | "ERP_DISABLED"
+  | "ERP_CONFIG_INVALID"
+  | "ERP_CONNECTION_FAILED"
+  | "ERP_AUTHENTICATION_FAILED"
+  | "ERP_TIMEOUT"
+  | "ERP_PRODUCT_FETCH_FAILED"
+  | "ERP_MALFORMED_RESPONSE"
+  | "ERP_DUPLICATE_SKU"
+  | "ERP_SYNC_FAILED"
+  | "ERP_PRODUCT_FILTER_INVALID"
+  | "ERP_EXACT_SKU_REQUIRED"
+  | "ERP_WRITE_CONFIRMATION_REQUIRED"
+  | "ERP_PRODUCT_NOT_FOUND"
+  | "ERP_DUPLICATE_MEDUSA_SKU"
+  | "ERP_PRODUCT_CREATE_FAILED"
+  | "ERP_PRODUCT_UPDATE_FAILED"
+  | "ERP_INVENTORY_SKU_NOT_FOUND"
+  | "ERP_INVENTORY_LOCATION_NOT_MAPPED"
+  | "ERP_INVENTORY_INVALID_QUANTITY"
+  | "ERP_INVENTORY_DUPLICATE_SKU"
+  | "ERP_INVENTORY_ITEM_NOT_FOUND"
+  | "ERP_INVENTORY_NOT_MANAGED"
+  | "ERP_INVENTORY_WRITE_FAILED"
+  | "ERP_MEDUSA_SKU_NOT_FOUND"
+  | "ERP_INVENTORY_PREPARE_CONFIRMATION_REQUIRED"
+  | "ERP_INVENTORY_PREPARE_LOCATION_MISMATCH"
+  | "ERP_INVENTORY_PREPARE_FAILED"
+  | "ERP_INVENTORY_SYNC_DISABLED"
+  | "ERP_INVENTORY_EXACT_SKU_REQUIRED"
+  | "ERP_INVENTORY_WRITE_CONFIRMATION_REQUIRED"
+  | "ERP_INVENTORY_RESERVATION_CONFLICT"
+  | "ERP_PRICE_CURRENCY_UNRESOLVED"
+  | "ERP_PRICE_CURRENCY_UNSUPPORTED"
+  | "ERP_PRICE_DUPLICATE_SKU"
+  | "ERP_PRICE_SET_AMBIGUOUS"
+  | "ERP_PRICE_SOURCE_MISSING"
+  | "ERP_PRICE_INVALID_AMOUNT"
+  | "ERP_PRICE_SKU_NOT_FOUND"
+
+export type OdooAuthenticationResult = {
+  uid: number
+  databaseName: string
+  username: string
+}
+
+export type OdooProduct = {
+  id: number
+  name: string
+  default_code: string | false
+  list_price: number
+  standard_price: number
+  qty_available: number
+  active: boolean
+}
+
+export type ErpHealthResult = {
+  enabled: boolean
+  connected: boolean
+  provider: "odoo"
+  database: string
+  userId: number
+  latencyMs: number
+  checkedAt: string
+}
+
+export type OdooInventorySnapshot = {
+  sku: string
+  productId: number
+  globalQuantity: number
+  freeQuantity: number
+  locationId: number
+  locationName: string
+  quantity: number
+  reservedQuantity: number
+  availableQuantity: number
+}
+
+export type ErpProductSyncAction =
+  | "CREATE"
+  | "UPDATE"
+  | "UNCHANGED"
+  | "SKIP"
+  | "ERROR"
+
+export type ErpProductSyncItem = {
+  sku: string | null
+  odooProductId: number
+  name: string
+  listPrice: number
+  quantity: number
+  action: ErpProductSyncAction
+  reason: string
+}
+
+export type ErpProductSyncResult = {
+  success: boolean
+  dryRun: boolean
+  summary: {
+    erpProductsRead: number
+    matchedBySku: number
+    wouldCreate: number
+    wouldUpdate: number
+    skipped: number
+    errors: number
+  }
+  items: ErpProductSyncItem[]
+}
+
+export class ErpError extends Error {
+  constructor(
+    public readonly code: ErpErrorCode,
+    message: string
+  ) {
+    super(message)
+    this.name = "ErpError"
+  }
+}

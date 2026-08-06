@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Leaf, ArrowLeft, Store, User, AlertCircle, Building2 } from "lucide-react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
@@ -12,6 +12,7 @@ import {
   loginFailure,
   authStart,
   authResolved,
+  logout
 } from "../redux/authSlice";
 
 import { setUserProfile } from "../redux/userSlice";
@@ -19,21 +20,43 @@ import { setUserProfile } from "../redux/userSlice";
 import useToast from "../hooks/useToast";
 
 import { authService } from "../services/medusa/authService";
-import { firebaseAuthService } from "../services/firebaseAuthService";
+import { firebaseAuthService, syncWithMedusa } from "../services/firebaseAuthService";
 import { accountService } from "../services/accountService";
 import { mapCustomerToProfile } from "../utils/customerProfile";
 
 const Login = () => {
   const location = useLocation();
-  const [mode, setMode] = useState(location.state?.mode || "select");
+  const [mode, setMode] = useState(() => {
+    if (location.pathname === "/login/customer") return "login";
+    if (location.pathname === "/register/customer") return "register";
+    return location.state?.mode || "select";
+  });
+  const [isSignUpMode, setIsSignUpMode] = useState(mode === "register");
+
+  useEffect(() => {
+    if (location.pathname === "/login/customer") {
+      setMode("login");
+      setIsSignUpMode(false);
+    } else if (location.pathname === "/register/customer") {
+      setMode("register");
+      setIsSignUpMode(true);
+    } else if (location.pathname === "/login") {
+      setMode("select");
+      setIsSignUpMode(false);
+    }
+  }, [location.pathname]);
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    confirm_password: "",
     first_name: "",
     last_name: "",
+    phone: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [formError, setFormError] = useState("");
@@ -46,11 +69,33 @@ const Login = () => {
 
   const { showToast } = useToast();
 
+  const navigationCompletedRef = useRef(false);
+  const googleLoginInFlightRef = useRef(false);
+
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate(location.state?.from || "/");
+    if (isAuthenticated && mode !== "select" && !isGoogleLoading && !navigationCompletedRef.current) {
+      navigationCompletedRef.current = true;
+      navigate(location.state?.from || "/profile", { replace: true });
     }
-  }, [isAuthenticated, navigate, location]);
+  }, [isAuthenticated, navigate, location, mode, isGoogleLoading]);
+
+  const handleLogout = async () => {
+    try {
+      await firebaseAuthService.logout();
+      dispatch(logout());
+      showToast("Logged out successfully", "success");
+    } catch (error) {
+      console.error("Logout error", error);
+    }
+  };
+
+  useEffect(() => {
+    setIsSignUpMode(mode === "register");
+  }, [mode]);
+
+  const setCustomerAuthMode = (signUp) => {
+    navigate(signUp ? "/register/customer" : "/login/customer");
+  };
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -84,6 +129,9 @@ const Login = () => {
         const profileData = await authService.getCurrentCustomer();
         const customer = profileData.customer;
 
+        // Clean up stale legacy keys on fresh login
+        ['b2b_company', 'b2b_company_id', 'b2b_customer', 'b2b_status', 'b2b_auth_mode', 'b2b_registration_draft', 'selected_account_type'].forEach(key => localStorage.removeItem(key));
+
         dispatch(loginSuccess({ token: authResponse?.token, user: customer }));
 
         dispatch(
@@ -96,14 +144,23 @@ const Login = () => {
       }
 
       if (mode === "register") {
+        if (formData.password.length < 8) {
+          throw new Error("Password must be at least 8 characters long");
+        }
+        if (formData.password !== formData.confirm_password) {
+          throw new Error("Passwords do not match");
+        }
+        
         const { token, customer } = await authService.register({
           email: formData.email,
           password: formData.password,
           first_name: formData.first_name,
           last_name: formData.last_name,
+          phone: formData.phone,
         });
 
         // Auto-login: update Redux state so the user is immediately authenticated
+        ['b2b_company', 'b2b_company_id', 'b2b_customer', 'b2b_status', 'b2b_auth_mode', 'b2b_registration_draft', 'selected_account_type'].forEach(key => localStorage.removeItem(key));
         dispatch(loginSuccess({ token, user: customer }));
 
         dispatch(
@@ -113,7 +170,7 @@ const Login = () => {
         dispatch(authResolved());
 
         showToast("Account created! Welcome 🌿", "success");
-        navigate("/");
+        navigate("/profile");
       }
 
       if (mode === "forgot") {
@@ -124,15 +181,25 @@ const Login = () => {
         );
       }
     } catch (error) {
-      const message =
+      let message =
         error?.response?.data?.message ||
         error?.message ||
         "Authentication failed";
 
+      const status = error?.response?.status;
+      
+      if (status === 401) {
+        message = "Invalid email or password";
+      } else if (status === 429 || error?.code === "ERR_TOO_MANY_REQUESTS" || message.includes("Too many requests")) {
+        message = "Too many attempts. Please wait a few minutes and try again.";
+      } else if (error?.code === "BACKEND_OFFLINE" || message.includes("Backend offline") || error?.code === "ERR_NETWORK") {
+        message = "Backend is not reachable. Please start the server.";
+      } else if (status === 409 || message.toLowerCase().includes("already exists") || message.toLowerCase().includes("already registered")) {
+        message = "This email is already registered. Please login.";
+      }
+
       dispatch(loginFailure(message));
       setFormError(message);
-
-      showToast(message, "error");
     } finally {
       setIsLoading(false);
     }
@@ -143,76 +210,85 @@ const Login = () => {
   /* -------------------------------------------------------------------------- */
 
   const handleGoogleSignIn = async () => {
-    if (isGoogleLoading) return;
+    if (googleLoginInFlightRef.current) return;
+    googleLoginInFlightRef.current = true;
+
     try {
       setIsGoogleLoading(true);
       setFormError("");
 
       dispatch(authStart());
 
-      const result =
-        await firebaseAuthService.signInWithGoogle();
+      const result = await firebaseAuthService.signInWithGooglePopup();
+      
+      const medusaUser = await syncWithMedusa(result.firebaseUser);
 
-      const medusaUser = result?.medusaUser;
+      // Clean up stale legacy keys on fresh login
+      ['b2b_company', 'b2b_company_id', 'b2b_customer', 'b2b_status', 'b2b_auth_mode', 'b2b_registration_draft', 'selected_account_type'].forEach(key => localStorage.removeItem(key));
 
-      dispatch(loginSuccess({ user: medusaUser, token: result.token }));
+      // Token should now be present after syncWithMedusa
+      const { getCustomerToken } = await import("../services/medusa/tokenStorage");
+      const token = getCustomerToken();
 
-      dispatch(
-        setUserProfile(mapCustomerToProfile(medusaUser))
-      );
-
+      dispatch(loginSuccess({ user: medusaUser, token }));
+      dispatch(setUserProfile(mapCustomerToProfile(medusaUser)));
       dispatch(authResolved());
 
       showToast("Google Login Success 🌿", "success");
 
-      navigate(location.state?.from || "/");
+      if (!navigationCompletedRef.current) {
+        navigationCompletedRef.current = true;
+        navigate(location.state?.from || "/profile", { replace: true });
+      }
+
     } catch (error) {
       console.error('[Login] Google sign-in failed:', error);
 
-      dispatch(loginFailure(error.message));
-      setFormError(error?.message || "Google Sign-In failed");
-
-      showToast(
-        error?.message || "Google Sign-In failed",
-        "error"
-      );
+      firebaseAuthService.handleGoogleAuthError(error, (msg) => {
+        setFormError(msg);
+        dispatch(loginFailure(msg));
+        
+        // Don't show toast for user cancellations or duplicate requests
+        if (!msg.includes("cancelled") && !msg.includes("open") && !msg.includes("cancel")) {
+          showToast(msg, "error");
+        }
+      });
     } finally {
+      googleLoginInFlightRef.current = false;
       setIsGoogleLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-bg-primary flex items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
       {/* Background Blur */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-accent-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-accent-secondary/5 rounded-full blur-3xl" />
+        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-amber-600/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-rose-700/5 rounded-full blur-3xl" />
       </div>
 
       <Motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md relative z-10"
+        className="w-full max-w-[480px] relative z-10"
       >
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-3 justify-center mb-12 group">
-          <div className="bg-organic-primary p-2.5 rounded-xl text-white shadow-lg group-hover:rotate-12 transition-transform">
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5a6.22 6.22 0 002.89 3.67A18 42 42 0 0117 8z" />
-            </svg>
+        <Link to="/" className="flex items-center gap-3 justify-center mb-10 group">
+          <div className="bg-[#594236] p-2.5 rounded-[14px] text-white shadow-lg group-hover:rotate-12 transition-transform duration-300">
+            <Leaf className="w-6 h-6" />
           </div>
           <div className="flex flex-col items-start leading-none">
-            <span className="text-2xl font-black tracking-tighter text-organic-primary uppercase md:text-3xl">
-              Organic <span className="text-organic-terracotta">Canada</span>
+            <span className="text-2xl font-black tracking-tighter text-[#594236] uppercase md:text-3xl">
+              Organic <span className="text-[#C16D45]">Canada</span>
             </span>
-            <span className="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase">
+            <span className="text-[10px] font-bold tracking-[0.2em] text-[#8C7A70] uppercase">
               Fresh Grocery
             </span>
           </div>
         </Link>
 
         {/* Card */}
-        <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-premium p-8 border border-stone-100 dark:border-slate-700">
+        <div className="bg-white rounded-[32px] shadow-[0_8px_40px_rgb(0,0,0,0.04)] sm:p-10 p-7 border border-stone-100">
           {/* Heading */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-black mb-2">
@@ -245,42 +321,115 @@ const Login = () => {
 
           {/* Form */}
           {mode === "select" ? (
-            <div className="flex flex-col gap-4">
-              <Button size="lg" className="w-full gap-3 justify-center" onClick={() => setMode("login")}>
-                 <User size={18} /> Login as Customer
-              </Button>
-              <Button variant="outline" size="lg" className="w-full gap-3 justify-center border-accent-primary text-accent-primary hover:bg-accent-primary hover:text-white transition-all" onClick={() => navigate("/vendor/login")}>
-                 <Store size={18} /> Login as Seller
-              </Button>
-              <Button variant="outline" size="lg" className="w-full gap-3 justify-center border-organic-primary text-organic-primary hover:bg-organic-primary hover:text-white transition-all" onClick={() => navigate("/b2b/login")}>
-                 <Building2 size={18} /> Login as B2B Buyer
-              </Button>
-              
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-stone-100 dark:border-slate-700"></div>
+            isAuthenticated ? (
+              <div className="flex flex-col gap-3">
+                <div className="bg-stone-50 rounded-2xl p-5 text-center mb-2 border border-stone-100">
+                  <p className="font-bold text-lg text-stone-800">Welcome back!</p>
+                  <p className="text-sm text-stone-500">You are already logged in.</p>
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white dark:bg-slate-800 px-4 text-text-secondary font-bold">
-                    New partner?
-                  </span>
+                <button 
+                  className="w-full flex items-center justify-center gap-3 h-[56px] rounded-full font-bold text-white bg-[#594236] hover:bg-[#4A372D] shadow-lg shadow-[#594236]/20 transition-all duration-200"
+                  onClick={() => navigate("/profile")}
+                >
+                  Continue to Profile
+                </button>
+                <button 
+                  className="w-full flex items-center justify-center gap-3 h-[56px] rounded-full font-bold text-[#594236] bg-white border-2 border-stone-200 hover:bg-stone-50 transition-all duration-200"
+                  onClick={() => navigate("/orders")}
+                >
+                  View Orders
+                </button>
+                <button 
+                  className="w-full flex items-center justify-center gap-3 h-[56px] rounded-full font-bold text-red-600 bg-white border-2 border-stone-200 hover:border-red-200 hover:bg-red-50 transition-all duration-200"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+                
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-stone-100"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase tracking-widest">
+                    <span className="bg-white px-4 text-stone-400 font-black">
+                      Partner Access
+                    </span>
+                  </div>
                 </div>
+                
+                <button 
+                  className="w-full flex items-center justify-center gap-3 h-[56px] rounded-full font-bold text-[#C16D45] bg-white border-2 border-[#C16D45]/30 hover:border-[#C16D45] hover:bg-[#C16D45]/5 transition-all duration-200"
+                  onClick={() => navigate("/login/seller")}
+                >
+                   <Store size={18} /> Login as Seller
+                </button>
+                <button 
+                  className="w-full flex items-center justify-center gap-3 h-[56px] rounded-full font-bold text-[#8B2635] bg-white border-2 border-[#8B2635]/30 hover:border-[#8B2635] hover:bg-[#8B2635]/5 transition-all duration-200"
+                  onClick={() => navigate("/login/b2b")}
+                >
+                   <Building2 size={18} /> Login as B2B Buyer
+                </button>
               </div>
-              
-              <Button variant="secondary" size="lg" className="w-full gap-3 justify-center" onClick={() => navigate("/vendor/register")}>
-                 <Leaf size={18} /> Become a Seller
-              </Button>
-              <Button variant="secondary" size="lg" className="w-full gap-3 justify-center" onClick={() => navigate("/b2b/register-company")}>
-                 <Building2 size={18} /> Register B2B Company
-              </Button>
-            </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <button 
+                  className="w-full flex items-center justify-center gap-3 h-[56px] rounded-full font-bold text-white bg-[#594236] hover:bg-[#4A372D] shadow-lg shadow-[#594236]/20 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-[#594236]/20"
+                  onClick={() => navigate("/login/customer")}
+                >
+                   <User size={18} /> Login as Customer
+                </button>
+                <button 
+                  className="w-full flex items-center justify-center gap-3 h-[56px] rounded-full font-bold text-[#594236] bg-white border-2 border-stone-200 hover:bg-stone-50 hover:border-stone-300 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-stone-200"
+                  onClick={() => navigate("/register/customer")}
+                >
+                   <User size={18} /> Create Customer Account
+                </button>
+                
+                <button 
+                  className="w-full flex items-center justify-center gap-3 h-[56px] rounded-full font-bold text-[#C16D45] bg-white border-2 border-[#C16D45]/30 hover:border-[#C16D45] hover:bg-[#C16D45]/5 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-[#C16D45]/20 mt-2"
+                  onClick={() => navigate("/login/seller")}
+                >
+                   <Store size={18} /> Login as Seller
+                </button>
+                <button 
+                  className="w-full flex items-center justify-center gap-3 h-[56px] rounded-full font-bold text-[#8B2635] bg-white border-2 border-[#8B2635]/30 hover:border-[#8B2635] hover:bg-[#8B2635]/5 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-[#8B2635]/20"
+                  onClick={() => navigate("/login/b2b")}
+                >
+                   <Building2 size={18} /> Login as B2B Buyer
+                </button>
+                
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-stone-100"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase tracking-widest">
+                    <span className="bg-white px-4 text-stone-400 font-black">
+                      New partner?
+                    </span>
+                  </div>
+                </div>
+                
+                <button 
+                  className="w-full flex items-center justify-center gap-3 h-[56px] rounded-full font-bold text-stone-700 bg-stone-50 hover:bg-stone-100 transition-all duration-200"
+                  onClick={() => navigate("/register/seller")}
+                >
+                   <Leaf size={18} /> Become a Seller
+                </button>
+                <button 
+                  className="w-full flex items-center justify-center gap-3 h-[56px] rounded-full font-bold text-stone-700 bg-stone-50 hover:bg-stone-100 transition-all duration-200"
+                  onClick={() => navigate("/register/b2b")}
+                >
+                   <Building2 size={18} /> Register B2B Company
+                </button>
+              </div>
+            )
           ) : (
             <form
               onSubmit={handleAuth}
               className="flex flex-col gap-5"
             >
             <AnimatePresence mode="wait">
-              {mode === "register" && (
+              {isSignUpMode && (
                 <Motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{
@@ -288,24 +437,34 @@ const Login = () => {
                     height: "auto",
                   }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="grid grid-cols-2 gap-4"
+                  className="flex flex-col gap-5"
                 >
-                  <Input
-                    label="First Name"
-                    name="first_name"
-                    value={formData.first_name}
-                    onChange={handleChange}
-                    placeholder="John"
-                    required
-                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      label="First Name"
+                      name="first_name"
+                      value={formData.first_name}
+                      onChange={handleChange}
+                      placeholder="John"
+                      required
+                    />
 
+                    <Input
+                      label="Last Name"
+                      name="last_name"
+                      value={formData.last_name}
+                      onChange={handleChange}
+                      placeholder="Doe"
+                      required
+                    />
+                  </div>
                   <Input
-                    label="Last Name"
-                    name="last_name"
-                    value={formData.last_name}
+                    label="Phone Number (Optional)"
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
                     onChange={handleChange}
-                    placeholder="Doe"
-                    required
+                    placeholder="+1 (555) 000-0000"
                   />
                 </Motion.div>
               )}
@@ -322,15 +481,45 @@ const Login = () => {
             />
 
             {mode !== "forgot" && (
-              <Input
-                label="Password"
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                required
-              />
+              <div className="relative">
+                <Input
+                  label="Password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-[34px] text-xs font-bold text-text-secondary hover:text-accent-primary"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+            )}
+            
+            {mode === "register" && (
+              <div className="relative">
+                <Input
+                  label="Confirm Password"
+                  name="confirm_password"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={formData.confirm_password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-[34px] text-xs font-bold text-text-secondary hover:text-accent-primary"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? "Hide" : "Show"}
+                </button>
+              </div>
             )}
 
             {mode === "login" && (
@@ -345,12 +534,14 @@ const Login = () => {
               </div>
             )}
 
-            <Button
+            <button
               type="submit"
-              size="lg"
-              className="mt-4 gap-2"
-              isLoading={isLoading}
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-3 h-[56px] rounded-full font-bold text-white bg-[#594236] hover:bg-[#4A372D] shadow-lg shadow-[#594236]/20 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-[#594236]/20 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
             >
+              {isLoading && (
+                <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+              )}
               {mode === "login"
                 ? "Sign In"
                 : mode === "register"
@@ -358,7 +549,7 @@ const Login = () => {
                 : "Send Reset Link"}
 
               {!isLoading && <ArrowRight size={18} />}
-            </Button>
+            </button>
 
             {/* Divider */}
             <div className="relative my-4">
@@ -391,37 +582,37 @@ const Login = () => {
 
               {isGoogleLoading ? "Connecting Google account…" : "Continue with Google"}
             </Button>
+
+            {mode !== "forgot" && (
+              <div className="rounded-2xl border border-stone-100 dark:border-slate-700 bg-stone-50/70 dark:bg-slate-900/40 p-4 text-center">
+                <p className="text-sm text-text-secondary font-medium">
+                  {isSignUpMode ? "Already have a customer account?" : "New to Organic Canada?"}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setCustomerAuthMode(!isSignUpMode)}
+                  className="mt-1 text-sm font-black text-accent-primary hover:text-accent-secondary hover:underline"
+                >
+                  {isSignUpMode ? "Switch to Sign In" : "Create a Customer Account"}
+                </button>
+              </div>
+            )}
+
+            {mode === "forgot" && (
+              <button
+                type="button"
+                onClick={() => setCustomerAuthMode(false)}
+                className="text-sm font-black text-accent-primary hover:text-accent-secondary hover:underline"
+              >
+                Back to Sign In
+              </button>
+            )}
           </form>
           )}
         </div>
 
         {/* Footer */}
         <div className="mt-8 text-center flex flex-col gap-4">
-          <p className="text-sm text-text-secondary font-medium">
-            {mode === "select"
-              ? ""
-              : mode === "login"
-              ? "Don't have an account?"
-              : "Already have an account?"}
-
-            {mode !== "select" && (
-              <button
-                onClick={() =>
-                  setMode(
-                    mode === "login"
-                      ? "register"
-                      : "login"
-                  )
-                }
-                className="ml-2 font-black text-accent-primary hover:underline"
-              >
-                {mode === "login"
-                  ? "Create one"
-                  : "Sign In"}
-              </button>
-            )}
-          </p>
-
           <Link
             to="/"
             className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-text-secondary hover:text-accent-primary mx-auto transition-colors"

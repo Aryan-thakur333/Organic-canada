@@ -30,6 +30,9 @@ import { b2bApi } from '../services/b2bApi';
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 const fmtPrice = (cents) => `$${(cents / 100).toFixed(2)}`;
+const quoteNegotiatedSubtotal = (quote) => quote.negotiated_subtotal ?? quote.negotiated_total ?? quote.preview?.subtotal ?? 0;
+const quoteCommissionAmount = (quote) => quote.commission_amount ?? quote.commission?.amount ?? 0;
+const quoteFinalPayable = (quote) => quote.final_payable_total ?? quote.commission?.final_payable_total ?? quote.total ?? quoteNegotiatedSubtotal(quote);
 const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
 
 const STATUS_FILTERS = ['all', 'draft', 'pending', 'approved', 'rejected', 'converted'];
@@ -61,6 +64,18 @@ export default function AdminB2BQuotes() {
   const [reviewModal, setReviewModal] = useState(null); // { id, action: 'approved'|'rejected' }
   const [negotiatedTotal, setNegotiatedTotal] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
+  const [finalOfferModal, setFinalOfferModal] = useState(null);
+  const [finalOfferForm, setFinalOfferForm] = useState({
+    negotiated_total: '',
+    expires_at: '',
+    payment_terms: 'due_on_receipt',
+    admin_note: '',
+  });
+  const [markPaidModal, setMarkPaidModal] = useState(null);
+  const [markPaidForm, setMarkPaidForm] = useState({
+    payment_reference: '',
+    note: '',
+  });
 
   // ── Fetch ────────────────────────────────────────────────────────────
   const fetchData = async () => {
@@ -145,6 +160,80 @@ export default function AdminB2BQuotes() {
     setReviewModal({ id: quote.id, action });
     setNegotiatedTotal(action === 'approved' && quote.negotiated_total ? String(quote.negotiated_total) : '');
     setAdminNotes('');
+  };
+
+  const openFinalOfferModal = (quote) => {
+    setFinalOfferModal(quote);
+    setFinalOfferForm({
+      negotiated_total: quote.negotiated_total != null ? (Number(quote.negotiated_total) / 100).toFixed(2) : '',
+      expires_at: quote.expires_at ? new Date(quote.expires_at).toISOString().slice(0, 10) : '',
+      payment_terms: quote.payment_terms || 'due_on_receipt',
+      admin_note: quote.admin_note || quote.admin_notes || '',
+    });
+  };
+
+  const handleSaveFinalOffer = async ({ send = false } = {}) => {
+    if (!finalOfferModal || actionLoading) return;
+    const amount = Number(finalOfferForm.negotiated_total);
+    if (!Number.isFinite(amount) || amount < 0) {
+      showToast('Negotiated total must be a non-negative decimal amount', 'error');
+      return;
+    }
+
+    setActionLoading(finalOfferModal.id);
+    try {
+      const saveRes = await b2bApi.adminSaveNegotiatedTotal(finalOfferModal.id, {
+        negotiated_total: finalOfferForm.negotiated_total,
+        expires_at: finalOfferForm.expires_at || null,
+        payment_terms: finalOfferForm.payment_terms,
+        admin_note: finalOfferForm.admin_note,
+      });
+      let updated = saveRes.quote;
+
+      if (send) {
+        const sendRes = await b2bApi.adminSendQuoteOffer(finalOfferModal.id, {
+          admin_note: finalOfferForm.admin_note,
+        });
+        updated = sendRes.quote;
+      }
+
+      setQuotes(prev => prev.map(q => q.id === finalOfferModal.id ? { ...q, ...updated } : q));
+      setFinalOfferModal(null);
+      showToast(send ? 'Final offer sent to customer' : 'Final offer saved', 'success');
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to save final offer';
+      showToast(msg, 'error');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const openMarkPaidModal = (quote) => {
+    setMarkPaidModal(quote);
+    setMarkPaidForm({
+      payment_reference: quote.metadata?.payment_reference || '',
+      note: '',
+    });
+  };
+
+  const handleMarkPaymentReceived = async () => {
+    if (!markPaidModal || actionLoading) return;
+    setActionLoading(markPaidModal.id);
+    try {
+      const res = await b2bApi.adminMarkQuotePaymentReceived(markPaidModal.id, {
+        payment_reference: markPaidForm.payment_reference.trim() || undefined,
+        note: markPaidForm.note.trim() || undefined,
+      });
+      const updated = res.quote;
+      setQuotes(prev => prev.map(q => q.id === markPaidModal.id ? { ...q, ...updated } : q));
+      setMarkPaidModal(null);
+      showToast('Payment marked received', 'success');
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to mark payment received';
+      showToast(msg, 'error');
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   // ── Analytics ────────────────────────────────────────────────────────
@@ -296,7 +385,7 @@ export default function AdminB2BQuotes() {
               <table className="w-full">
                 <thead className="bg-stone-50 dark:bg-slate-900/50">
                   <tr>
-                    {['ID', 'Company', 'Customer', 'Items', 'Subtotal', 'Negotiated', 'Status', 'Submitted', 'Actions'].map(h => (
+                    {['ID', 'Company', 'Customer', 'Items', 'Subtotal', 'B2B Fee', 'Payable', 'Status', 'Submitted', 'Actions'].map(h => (
                       <th key={h} className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -347,12 +436,20 @@ export default function AdminB2BQuotes() {
                           <p className="text-sm font-black text-text-primary">{fmtPrice(quote.subtotal)}</p>
                         </td>
 
-                        {/* Negotiated */}
+                        {/* B2B Fee */}
                         <td className="px-6 py-5">
-                          {quote.negotiated_total != null ? (
-                            <p className="text-sm font-black text-accent-primary">{fmtPrice(quote.negotiated_total)}</p>
+                          {quoteCommissionAmount(quote) > 0 ? (
+                            <p className="text-sm font-black text-amber-600">{fmtPrice(quoteCommissionAmount(quote))}</p>
                           ) : (
                             <span className="text-xs text-text-secondary italic">—</span>
+                          )}
+                        </td>
+
+                        {/* Payable */}
+                        <td className="px-6 py-5">
+                          <p className="text-sm font-black text-accent-primary">{fmtPrice(quoteFinalPayable(quote))}</p>
+                          {quote.negotiated_total != null && (
+                            <p className="text-[10px] font-semibold text-text-secondary">Subtotal {fmtPrice(quoteNegotiatedSubtotal(quote))}</p>
                           )}
                         </td>
 
@@ -394,9 +491,34 @@ export default function AdminB2BQuotes() {
                                 </button>
                               </>
                             )}
+                            {['pending_merchant', 'pending_review', 'pending_customer'].includes(quote.status) && (
+                              <button
+                                title="Final offer"
+                                disabled={actionLoading === quote.id}
+                                onClick={() => openFinalOfferModal(quote)}
+                                className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 hover:bg-blue-100 transition-colors disabled:opacity-40"
+                              >
+                                <Scale size={14} />
+                              </button>
+                            )}
                             {quote.status === 'approved' && (
                               <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                                 <Loader2 size={12} className="animate-spin" /> Converting…
+                              </span>
+                            )}
+                            {quote.status === 'accepted' && quote.payment_state !== 'paid' && (
+                              <button
+                                title="Mark payment received"
+                                disabled={actionLoading === quote.id}
+                                onClick={() => openMarkPaidModal(quote)}
+                                className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 hover:bg-emerald-100 transition-colors disabled:opacity-40"
+                              >
+                                <DollarSign size={14} />
+                              </button>
+                            )}
+                            {quote.status === 'accepted' && quote.payment_state === 'paid' && (
+                              <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                <CheckCircle2 size={12} /> Paid
                               </span>
                             )}
                             {quote.status === 'converted' && (
@@ -505,6 +627,162 @@ export default function AdminB2BQuotes() {
                   onClick={handleReview}
                 >
                   {reviewModal.action === 'approved' ? 'Approve & Convert' : 'Reject'}
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {finalOfferModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg bg-white dark:bg-slate-800 rounded-[2rem] p-8 shadow-2xl border border-stone-100 dark:border-slate-700 text-left"
+            >
+              <div className="inline-flex p-3 rounded-full mb-4 bg-blue-500/10 text-blue-600">
+                <Scale size={28} />
+              </div>
+              <h3 className="text-2xl font-black text-text-primary mb-2">Final Offer</h3>
+              <p className="text-sm text-text-secondary mb-6 leading-relaxed">
+                Save the payable negotiated amount and terms for this B2B quote.
+                <br />
+                <strong className="text-accent-primary">Admin note is only a message. To change price, update Final Negotiated Total.</strong>
+              </p>
+
+              <div className="grid sm:grid-cols-2 gap-4 mb-5">
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-widest text-text-secondary mb-2">
+                    Negotiated Total
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={finalOfferForm.negotiated_total}
+                    onChange={e => setFinalOfferForm(prev => ({ ...prev, negotiated_total: e.target.value }))}
+                    placeholder="360.00"
+                    className="w-full px-4 py-3 bg-stone-50 dark:bg-slate-900 border-2 border-transparent focus:border-accent-primary rounded-2xl text-sm font-semibold outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-widest text-text-secondary mb-2">
+                    Expires At
+                  </label>
+                  <input
+                    type="date"
+                    value={finalOfferForm.expires_at}
+                    onChange={e => setFinalOfferForm(prev => ({ ...prev, expires_at: e.target.value }))}
+                    className="w-full px-4 py-3 bg-stone-50 dark:bg-slate-900 border-2 border-transparent focus:border-accent-primary rounded-2xl text-sm font-semibold outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-5">
+                <label className="block text-xs font-black uppercase tracking-widest text-text-secondary mb-2">
+                  Payment Terms
+                </label>
+                <select
+                  value={finalOfferForm.payment_terms}
+                  onChange={e => setFinalOfferForm(prev => ({ ...prev, payment_terms: e.target.value }))}
+                  className="w-full px-4 py-3 bg-stone-50 dark:bg-slate-900 border-2 border-transparent focus:border-accent-primary rounded-2xl text-sm font-semibold outline-none transition-all"
+                >
+                  <option value="due_on_receipt">Due on receipt</option>
+                  <option value="net_7">Net 7</option>
+                  <option value="net_15">Net 15</option>
+                  <option value="net_30">Net 30</option>
+                  <option value="net_45">Net 45</option>
+                </select>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-xs font-black uppercase tracking-widest text-text-secondary mb-2">
+                  Admin Note
+                </label>
+                <textarea
+                  value={finalOfferForm.admin_note}
+                  onChange={e => setFinalOfferForm(prev => ({ ...prev, admin_note: e.target.value }))}
+                  rows={3}
+                  className="w-full px-4 py-3 bg-stone-50 dark:bg-slate-900 border-2 border-transparent focus:border-accent-primary rounded-2xl text-sm font-semibold outline-none transition-all resize-none"
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <Button variant="outline" className="flex-1 text-xs font-black uppercase tracking-wider" onClick={() => setFinalOfferModal(null)}>
+                  Cancel
+                </Button>
+                <Button variant="secondary" className="flex-1 text-xs font-black uppercase tracking-wider" onClick={() => handleSaveFinalOffer({ send: false })}>
+                  Save Final Offer
+                </Button>
+                <Button className="flex-1 text-xs font-black uppercase tracking-wider gap-2" onClick={() => handleSaveFinalOffer({ send: true })}>
+                  <Send size={14} /> Send Final Offer
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {markPaidModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md bg-white dark:bg-slate-800 rounded-[2rem] p-8 shadow-2xl border border-stone-100 dark:border-slate-700 text-left"
+            >
+              <div className="inline-flex p-3 rounded-full mb-4 bg-emerald-500/10 text-emerald-600">
+                <DollarSign size={28} />
+              </div>
+              <h3 className="text-2xl font-black text-text-primary mb-2">Mark Payment Received</h3>
+              <p className="text-sm text-text-secondary mb-6 leading-relaxed">
+                Record the offline remittance for quote #{markPaidModal.id?.slice(-8).toUpperCase()}.
+              </p>
+
+              <div className="mb-5">
+                <label className="block text-xs font-black uppercase tracking-widest text-text-secondary mb-2">
+                  Payment Reference
+                </label>
+                <input
+                  type="text"
+                  value={markPaidForm.payment_reference}
+                  onChange={e => setMarkPaidForm(prev => ({ ...prev, payment_reference: e.target.value }))}
+                  placeholder="Wire, cheque, or bank reference"
+                  className="w-full px-4 py-3 bg-stone-50 dark:bg-slate-900 border-2 border-transparent focus:border-accent-primary rounded-2xl text-sm font-semibold outline-none transition-all"
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-xs font-black uppercase tracking-widest text-text-secondary mb-2">
+                  Internal Note
+                </label>
+                <textarea
+                  value={markPaidForm.note}
+                  onChange={e => setMarkPaidForm(prev => ({ ...prev, note: e.target.value }))}
+                  rows={3}
+                  placeholder="Optional settlement note"
+                  className="w-full px-4 py-3 bg-stone-50 dark:bg-slate-900 border-2 border-transparent focus:border-accent-primary rounded-2xl text-sm font-semibold outline-none transition-all resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1 text-xs font-black uppercase tracking-wider"
+                  onClick={() => setMarkPaidModal(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1 text-xs font-black uppercase tracking-wider"
+                  disabled={actionLoading === markPaidModal.id}
+                  onClick={handleMarkPaymentReceived}
+                >
+                  {actionLoading === markPaidModal.id ? 'Saving...' : 'Mark Paid'}
                 </Button>
               </div>
             </motion.div>

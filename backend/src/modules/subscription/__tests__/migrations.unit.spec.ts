@@ -61,7 +61,12 @@ function createMigration(): Migration20260621130000 {
 
     migration.up()
 
-    for (const sql of sqlStatements) {
+    const indexStatements = sqlStatements.filter((sql) =>
+      /CREATE INDEX IF NOT EXISTS/.test(sql)
+    )
+
+    expect(indexStatements).toHaveLength(expectedUpIndexes.length)
+    for (const sql of indexStatements) {
       expect(sql).toMatch(/CREATE INDEX IF NOT EXISTS "/)
       expect(sql).toMatch(/"IDX_subscription_/)
       expect(sql).toMatch(/WHERE deleted_at IS NULL/)

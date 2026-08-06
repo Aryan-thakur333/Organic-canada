@@ -11,7 +11,7 @@ const NAV_GROUPS = [
   {
     label: "Shop pages",
     items: [
-      { label: "All products", to: "/listing" },
+      { label: "All products", to: "/shop" },
       { label: "Search", to: ROUTES.SEARCH },
       { label: "Wishlist", to: ROUTES.WISHLIST },
       { label: "Cart", to: ROUTES.CART },

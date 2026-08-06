@@ -1,0 +1,319 @@
+import { OdooClient } from "./clients/odoo-client"
+
+import type {
+  ErpProductSyncResult,
+  ErpHealthResult,
+  ErpModuleOptions,
+  OdooProduct,
+} from "./types"
+import { ErpError } from "./types"
+
+export default class ErpModuleService {
+  private readonly client?: OdooClient
+
+  constructor(
+    _container: Record<string, unknown>,
+    private readonly options: ErpModuleOptions
+  ) {
+    if (options.enabled && this.hasRequiredOptions()) {
+      this.client = new OdooClient(options)
+    }
+  }
+
+  private hasRequiredOptions(): boolean {
+    if (
+      !this.options.baseUrl ||
+      !this.options.databaseName ||
+      !this.options.username ||
+      !this.options.password
+    ) {
+      return false
+    }
+
+    return true
+  }
+
+  private getClient(): OdooClient {
+    if (!this.options.enabled) {
+      throw new ErpError(
+        "ERP_DISABLED",
+        "ERP integration is disabled"
+      )
+    }
+
+    if (!this.client) {
+      throw new ErpError(
+        "ERP_CONFIG_INVALID",
+        "ERP module configuration is incomplete"
+      )
+    }
+
+    return this.client
+  }
+
+  async healthCheck(): Promise<ErpHealthResult> {
+    const startedAt = Date.now()
+    const auth = await this.getClient().healthCheck()
+
+    return {
+      enabled: true,
+      connected: true,
+      provider: "odoo",
+      database: auth.databaseName,
+      userId: auth.uid,
+      latencyMs: Date.now() - startedAt,
+      checkedAt: new Date().toISOString(),
+    }
+  }
+
+  async getProducts(input?: {
+    sku?: string
+    skuPrefix?: string
+    limit?: number
+  }): Promise<OdooProduct[]> {
+    return this.getClient().getProducts(input)
+  }
+
+  async getExactProductForSync(
+    sku: string
+  ): Promise<OdooProduct> {
+    const skuPrefix = this.options.skuPrefix.trim()
+    const requestedSku = sku.trim()
+
+    if (!requestedSku) {
+      throw new ErpError(
+        "ERP_EXACT_SKU_REQUIRED",
+        "An exact ERP SKU is required for product writes"
+      )
+    }
+
+    if (!skuPrefix || !requestedSku.startsWith(skuPrefix)) {
+      throw new ErpError(
+        "ERP_PRODUCT_FILTER_INVALID",
+        `Requested SKU must start with the configured ERP prefix (${skuPrefix || "not configured"})`
+      )
+    }
+
+    const products = await this.getProducts({
+      sku: requestedSku,
+      limit: 2,
+    })
+
+    const eligibleProducts = products.filter((product) => {
+      const productSku =
+        typeof product.default_code === "string"
+          ? product.default_code.trim()
+          : ""
+
+      return (
+        product.active &&
+        productSku === requestedSku &&
+        productSku.startsWith(skuPrefix)
+      )
+    })
+
+    if (!eligibleProducts.length) {
+      throw new ErpError(
+        "ERP_PRODUCT_NOT_FOUND",
+        `No active Odoo product was found for SKU ${requestedSku}`
+      )
+    }
+
+    if (eligibleProducts.length > 1) {
+      console.warn(
+        `[ERP_DUPLICATE_SKU] provider=odoo sku=${requestedSku}`
+      )
+      throw new ErpError(
+        "ERP_DUPLICATE_SKU",
+        `Multiple active Odoo products use SKU ${requestedSku}`
+      )
+    }
+
+    return eligibleProducts[0]
+  }
+
+  async dryRunProductSync(input: {
+    findMedusaVariantsBySku(
+      skus: string[]
+    ): Promise<Array<{
+      id: string
+      sku?: string | null
+      product?: { id?: string; title?: string } | null
+    }>>
+    limit?: number
+    sku?: string
+  }): Promise<ErpProductSyncResult> {
+    const skuPrefix = this.options.skuPrefix.trim()
+
+    if (!skuPrefix) {
+      throw new ErpError(
+        "ERP_PRODUCT_FILTER_INVALID",
+        "ERP product sync requires a non-empty SKU prefix"
+      )
+    }
+
+    const requestedSku = input.sku?.trim()
+    if (requestedSku && !requestedSku.startsWith(skuPrefix)) {
+      throw new ErpError(
+        "ERP_PRODUCT_FILTER_INVALID",
+        `Requested SKU must start with the configured ERP prefix (${skuPrefix})`
+      )
+    }
+
+    console.info(
+      `[ERP_SYNC_DRY_RUN_START] provider=odoo sku=${requestedSku || "all"} skuPrefix=${skuPrefix}`
+    )
+
+    const fetchedProducts = await this.getProducts({
+      limit: input.limit ?? 20,
+      sku: requestedSku,
+      skuPrefix: requestedSku ? undefined : skuPrefix,
+    })
+
+    // The client narrows candidates in Odoo; this second check makes sync safe
+    // even if an Odoo domain behaves differently across server configurations.
+    const erpProducts = fetchedProducts.filter((product) => {
+      const sku =
+        typeof product.default_code === "string"
+          ? product.default_code.trim()
+          : ""
+
+      return (
+        product.active &&
+        Boolean(sku) &&
+        sku.startsWith(skuPrefix) &&
+        (!requestedSku || sku === requestedSku)
+      )
+    })
+
+    const activeSkuCounts = new Map<string, number>()
+    for (const product of erpProducts) {
+      const sku =
+        typeof product.default_code === "string"
+          ? product.default_code.trim()
+          : ""
+
+      if (sku) {
+        activeSkuCounts.set(
+          sku,
+          (activeSkuCounts.get(sku) ?? 0) + 1
+        )
+      }
+    }
+
+    const uniqueSkus = Array.from(activeSkuCounts.keys())
+    const medusaVariants =
+      await input.findMedusaVariantsBySku(uniqueSkus)
+
+    const medusaSkuCounts = new Map<string, number>()
+    for (const variant of medusaVariants) {
+      const sku = variant.sku?.trim()
+      if (sku) {
+        medusaSkuCounts.set(
+          sku,
+          (medusaSkuCounts.get(sku) ?? 0) + 1
+        )
+      }
+    }
+
+    const summary = {
+      erpProductsRead: erpProducts.length,
+      matchedBySku: 0,
+      wouldCreate: 0,
+      wouldUpdate: 0,
+      skipped: 0,
+      errors: 0,
+    }
+
+    const items = erpProducts.map((product) => {
+      const sku =
+        typeof product.default_code === "string"
+          ? product.default_code.trim()
+          : ""
+
+      if (!sku) {
+        summary.skipped += 1
+        return {
+          sku: null,
+          odooProductId: product.id,
+          name: product.name,
+          listPrice: product.list_price,
+          quantity: product.qty_available,
+          action: "SKIP" as const,
+          reason: "MISSING_ERP_SKU",
+        }
+      }
+
+      if ((activeSkuCounts.get(sku) ?? 0) > 1) {
+        summary.errors += 1
+        console.warn(
+          `[ERP_DUPLICATE_SKU] provider=odoo sku=${sku}`
+        )
+        return {
+          sku,
+          odooProductId: product.id,
+          name: product.name,
+          listPrice: product.list_price,
+          quantity: product.qty_available,
+          action: "ERROR" as const,
+          reason: "DUPLICATE_ERP_SKU",
+        }
+      }
+
+      const medusaMatchCount =
+        medusaSkuCounts.get(sku) ?? 0
+
+      if (medusaMatchCount > 1) {
+        summary.errors += 1
+        console.warn(
+          `[ERP_DUPLICATE_SKU] provider=medusa sku=${sku}`
+        )
+        return {
+          sku,
+          odooProductId: product.id,
+          name: product.name,
+          listPrice: product.list_price,
+          quantity: product.qty_available,
+          action: "ERROR" as const,
+          reason: "DUPLICATE_MEDUSA_SKU",
+        }
+      }
+
+      if (medusaMatchCount === 1) {
+        summary.matchedBySku += 1
+        summary.wouldUpdate += 1
+        return {
+          sku,
+          odooProductId: product.id,
+          name: product.name,
+          listPrice: product.list_price,
+          quantity: product.qty_available,
+          action: "UPDATE" as const,
+          reason: "MATCHED_BY_SKU",
+        }
+      }
+
+      summary.wouldCreate += 1
+      return {
+        sku,
+        odooProductId: product.id,
+        name: product.name,
+        listPrice: product.list_price,
+        quantity: product.qty_available,
+        action: "CREATE" as const,
+        reason: "SKU_NOT_FOUND_IN_MEDUSA",
+      }
+    })
+
+    console.info(
+      `[ERP_SYNC_DRY_RUN_COMPLETE] provider=odoo erpProductsRead=${summary.erpProductsRead} wouldCreate=${summary.wouldCreate} wouldUpdate=${summary.wouldUpdate} skipped=${summary.skipped} errors=${summary.errors}`
+    )
+
+    return {
+      success: true,
+      dryRun: true,
+      summary,
+      items,
+    }
+  }
+}

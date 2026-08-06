@@ -1,0 +1,13 @@
+import { MedusaService } from "@medusajs/framework/utils"
+import { PosRegister } from "./models/pos-register"
+import { PosRegisterSession } from "./models/pos-register-session"
+import { PosOperatorAssignment } from "./models/pos-operator-assignment"
+import { PosTransaction } from "./models/pos-transaction"
+import { PosPayment } from "./models/pos-payment"
+import { PosReceipt } from "./models/pos-receipt"
+import { PosCashMovement } from "./models/pos-cash-movement"
+import { PosReturn } from "./models/pos-return"
+import { PosExchange } from "./models/pos-exchange"
+import { PosOfflineDraft } from "./models/pos-offline-draft"
+import { PosAuditEvent } from "./models/pos-audit-event"
+export default class PosModuleService extends MedusaService({ PosRegister, PosRegisterSession, PosOperatorAssignment, PosTransaction, PosPayment, PosReceipt, PosCashMovement, PosReturn, PosExchange, PosOfflineDraft, PosAuditEvent }) {}

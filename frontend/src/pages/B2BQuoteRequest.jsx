@@ -29,6 +29,7 @@ import { resolveDefaultRegionContext } from '../lib/medusa/regions';
 import { normalizeProductList } from '../lib/medusa/normalize';
 import { getB2BVariantPrice } from '../utils/b2bPricing';
 import { extractB2BProducts } from '../utils/b2bProductsResponse';
+import { getDefaultSalesChannelIdFromEnv } from '../config/publicEnv';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -40,7 +41,7 @@ import { extractB2BProducts } from '../utils/b2bProductsResponse';
  * @property {string} title
  * @property {string|null} sku
  * @property {number} quantity
- * @property {number} unit_price - in cents
+ * @property {number} unit_price - in dollars
  */
 
 /**
@@ -59,10 +60,20 @@ let idCounter = 0;
 const genItemId = () => `new_${++idCounter}_${Date.now()}`;
 
 /** Format cents → $X.XX */
-const fmtPrice = (cents) => `$${(cents / 100).toFixed(2)}`;
+const fmtPrice = (amount, currencyCode = 'cad') => {
+  const normalizedCurrency = String(currencyCode || 'cad').toLowerCase();
+  const formatted = new Intl.NumberFormat('en-CA', {
+    style: 'currency',
+    currency: normalizedCurrency.toUpperCase(),
+  }).format(Number(amount || 0));
+  if (normalizedCurrency === 'cad') return formatted.replace(/^\$/, 'CA$');
+  if (normalizedCurrency === 'usd') return formatted.replace(/^\$/, 'US$');
+  return formatted;
+};
 
 const emptyItem = () => ({
   id: genItemId(),
+  source_type: 'custom',
   product_id: null,
   variant_id: null,
   title: '',
@@ -76,9 +87,12 @@ const getPurchasableVariant = (product, selectedVariant = null) => {
   return product?.variants?.find((variant) => variant?.id) || product?.variants?.[0] || null;
 };
 
-const getQuoteUnitPrice = (variant) => (
-  getB2BVariantPrice(variant) ?? variant?.prices?.[0]?.amount ?? 0
-);
+const minorToMajor = (amount) => Number((Number(amount || 0) / 100).toFixed(2));
+
+const getQuoteUnitPrice = (variant) => {
+  const minorAmount = getB2BVariantPrice(variant) ?? 0;
+  return minorToMajor(minorAmount);
+};
 
 // ── Component ──────────────────────────────────────────────────────────────
 
@@ -99,6 +113,7 @@ const B2BQuoteRequest = () => {
       const unitPrice = getQuoteUnitPrice(variant);
       return [{
         id: genItemId(),
+        source_type: variant?.id ? 'variant' : 'custom',
         product_id: initialProduct.id,
         variant_id: variant?.id || null,
         title: initialProduct.title,
@@ -116,6 +131,7 @@ const B2BQuoteRequest = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [catalogProducts, setCatalogProducts] = useState([]);
   const [catalogLoading, setCatalogLoading] = useState(false);
+  const [pricingContext, setPricingContext] = useState(null);
 
   // ── Fetch company & B2B Products catalog on mount ─────────────────────
   useEffect(() => {
@@ -138,10 +154,13 @@ const B2BQuoteRequest = () => {
         setCatalogLoading(true);
         const pricingContext = await resolveDefaultRegionContext();
         if (!pricingContext?.region_id || !pricingContext?.currency_code) return;
+        setPricingContext(pricingContext);
         const res = await b2bApi.getB2BProducts({
           limit: 100,
           region_id: pricingContext.region_id,
           currency_code: pricingContext.currency_code,
+          country_code: pricingContext.country_code,
+          sales_channel_id: getDefaultSalesChannelIdFromEnv(),
         });
         if (controller.signal.aborted) return;
         setCatalogProducts(normalizeProductList(extractB2BProducts(res)));
@@ -156,7 +175,12 @@ const B2BQuoteRequest = () => {
   }, []);
 
   // ── Derived values ────────────────────────────────────────────────────
-  const subtotal = items.reduce((sum, item) => sum + (item.unit_price || 0) * (item.quantity || 0), 0);
+  const subtotal = items.reduce((sum, item) => {
+    const quantity = Number(item.quantity || 0);
+    const price = Number(item.unit_price || 0);
+    return sum + quantity * price;
+  }, 0);
+  const quoteCurrencyCode = String(pricingContext?.currency_code || 'cad').toLowerCase();
   const itemCount = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
   const isValid = items.some((item) => item.title.trim() && item.unit_price > 0 && item.quantity > 0);
   const isB2BReady = company && (company.status === 'active' || company.status === 'approved');
@@ -170,16 +194,32 @@ const B2BQuoteRequest = () => {
         return;
       }
       const unitPrice = getQuoteUnitPrice(variant);
+      if (import.meta.env.DEV) {
+        console.log('[B2B_PRICE_CONTEXT]', {
+          variantId: variant.id,
+          sku: variant.sku || null,
+          regionId: pricingContext?.region_id || null,
+          countryCode: pricingContext?.country_code || null,
+          currencyCode: pricingContext?.currency_code || 'cad',
+          salesChannelId: getDefaultSalesChannelIdFromEnv() || null,
+          priceSetId: variant.price_set_id || variant.calculated_price?.price_set_id || null,
+          resolvedAmount: Math.round(unitPrice * 100),
+          source: variant.price_source || (variant.b2b_price != null ? 'b2b_price_list_override' : null),
+        });
+      }
       setItems((prev) => [
         ...prev.filter((it) => it.title.trim() !== ''),
         {
           id: genItemId(),
+          source_type: 'variant',
           product_id: product.id,
           variant_id: variant?.id || null,
           title: product.title,
           sku: variant?.sku || product.sku || null,
           quantity: 1,
           unit_price: unitPrice,
+          price_set_id: variant.price_set_id || variant.calculated_price?.price_set_id || null,
+          price_source: variant.price_source || null,
         },
       ]);
       setSearchOpen(false);
@@ -211,6 +251,7 @@ const B2BQuoteRequest = () => {
   // ── Submit ────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
     if (!isValid) return;
 
     const filteredItems = items.filter((item) => item.title.trim() && item.quantity > 0);
@@ -221,12 +262,16 @@ const B2BQuoteRequest = () => {
     }
 
     for (const [index, item] of filteredItems.entries()) {
-      if (!item.product_id || !item.variant_id) {
-        showToast(`Item at row ${index + 1} ("${item.title}") must be a valid catalog product with an active variant. Please use Quick Add.`, 'error');
-        return;
-      }
       if (!Number.isFinite(Number(item.quantity)) || Number(item.quantity) <= 0) {
         showToast(`Item at row ${index + 1} must have a positive quantity.`, 'error');
+        return;
+      }
+      if (item.source_type !== 'variant' && (!Number.isFinite(Number(item.unit_price)) || Number(item.unit_price) <= 0)) {
+        showToast(`Item at row ${index + 1} must have a positive price.`, 'error');
+        return;
+      }
+      if (item.source_type === 'variant' && !item.variant_id) {
+        showToast(`Item at row ${index + 1} is missing a selected catalog variant.`, 'error');
         return;
       }
     }
@@ -237,29 +282,57 @@ const B2BQuoteRequest = () => {
       // Explicitly attach currency_code and region_id to the POST payload
       // to prevent "Method calculatePrices requires currency_code" crash.
       const pricingContext = await resolveDefaultRegionContext();
-
       if (!pricingContext?.region_id || !pricingContext?.currency_code) {
-        showToast('Unable to resolve your checkout region for quote pricing. Please refresh and try again.', 'error');
+        showToast('Unable to resolve quote market. Please refresh and try again.', 'error');
         return;
       }
+      setPricingContext(pricingContext);
+      const currencyCode = String(pricingContext?.currency_code || 'cad').toLowerCase();
+      const countryCode = pricingContext?.country_code || null;
+      const salesChannelId = getDefaultSalesChannelIdFromEnv();
       
       const payload = {
-        items: filteredItems.map((item) => ({
-          product_id: item.product_id,
-          variant_id: item.variant_id,
-          quantity: Math.max(1, Math.floor(Number(item.quantity) || 1)),
-          note: item.title ? `Product: ${item.title}${item.sku ? ` (SKU: ${item.sku})` : ''}${item.unit_price ? ` at ${fmtPrice(item.unit_price)}/unit` : ''}` : undefined,
-        })),
+        company_id: company?.id || localStorage.getItem("b2b_company_id"),
+        items: filteredItems.map((item) => {
+          const quantity = Math.max(1, Math.floor(Number(item.quantity) || 1));
+          if (item.source_type === 'variant' && item.variant_id) {
+            return {
+              source_type: 'variant',
+              product_id: item.product_id || null,
+              variant_id: item.variant_id,
+              quantity,
+              displayed_unit_price_minor: Math.round(Number(item.unit_price || 0) * 100),
+            };
+          }
+
+          return {
+            source_type: 'custom',
+            product_id: null,
+            variant_id: null,
+            quantity,
+            title: item.title,
+            sku: item.sku || undefined,
+            unit_price: Number(item.unit_price || 0),
+            note: item.title ? `Product: ${item.title}${item.sku ? ` (SKU: ${item.sku})` : ''}${item.unit_price ? ` at ${fmtPrice(item.unit_price, currencyCode)}/unit` : ''}` : undefined,
+          };
+        }),
         buyer_note: notes.trim() || undefined,
-        currency_code: pricingContext.currency_code,
+        currency_code: currencyCode,
         region_id: pricingContext.region_id,
+        country_code: countryCode,
+        ...(salesChannelId ? { sales_channel_id: salesChannelId } : {}),
+        customer_group_id: company?.customer_group_id || company?.metadata?.customer_group_id,
       };
 
-      const res = await b2bApi.submitQuote(payload);
+      const res = await b2bApi.submitQuote(payload, { withCredentials: true });
       setSubmitted(res);
-      showToast('Quote request submitted for admin review! ✅', 'success');
+      navigate(`/b2b/quotes/${res?.quote?.id || ''}`);
+      showToast('Quote request submitted successfully', 'success');
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to submit quote';
+      const rawMessage = err?.response?.data?.message || err?.message || 'Failed to submit quote';
+      const msg = rawMessage.includes('calculatePrices') || rawMessage.includes('currency_code')
+        ? 'Unable to calculate B2B price. Please refresh and try again.'
+        : rawMessage;
       showToast(msg, 'error');
     } finally {
       setSubmitting(false);
@@ -377,7 +450,7 @@ const B2BQuoteRequest = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-text-secondary font-medium">Est. Subtotal</span>
-                <span className="font-bold text-text-primary">{fmtPrice(subtotal)}</span>
+                <span className="font-bold text-text-primary">{fmtPrice(subtotal, quoteCurrencyCode)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-text-secondary font-medium">Company</span>
@@ -439,7 +512,7 @@ const B2BQuoteRequest = () => {
             <div className="text-xs">
               <p className="font-black text-text-primary">{company.company_name}</p>
               <p className="text-text-secondary font-medium">
-                Credit: {fmtPrice(company.credit_limit)}
+                Credit: {fmtPrice(minorToMajor(company.credit_limit), quoteCurrencyCode)}
               </p>
             </div>
             <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400 text-[9px] font-black uppercase tracking-wider border border-green-200 dark:border-green-800/25">
@@ -514,8 +587,9 @@ const B2BQuoteRequest = () => {
                       </label>
                       <input
                         type="text"
-                        value={item.sku || ''}
+                        value={item.source_type === 'variant' && !item.sku ? 'No SKU' : item.sku || ''}
                         onChange={(e) => updateItem(item.id, 'sku', e.target.value || null)}
+                        readOnly={item.source_type === 'variant'}
                         placeholder="—"
                         className="w-full px-3 py-2.5 bg-white dark:bg-slate-800 rounded-xl border border-stone-200 dark:border-slate-700 text-sm font-medium text-text-primary placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary transition-all"
                       />
@@ -541,19 +615,21 @@ const B2BQuoteRequest = () => {
                     {/* Unit price */}
                     <div className="w-28">
                       <label className="block text-[10px] font-black uppercase tracking-widest text-text-secondary mb-1.5">
-                        Price (¢)
+                        Price
                       </label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm font-medium">$</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-[10px] font-black uppercase">
+                          {quoteCurrencyCode === 'cad' ? 'CA$' : quoteCurrencyCode === 'usd' ? 'US$' : quoteCurrencyCode.toUpperCase()}
+                        </span>
                         <input
                           type="number"
                           min={0}
-                          step={1}
+                          step="0.01"
                           value={item.unit_price}
                           onChange={(e) =>
-                            updateItem(item.id, 'unit_price', Math.max(0, parseInt(e.target.value) || 0))
+                            updateItem(item.id, 'unit_price', Math.max(0, Number(e.target.value) || 0))
                           }
-                          className="w-full pl-7 pr-3 py-2.5 bg-white dark:bg-slate-800 rounded-xl border border-stone-200 dark:border-slate-700 text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary transition-all"
+                          className="w-full pl-10 pr-3 py-2.5 bg-white dark:bg-slate-800 rounded-xl border border-stone-200 dark:border-slate-700 text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary transition-all"
                         />
                       </div>
                     </div>
@@ -564,7 +640,7 @@ const B2BQuoteRequest = () => {
                         Total
                       </label>
                       <p className="py-2.5 text-sm font-black text-text-primary">
-                        {fmtPrice((item.unit_price || 0) * (item.quantity || 0))}
+                        {fmtPrice((item.unit_price || 0) * (item.quantity || 0), quoteCurrencyCode)}
                       </p>
                     </div>
 
@@ -644,7 +720,7 @@ const B2BQuoteRequest = () => {
                                     {product.title}
                                   </p>
                                   <p className="text-[10px] text-text-secondary font-medium">
-                                    {fmtPrice(unitPrice)} · {variant?.sku || 'No SKU'}
+                                    {fmtPrice(unitPrice, quoteCurrencyCode)} · {variant?.sku || 'No SKU'}
                                   </p>
                                 </div>
                                 <Plus size={14} className="text-stone-300 group-hover:text-accent-primary shrink-0 transition-colors" />
@@ -722,7 +798,7 @@ const B2BQuoteRequest = () => {
                   <span className="text-text-secondary font-black uppercase text-xs tracking-wider">
                     Est. Subtotal
                   </span>
-                  <span className="text-2xl font-black text-text-primary">{fmtPrice(subtotal)}</span>
+                  <span className="text-2xl font-black text-text-primary">{fmtPrice(subtotal, quoteCurrencyCode)}</span>
                 </div>
                 <p className="text-[10px] text-text-secondary font-medium italic">
                   Final pricing is subject to admin negotiation approval.

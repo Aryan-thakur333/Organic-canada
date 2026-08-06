@@ -1,0 +1,2 @@
+import { model } from "@medusajs/framework/utils"
+export const PosOfflineDraft = model.define("pos_offline_draft", { id: model.id().primaryKey(), client_uuid: model.text(), register_id: model.text(), session_id: model.text(), operator_id: model.text(), cart_id: model.text().nullable(), region_id: model.text(), currency_code: model.text(), status: model.text().default("LOCAL_DRAFT"), idempotency_key: model.text(), payload: model.json(), metadata: model.json().nullable() })

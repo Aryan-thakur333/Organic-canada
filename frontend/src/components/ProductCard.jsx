@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Heart, Eye, Star, Download } from 'lucide-react';
+import { ShoppingCart, Heart, Eye, Star, Download, Package } from 'lucide-react';
 import { addToCart } from '../redux/cartSlice';
 import { toggleWishlist, removeFromWishlist } from '../redux/wishlistSlice';
 import useToast from '../hooks/useToast';
@@ -10,24 +10,34 @@ import useMedusaCart from '../hooks/useMedusaCart';
 import { isMedusaConfigured } from '../config/publicEnv';
 import { resolveMedusaImageUrl, PRODUCT_IMAGE_FALLBACK } from '../utils/medusaImage';
 import { getDisplayPrice } from '../utils/pricing';
+import { commerceFeatures } from '../config/commerceFeatures';
 
-const ProductCard = ({ item }) => {
+const ProductCard = ({ item, region = null, regionSlug = null, onQuickView }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { showToast } = useToast();
   const { addVariant } = useMedusaCart();
   const [isHovered, setIsHovered] = useState(false);
 
-  const priceInfo = getDisplayPrice(item);
+  const priceInfo = getDisplayPrice(item, { region });
   const price = priceInfo.amount;
 
   const handleAddToCart = async (e) => {
     e.stopPropagation();
+    if (commerceFeatures.bundledProducts && item.metadata?.product_type === 'bundle') {
+      navigate(regionSlug ? `/shop/${regionSlug}/product/${item.id}` : `/product/${item.id}`);
+      return;
+    }
     const variantId = item.variants?.[0]?.id;
+
+    if (!priceInfo.hasPrice) {
+      showToast("Price unavailable in this region", "error");
+      return;
+    }
 
     if (isMedusaConfigured() && variantId) {
       try {
-        await addVariant({ variantId, quantity: 1 });
+        await addVariant({ variantId, quantity: 1, currencyCode: priceInfo.currencyCode });
         showToast(`${item.title} added to cart`, "success");
         return;
       } catch (error) {
@@ -37,11 +47,12 @@ const ProductCard = ({ item }) => {
       }
     }
 
+    if (!priceInfo.hasPrice) return;
     dispatch(addToCart({
       id: item.id,
       variantId,
       title: item.title,
-      price,
+      price: price || 0,
       image: resolveMedusaImageUrl(item.thumbnail),
       quantity: 1
     }));
@@ -56,7 +67,7 @@ const ProductCard = ({ item }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="group relative bg-white dark:bg-slate-800 rounded-[2rem] overflow-hidden shadow-premium transition-all duration-300 border border-stone-100/50 dark:border-slate-700/50"
-      onClick={() => navigate(`/product/${item.id}`)}
+      onClick={() => navigate(regionSlug ? `/shop/${regionSlug}/product/${item.id}` : `/product/${item.id}`)}
     >
       {/* Image Container */}
       <div className="relative aspect-square overflow-hidden bg-stone-50 dark:bg-slate-900">
@@ -79,6 +90,9 @@ const ProductCard = ({ item }) => {
               <Download size={10} /> Digital
             </span>
           )}
+          {commerceFeatures.bundledProducts && item.metadata?.product_type === 'bundle' && (
+            <span className="px-3 py-1 rounded-full bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1"><Package size={10} /> Bundle</span>
+          )}
         </div>
 
         {/* Action Overlay */}
@@ -94,7 +108,12 @@ const ProductCard = ({ item }) => {
             <Heart size={20} />
           </button>
           <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              onQuickView?.(item);
+            }}
             className="p-3 rounded-full bg-white text-text-primary hover:bg-accent-primary hover:text-white transition-colors shadow-lg"
+            aria-label={`Quick view ${item.title}`}
           >
             <Eye size={20} />
           </button>
@@ -125,7 +144,8 @@ const ProductCard = ({ item }) => {
           </div>
           <button 
             onClick={handleAddToCart}
-            className="p-3 rounded-2xl bg-stone-100 dark:bg-slate-700 text-text-primary hover:bg-accent-primary hover:text-white transition-all shadow-sm"
+            disabled={!priceInfo.hasPrice}
+            className="p-3 rounded-2xl bg-stone-100 dark:bg-slate-700 text-text-primary hover:bg-accent-primary hover:text-white transition-all shadow-sm disabled:opacity-40 disabled:hover:bg-stone-100 disabled:hover:text-text-primary dark:disabled:hover:bg-slate-700"
           >
             <ShoppingCart size={20} />
           </button>

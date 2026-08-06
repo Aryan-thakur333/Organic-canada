@@ -1,9 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { vendorAuth } from "../services/vendorAuth";
 
 const initialState = {
   isAuthenticated: false,
-  token: localStorage.getItem("vendor_token") || null,
-  profile: null,
+  token: vendorAuth.getToken(),
+  profile: vendorAuth.getVendor(),
   products: [],
   orders: [],
   stats: {
@@ -48,11 +49,13 @@ const vendorSlice = createSlice({
       state.error = null;
       state.authResolved = true;
       localStorage.setItem("vendor_token", action.payload.token);
+      localStorage.setItem("vendor_user", JSON.stringify(action.payload.vendor));
     },
     setProfile: (state, action) => {
       state.profile = action.payload;
       state.isAuthenticated = true;
       state.authResolved = true;
+      localStorage.setItem("vendor_user", JSON.stringify(action.payload));
     },
     setProducts: (state, action) => {
       state.products = action.payload;
@@ -76,7 +79,7 @@ const vendorSlice = createSlice({
         avgOrderValue: 0,
       };
       state.authResolved = true;
-      localStorage.removeItem("vendor_token");
+      vendorAuth.clear();
     },
     clearError: (state) => {
       state.error = null;

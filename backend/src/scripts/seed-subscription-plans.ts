@@ -1,6 +1,6 @@
 import type { ExecArgs } from "@medusajs/framework/types"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
-import { SUBSCRIPTION_MODULE } from "../modules/subscription"
+import { SUBSCRIPTION_MODULE } from "../modules/subscription/index.js"
 
 const PLANS = [
   { id: "subplan_weekly", title: "Weekly Plan", plan: "weekly", amount: 1999, interval: "week", period: 1, display: "Weekly", sort_order: 1, description: "Fresh organic essentials delivered every week." },

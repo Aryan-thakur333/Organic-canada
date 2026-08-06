@@ -33,7 +33,6 @@ export default async function fixStripe({ container }: ExecArgs) {
         input: {
           selector: { id: region.id },
           update: {
-            // @ts-ignore Remote provider IDs are accepted by the region workflow.
             payment_providers: [...currentProviders, stripeProvider.id]
           }
         }

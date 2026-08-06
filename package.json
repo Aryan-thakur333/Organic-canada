@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "test:full": "powershell -ExecutionPolicy Bypass -File ./scripts/test-all.ps1"
+  },
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
     "axios": "^1.15.2",

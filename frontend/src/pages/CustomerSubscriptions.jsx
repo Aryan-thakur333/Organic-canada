@@ -48,13 +48,12 @@ const CustomerSubscriptions = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [subsRes, plansRes, ordersRes] = await Promise.all([
+      const [subsRes, ordersRes] = await Promise.all([
         subscriptionService.list(),
-        subscriptionService.listPlans(),
         orderService.listOrders()
       ]);
       setSubscriptions(subsRes.subscriptions || []);
-      setPlans(plansRes.plans || []);
+      setPlans([]);
       setOrders(ordersRes.orders || []);
     } catch {
       showToast("Failed to retrieve subscription data", "error");
@@ -436,7 +435,7 @@ const CustomerSubscriptions = () => {
                               </div>
                             </div>
                             <div className="flex items-center gap-4">
-                              <span className="font-black text-text-primary">${(item.total / 100).toFixed(2)}</span>
+                              <span className="font-black text-text-primary">${(Number(item.total) || 0).toFixed(2)}</span>
                               <button
                                 onClick={() => setSelectedInvoice(item)}
                                 className="text-[10px] font-black uppercase tracking-widest text-accent-primary group-hover:underline"

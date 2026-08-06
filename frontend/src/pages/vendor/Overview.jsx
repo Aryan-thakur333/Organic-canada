@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
@@ -59,31 +59,41 @@ export default function Overview() {
   const [fetching, setFetching] = useState(true);
   const [inventoryAlerts, setInventoryAlerts] = useState([]);
 
+  const [error, setError] = useState(null);
+  const fetchInFlightRef = useRef(false);
+
+  const fetchData = async () => {
+    if (fetchInFlightRef.current) return;
+    fetchInFlightRef.current = true;
+    setFetching(true);
+    setError(null);
+    try {
+      const [statsRes, ordersRes, productsRes, invRes] = await Promise.all([
+        vendorApi.getStats().catch(() => ({ stats: {} })),
+        vendorApi.getOrders(),
+        vendorApi.getProducts().catch(() => ({ products: [] })),
+        vendorApi.getInventory().catch(() => ({ inventory: [], alerts: { lowStock: [], lowStockCount: 0 } })),
+      ]);
+
+      dispatch(setStats(statsRes.stats));
+      const orderList = ordersRes?.orders ?? ordersRes?.data?.orders ?? [];
+      dispatch(setOrders(orderList));
+      dispatch(setProducts(productsRes.products || []));
+      setInventoryAlerts(invRes.alerts?.lowStock || []);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || "Vendor dashboard data could not be loaded.";
+      setError(msg);
+      // No toast on load error — use inline panel
+    } finally {
+      setFetching(false);
+      fetchInFlightRef.current = false;
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      setFetching(true);
-      try {
-        const [statsRes, ordersRes, productsRes, invRes] = await Promise.all([
-          vendorApi.getStats(),
-          vendorApi.getOrders(),
-          vendorApi.getProducts(),
-          vendorApi.getInventory().catch(() => ({ inventory: [], alerts: { lowStock: [], lowStockCount: 0 } })),
-        ]);
-
-        dispatch(setStats(statsRes.stats));
-        dispatch(setOrders(ordersRes.orders));
-        dispatch(setProducts(productsRes.products || []));
-        setInventoryAlerts(invRes.alerts?.lowStock || []);
-      } catch (err) {
-        const msg = err.response?.data?.message || err.message || "Failed to fetch dashboard data";
-        toast.error(msg);
-      } finally {
-        setFetching(false);
-      }
-    };
-
     fetchData();
-  }, [dispatch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Stat Cards ──────────────────────────────────────────────────────────
   const cards = useMemo(
@@ -173,6 +183,22 @@ export default function Overview() {
       {fetching ? (
         <div className="h-[60vh] flex items-center justify-center">
           <Loader2 className="animate-spin text-emerald-400" size={32} />
+        </div>
+      ) : error ? (
+        <div className="h-[60vh] flex flex-col items-center justify-center text-center">
+          <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-6 text-red-400">
+            <AlertTriangle size={28} />
+          </div>
+          <h3 className="text-xl font-black mb-2 text-red-400">Dashboard Unavailable</h3>
+          <p className="text-stone-500 text-sm font-semibold max-w-sm mx-auto mb-6">
+            {error}
+          </p>
+          <button
+            onClick={fetchData}
+            className="px-6 py-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-red-500/20 transition-all"
+          >
+            Retry
+          </button>
         </div>
       ) : (
         <div className="flex flex-col gap-10">
@@ -430,43 +456,11 @@ export default function Overview() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-stone-950/40">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-[9px] font-black uppercase tracking-widest text-stone-500">
-                          Order
-                        </th>
-                        <th className="px-6 py-3 text-left text-[9px] font-black uppercase tracking-widest text-stone-500">
-                          Date
-                        </th>
-                        <th className="px-6 py-3 text-left text-[9px] font-black uppercase tracking-widest text-stone-500">
-                          Status
-                        </th>
-                        <th className="px-6 py-3 text-right text-[9px] font-black uppercase tracking-widest text-stone-500">
-                          Share
-                        </th>
-                      </tr>
+                      <tr><th className="px-6 py-3 text-left text-[9px] font-black uppercase tracking-widest text-stone-500">Order</th><th className="px-6 py-3 text-left text-[9px] font-black uppercase tracking-widest text-stone-500">Date</th><th className="px-6 py-3 text-left text-[9px] font-black uppercase tracking-widest text-stone-500">Status</th><th className="px-6 py-3 text-right text-[9px] font-black uppercase tracking-widest text-stone-500">Share</th></tr>
                     </thead>
                     <tbody className="divide-y divide-stone-800/40">
                       {recentOrders.map((order, index) => (
-                        <motion.tr
-                          key={order.id}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: index * 0.03 }}
-                          className="hover:bg-stone-950/20 transition-colors"
-                        >
-                          <td className="px-6 py-4 text-sm font-black text-emerald-400">
-                            #{order.display_id || order.id.slice(-6).toUpperCase()}
-                          </td>
-                          <td className="px-6 py-4">
-                            <p className="text-xs font-bold text-stone-300">
-                              {new Date(order.created_at).toLocaleDateString()}
-                            </p>
-                          </td>
-                          <td className="px-6 py-4">{statusBadge(order.status)}</td>
-                          <td className="px-6 py-4 text-right font-black text-white">
-                            ${order.vendor_subtotal?.toFixed(2)}
-                          </td>
-                        </motion.tr>
+                        <motion.tr key={order.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: index * 0.03 }} className="hover:bg-stone-950/20 transition-colors"><td className="px-6 py-4 text-sm font-black text-emerald-400">#{order.display_id || order.id.slice(-6).toUpperCase()}</td><td className="px-6 py-4"><p className="text-xs font-bold text-stone-300">{new Date(order.created_at).toLocaleDateString()}</p></td><td className="px-6 py-4">{statusBadge(order.status)}</td><td className="px-6 py-4 text-right font-black text-white">${order.vendor_subtotal?.toFixed(2)}</td></motion.tr>
                       ))}
                     </tbody>
                   </table>

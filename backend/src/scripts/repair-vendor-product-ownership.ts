@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * repair-vendor-product-ownership.ts
  *
@@ -20,7 +19,7 @@
 
 import type { MedusaContainer } from "@medusajs/framework/types"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
-import { VENDOR_MODULE } from "../modules/vendor"
+import { VENDOR_MODULE } from "../modules/vendor/index.js"
 
 const asArray = (value: any) => (!value ? [] : Array.isArray(value) ? value : [value])
 

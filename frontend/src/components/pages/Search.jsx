@@ -34,7 +34,8 @@ export default function Search() {
     return products.map((item) => ({
       id: item.id,
       name: item.title,
-      price: (item.variants?.[0]?.prices?.[0]?.amount || 0) / 100,
+      // Store product amounts are MAJOR units (documented catalog contract).
+      price: Number(item.variants?.[0]?.prices?.[0]?.amount) || 0,
     }));
   }, [products]);
 

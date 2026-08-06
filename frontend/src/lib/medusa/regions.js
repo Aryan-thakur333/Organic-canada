@@ -9,6 +9,14 @@ let cachedRegionId;
 let cachedRegionContext;
 let pendingRegionRequest;
 
+function resolveCountryCode(region) {
+  const country = Array.isArray(region?.countries)
+    ? region.countries[0]
+    : region?.countries;
+  const code = country?.iso_2 || country?.iso2 || country?.country_code || null;
+  return code ? String(code).toLowerCase() : null;
+}
+
 /**
  * Resolve the storefront region used for prices, tax, shipping, and cart creation.
  * @returns {Promise<string | null>}
@@ -20,7 +28,7 @@ export async function resolveDefaultRegionId() {
 
 /**
  * Resolve the storefront region and currency used for priced requests.
- * @returns {Promise<{ region_id: string, currency_code: string } | null>}
+ * @returns {Promise<{ region_id: string, currency_code: string, country_code?: string | null } | null>}
  */
 export async function resolveDefaultRegionContext() {
   if (cachedRegionContext?.region_id && cachedRegionContext?.currency_code) {
@@ -33,6 +41,21 @@ export async function resolveDefaultRegionContext() {
     pendingRegionRequest = undefined;
   });
   return pendingRegionRequest;
+}
+
+export function setResolvedRegionContext(region) {
+  if (!region?.id) return;
+
+  const context = {
+    region_id: region.id,
+    currency_code: String(region.currency_code || "usd").toLowerCase(),
+    country_code: resolveCountryCode(region),
+  };
+
+  cachedRegionId = context.region_id;
+  cachedRegionContext = context;
+  localStorage.setItem(REGION_STORAGE_KEY, context.region_id);
+  localStorage.setItem(REGION_CONTEXT_STORAGE_KEY, JSON.stringify(context));
 }
 
 async function resolveRegion() {
@@ -75,6 +98,7 @@ async function resolveRegion() {
     const context = {
       region_id: resolvedRegion.id,
       currency_code: String(resolvedRegion.currency_code || "cad").toLowerCase(),
+      country_code: resolveCountryCode(resolvedRegion),
     };
 
     cachedRegionId = context.region_id;
@@ -89,6 +113,7 @@ async function resolveRegion() {
       cachedRegionContext = {
         region_id: storedRegion,
         currency_code: String(storedContext?.currency_code || "cad").toLowerCase(),
+        country_code: storedContext?.country_code || null,
       };
       return cachedRegionContext;
     }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { b2bApi } from "../services/b2bApi";
-import { getCustomerToken } from "../services/medusa/tokenStorage";
+import { getB2BCompanyContext, getCustomerToken } from "../services/medusa/tokenStorage";
 
 /**
  * @typedef {Object} B2BCompany
@@ -26,14 +26,15 @@ import { getCustomerToken } from "../services/medusa/tokenStorage";
  *   const check = creditCheck(cartTotalCents); // { isApproved, remainingCredit, warning }
  */
 export default function useB2BCompany() {
-  const [company, setCompany] = useState(/** @type {B2BCompany|null} */ (null));
-  const [isLoading, setIsLoading] = useState(true);
+  const cachedCompany = getB2BCompanyContext();
+  const [company, setCompany] = useState(/** @type {B2BCompany|null} */ (cachedCompany));
+  const [isLoading, setIsLoading] = useState(!cachedCompany && Boolean(getCustomerToken()));
   const [error, setError] = useState(/** @type {string|null} */ (null));
 
   // ── Fetch company on mount ───────────────────────────────────────────
 
   const fetchCompany = useCallback(async ({ signal, forceRefresh = false } = {}) => {
-    setIsLoading(true);
+    setIsLoading((current) => current || !getB2BCompanyContext());
     setError(null);
     if (!getCustomerToken()) {
       setCompany(null);
@@ -55,7 +56,6 @@ export default function useB2BCompany() {
           err?.message === 'canceled' ||
           String(err?.message).toLowerCase().includes('canceled') ||
           String(err?.message).toLowerCase().includes('aborted')) {
-        console.log('[useB2BCompany] Fetch aborted gracefully on unmount');
         return;
       }
 

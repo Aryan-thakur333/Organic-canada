@@ -30,12 +30,21 @@ import useToast from "../hooks/useToast";
 import useB2BCompany from "../hooks/useB2BCompany";
 import { isB2BUser } from "../utils/accountType";
 
+// Subscription amounts are stored in cents (minor units).
 const money = (cents) =>
   new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,
-  }).format((cents || 0) / 100);
+  }).format((Number(cents) || 0) / 100);
+
+// Medusa order totals are MAJOR units in this project (documented catalog contract).
+const moneyMajor = (amount) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+  }).format(Number(amount) || 0);
 
 const statusBadge = (status) => {
   const map = {
@@ -282,7 +291,7 @@ export default function CustomerDashboard() {
                       </div>
                       <div className="text-right">
                         <p className="text-xl font-black text-accent-primary">
-                          {money(latestOrder.total)}
+                          {moneyMajor(latestOrder.total)}
                         </p>
                         <button
                           onClick={() => navigate(`/track/${latestOrder.id}`)}
@@ -546,7 +555,7 @@ export default function CustomerDashboard() {
                       Lifetime Spent
                     </p>
                     <p className="text-3xl font-black text-text-primary">
-                      {money(stats.totalSpent)}
+                      {moneyMajor(stats.totalSpent)}
                     </p>
                     <p className="text-[10px] text-text-secondary font-medium mt-1">
                       Across {stats.totalOrders} order{stats.totalOrders !== 1 ? "s" : ""}

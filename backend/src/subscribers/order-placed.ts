@@ -1,11 +1,15 @@
 import { type SubscriberConfig, type SubscriberArgs } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
-import { VENDOR_MODULE } from "../modules/vendor"
-import { SUBSCRIPTION_MODULE } from "../modules/subscription"
-import { B2B_MODULE } from "../modules/b2b"
-import { DIGITAL_ASSET_MODULE } from "../modules/digital-asset"
+import { VENDOR_MODULE } from "../modules/vendor/index"
+import { SUBSCRIPTION_MODULE } from "../modules/subscription/index"
+import { B2B_MODULE } from "../modules/b2b/index"
+import { DIGITAL_ASSET_MODULE } from "../modules/digital-asset/index"
+import { COMMISSION_MODULE } from "../modules/commission/index"
 import { getStripeClient } from "../lib/stripe-client"
 import { splitOrderWorkflow } from "../workflows/split-order-workflow"
+import { calculateCommission } from "../utils/commission/calculate"
+import { recordCommissionWorkflow } from "../workflows/record-commission-workflow"
+import { createVendorOrdersFromOrderWorkflow } from "../workflows/create-vendor-orders-from-order"
 
 export default async function orderPlacedSubscriptionCreator({
   event: { data },
@@ -33,6 +37,16 @@ export default async function orderPlacedSubscriptionCreator({
         "shipping_address.*",
         "billing_address.*",
         "items.*",
+        "items.variant.id",
+        "items.variant.sku",
+        "items.variant.metadata",
+        "items.variant.product.id",
+        "items.variant.product.metadata",
+        "items.variant.product.digital_assets.id",
+        "items.variant.product.digital_assets.secure_s3_key",
+        "items.variant.product.digital_assets.file_name",
+        "items.variant.product.digital_assets.mime_type",
+        "items.variant.product.digital_assets.file_size",
         "payment_collections.payments.id",
         "payment_collections.payments.provider_id",
         "payment_collections.payments.payment_session.data",
@@ -47,6 +61,8 @@ export default async function orderPlacedSubscriptionCreator({
       return
     }
 
+    let cartId: string | undefined = undefined
+
     // ── B2B QUOTE LINKAGE ────────────────────────────────────────────────
     try {
       const { data: orderCartLinks } = await query.graph({
@@ -54,7 +70,7 @@ export default async function orderPlacedSubscriptionCreator({
         fields: ["id", "cart.id"],
         filters: { id: orderId },
       })
-      const cartId = orderCartLinks?.[0]?.cart?.id
+      cartId = orderCartLinks?.[0]?.cart?.id
       
       // Also check order metadata for b2b_quote_id (set during quote accept)
       const orderMetadata = order.metadata || {}
@@ -139,6 +155,58 @@ export default async function orderPlacedSubscriptionCreator({
       }
     } catch (b2bLinkErr: any) {
       console.error(`[OrderPlaced Subscriber] Failed to process B2B quote/company linkage:`, b2bLinkErr.message)
+    }
+
+    // ── PERSONALIZED PRODUCT LINKAGE ─────────────────────────────────────
+    if (cartId) {
+      try {
+        const personalizationService: any = container.resolve("personalization")
+        
+        // Find cart_item_personalizations for this cart
+        const cpis = await personalizationService.listCartItemPersonalizations({
+          cart_id: cartId
+        })
+
+        if (cpis && cpis.length > 0) {
+          for (const item of order.items || []) {
+            if (!item) {
+              continue
+            }
+
+            const hash = item.metadata?.personalization_hash
+            if (hash) {
+              const matchingCpi = cpis.find((c: any) => c.variant_id === item.variant_id && c.metadata?.personalization_hash === hash)
+              if (matchingCpi) {
+                const existingOrderSnapshot = await personalizationService.listOrderItemPersonalizations({
+                  order_id: orderId,
+                  order_item_id: item.id,
+                })
+                if (existingOrderSnapshot?.length) {
+                  continue
+                }
+                // Create OrderItemPersonalization record
+                await personalizationService.createOrderItemPersonalizations({
+                  order_id: orderId,
+                  order_item_id: item.id,
+                  item_id: item.id,
+                  template_id: matchingCpi.template_id,
+                  product_id: matchingCpi.product_id,
+                  variant_id: matchingCpi.variant_id,
+                  values: matchingCpi.values,
+                  price_adjustment: matchingCpi.price_adjustment,
+                  template_snapshot: matchingCpi.template_snapshot,
+                  upload_references: matchingCpi.upload_references,
+                  status: matchingCpi.status,
+                  metadata: matchingCpi.metadata
+                })
+                console.log(`[OrderPlaced Subscriber] Personalization linked for order item ${item.id}`)
+              }
+            }
+          }
+        }
+      } catch (err: any) {
+        console.error("[OrderPlaced Subscriber] Failed to process personalization linkage:", err)
+      }
     }
 
     // ── B2B COMPANY ORDER METADATA ─────────────────────────────────────────
@@ -335,101 +403,173 @@ export default async function orderPlacedSubscriptionCreator({
       console.log(`[OrderPlaced Subscriber] Subscription created successfully: ${sub.id}`)
       
       // Emit subscription.activated event
-      await eventBus.emit({
-        name: "subscription.activated",
-        data: { id: sub.id, customer_email: sub.customer_email, plan: sub.plan },
-      })
+            await eventBus.emit({
+              name: "subscription.activated",
+              data: { id: sub.id, customer_email: sub.customer_email, plan: sub.plan },
+            })
     }
 
     // ── DIGITAL DOWNLOAD RECORD CREATION ────────────────────────────────
+
     // For digital items in the order, proactively create DigitalOrderDownload records
     // so customers can access their downloads immediately without lazy-creation on first download.
     try {
+      const hasDownloadAssets = (x: any) =>
+        Array.isArray(x) && x.length > 0 ? true : false
+
+      const getFirstDownloadAsset = (value: unknown) => {
+        const assets = Array.isArray(value) ? value : []
+        const asset = (assets[0] || {}) as any
+        return {
+          id: asset.id || asset.digital_asset_id || null,
+          digital_asset_id: asset.digital_asset_id || asset.id || null,
+          storage_key: asset.storage_key || asset.secure_s3_key || asset.digital_asset_key || null,
+          secure_s3_key: asset.secure_s3_key || asset.storage_key || null,
+          digital_asset_key: asset.digital_asset_key || asset.id || asset.digital_asset_id || null,
+          filename: asset.filename || asset.file_name || null,
+          file_name: asset.file_name || asset.filename || null,
+          mime_type: asset.mime_type || null,
+          file_size: asset.file_size || 0,
+          version: asset.version || null,
+        }
+      }
+
       const digitalItems = (order.items || []).filter((item: any) => {
         const meta = item.metadata || {}
         const variantMeta = item.variant?.metadata || {}
-        return meta.is_digital === true ||
-               meta.is_digital === "true" ||
-               variantMeta.is_digital === true ||
-               variantMeta.is_digital === "true"
+        const productMeta = item.variant?.product?.metadata || {}
+        const sku = String(item.variant?.sku || item.sku || '').toLowerCase()
+
+        return (
+          meta.is_digital === true ||
+          meta.is_digital === "true" ||
+          hasDownloadAssets(meta.download_assets) ||
+          Boolean(meta.digital_asset_key) ||
+
+          variantMeta.is_digital === true ||
+          variantMeta.is_digital === "true" ||
+          hasDownloadAssets(variantMeta.download_assets) ||
+          Boolean(variantMeta.digital_asset_key) ||
+
+          productMeta.is_digital === true ||
+          productMeta.is_digital === "true" ||
+          hasDownloadAssets(productMeta.download_assets) ||
+          Boolean(productMeta.digital_asset_key) ||
+
+          Boolean(productMeta.digital_asset_key || productMeta.storage_key || productMeta.download_assets?.length) ||
+          Boolean(variantMeta.digital_asset_key || variantMeta.storage_key || variantMeta.download_assets?.length) ||
+
+          sku.includes('digital') ||
+          sku.includes('ebook') ||
+          sku.includes('pdf')
+        )
       })
 
       if (digitalItems.length > 0 && order.customer_id) {
         const digitalAssetService: any = container.resolve(DIGITAL_ASSET_MODULE)
 
         for (const item of digitalItems) {
+          if (!item) continue
+
           const meta = item.metadata || {}
           const itemTitle = item.title || "Digital Download"
 
-          // Calculate expiry based on order date + download_expiry_days
-          const expiryDays = Number(meta.download_expiry_days) || 365
+          const variantMeta = item.variant?.metadata || {}
+          const productMeta = item.variant?.product?.metadata || {}
+
+          const itemAsset = getFirstDownloadAsset(meta.download_assets)
+          const variantAsset = getFirstDownloadAsset(variantMeta.download_assets)
+          const productAsset = getFirstDownloadAsset(productMeta.download_assets)
+
+          // Prefer linked product digital_assets
+          const linkedAssets = item.variant?.product?.digital_assets
+          const linkedAsset = Array.isArray(linkedAssets) ? linkedAssets[0] : (linkedAssets || null)
+
+          const digitalAssetId =
+            linkedAsset?.id ||
+            itemAsset.id ||
+            variantAsset.id ||
+            productAsset.id ||
+            meta.digital_asset_key ||
+            variantMeta.digital_asset_key ||
+            productMeta.digital_asset_key ||
+            null
+
+          let storageKey =
+            linkedAsset?.secure_s3_key ||
+            itemAsset.storage_key ||
+            variantAsset.storage_key ||
+            productAsset.storage_key ||
+            productMeta.storage_key ||
+            variantMeta.storage_key ||
+            meta.storage_key ||
+            null
+
+          let fileName =
+            itemAsset.file_name ||
+            variantAsset.file_name ||
+            productAsset.file_name ||
+            linkedAsset?.file_name ||
+            productMeta.file_name ||
+            variantMeta.file_name ||
+            meta.file_name ||
+            itemTitle
+
+          let mimeType =
+            itemAsset.mime_type ||
+            variantAsset.mime_type ||
+            productAsset.mime_type ||
+            linkedAsset?.mime_type ||
+            productMeta.mime_type ||
+            variantMeta.mime_type ||
+            meta.mime_type ||
+            "application/octet-stream"
+
+          let fileSize =
+            Number(itemAsset.file_size || 0) ||
+            Number(variantAsset.file_size || 0) ||
+            Number(productAsset.file_size || 0) ||
+            Number(linkedAsset?.file_size || 0) ||
+            Number(productMeta.file_size || 0) ||
+            Number(variantMeta.file_size || 0) ||
+            Number(meta.file_size || 0) ||
+            0
+
+          const version =
+            itemAsset.version ||
+            variantAsset.version ||
+            productAsset.version ||
+            linkedAsset?.version ||
+            productMeta.version ||
+            variantMeta.version ||
+            meta.version ||
+            "1.0.0"
+
+          const downloadLimit = Math.max(0, Number(meta.download_limit) || Number(variantMeta.download_limit) || Number(productMeta.download_limit) || 5)
+          const expiryDays = Math.max(1, Number(meta.download_expiry_days) || Number(variantMeta.download_expiry_days) || Number(productMeta.download_expiry_days) || 365)
           const expiresAt = new Date()
           expiresAt.setDate(expiresAt.getDate() + expiryDays)
 
-          // Resolve storage_key from item metadata or product metadata
-          let storageKey = meta.storage_key || null
-          let fileName = meta.file_name || itemTitle
-          let mimeType = meta.mime_type || "application/octet-stream"
-          let fileSize = Number(meta.file_size) || 0
-          let digitalAssetId: string | null = null
-          const downloadLimit = Math.max(0, Number(meta.download_limit) || 5)
+          console.log(
+            "Creating download entitlement for variant:",
+            item.variant_id,
+            "and customer:",
+            order.customer_id
+          )
 
-          // Try to find the DigitalAsset record for this variant
-          if (item.variant_id) {
-            try {
-              const { data: variants } = await query.graph({
-                entity: "variant",
-                fields: [
-                  "id",
-                  "metadata",
-                  "product.id",
-                  "product.metadata",
-                  "product.digital_asset.id",
-                  "product.digital_asset.secure_s3_key",
-                  "product.digital_asset.file_name",
-                  "product.digital_asset.mime_type",
-                  "product.digital_asset.file_size",
-                ],
-                filters: { id: item.variant_id },
-              })
-              const variant = variants?.[0]
-              const variantMeta = variant?.metadata || {}
-              const productMeta = variant?.product?.metadata || {}
-
-              // Get storage info - check variant metadata first, then product metadata, then linked assets
-              if (!storageKey) {
-                storageKey = variantMeta.storage_key || productMeta.storage_key || null
-              }
-              if (!fileName) {
-                fileName = variantMeta.file_name || productMeta.file_name || itemTitle
-              }
-              if (mimeType === "application/octet-stream") {
-                mimeType = variantMeta.mime_type || productMeta.mime_type || mimeType
-              }
-              if (!fileSize) {
-                fileSize = Number(variantMeta.file_size || productMeta.file_size) || 0
-              }
-
-              // Get the digital asset link from the product
-              const linkedAssets = (variant?.product as any)?.digital_asset
-              const linkedAsset = Array.isArray(linkedAssets) ? linkedAssets[0] : linkedAssets
-              if (linkedAsset?.id) {
-                digitalAssetId = linkedAsset.id
-                if (!storageKey) storageKey = linkedAsset.secure_s3_key
-                if (!fileName || fileName === itemTitle) fileName = linkedAsset.file_name || fileName
-                if (mimeType === "application/octet-stream") mimeType = linkedAsset.mime_type || mimeType
-                if (!fileSize) fileSize = linkedAsset.file_size || 0
-              }
-            } catch {
-              // Non-fatal: continue with metadata fallback
-            }
-          }
-
-          // Check if download record already exists for this order + product
-          const existing = await digitalAssetService.listDigitalOrderDownloads(
-            { order_id: orderId, product_id: item.product_id, customer_id: order.customer_id },
+          // Check if download record already exists for this order + line_item_id
+          let existing = await digitalAssetService.listDigitalOrderDownloads(
+            { order_id: orderId, line_item_id: item.id },
             { take: 1 }
           )
+
+          if (!existing?.length) {
+            // Check fallback order_id + product_id + customer_id
+            existing = await digitalAssetService.listDigitalOrderDownloads(
+              { order_id: orderId, product_id: item.product_id, customer_id: order.customer_id },
+              { take: 1 }
+            )
+          }
 
           if (!existing?.length) {
             await digitalAssetService.createDigitalOrderDownloads({
@@ -437,28 +577,42 @@ export default async function orderPlacedSubscriptionCreator({
               line_item_id: item.id,
               product_id: item.product_id,
               customer_id: order.customer_id,
+              variant_id: item.variant_id || item.variant?.id || undefined,
               digital_asset_id: digitalAssetId,
               remaining_downloads: downloadLimit,
               download_count: 0,
               license_key: null,
               expires_at: expiresAt,
               is_active: true,
+              status: "active",
+              is_paid: true,
               metadata: {
                 title: itemTitle,
                 is_digital: true,
-                version: meta.version || "1.0.0",
+                version: version,
                 file_name: fileName,
                 mime_type: mimeType,
                 file_size: fileSize,
                 storage_key: storageKey || null,
                 download_limit: downloadLimit,
                 download_expiry_days: expiryDays,
+
+                // Improved metadata fields:
+                order_id: orderId,
+                customer_id: order.customer_id,
+                line_item_id: item.id,
+                product_id: item.product_id,
+                variant_id: item.variant_id || item.variant?.id || null,
+                asset_id: digitalAssetId,
+                filename: fileName,
+                status: "active",
+                remaining_downloads: downloadLimit,
               },
             })
 
             console.log(
               `[OrderPlaced] Created digital download record for order ${orderId}, ` +
-              `item: ${itemTitle}, product: ${item.product_id}`
+                `item: ${itemTitle}, product: ${item.product_id}`
             )
           }
         }
@@ -512,6 +666,7 @@ export default async function orderPlacedSubscriptionCreator({
     // Run the split-order workflow to compute per-vendor buckets.
     // This resolves each item's owning vendor and groups them for downstream
     // use (fulfillment routing, vendor notifications, payout calculation).
+    let splitResult: any = undefined
     try {
       const rawItems = (order.items || []).map((item: any) => ({
         id: item.id,
@@ -522,13 +677,14 @@ export default async function orderPlacedSubscriptionCreator({
         thumbnail: item.thumbnail || null,
       }))
 
-      const { result: splitResult } = await splitOrderWorkflow(container).run({
+      const workflowOutput = await splitOrderWorkflow(container).run({
         input: {
           orderId,
           currency_code: order.currency_code || "usd",
           items: rawItems,
         },
       })
+      splitResult = workflowOutput.result
 
       console.log(
         `[OrderPlaced Subscriber] Order ${orderId}: split into ${splitResult.vendor_count} vendor bucket(s), ` +
@@ -564,6 +720,20 @@ export default async function orderPlacedSubscriptionCreator({
           `[OrderPlaced Subscriber] Persisted vendor split metadata for order ${orderId}:`,
           JSON.stringify(bucketSummary)
         )
+
+        // ── CREATE VENDOR ORDERS ──────────────────────────────────────────────
+        try {
+          await createVendorOrdersFromOrderWorkflow(container).run({
+            input: {
+              orderId,
+              currency_code: order.currency_code || "usd",
+              buckets: splitResult.buckets
+            }
+          })
+          console.log(`[OrderPlaced Subscriber] VendorOrders successfully created.`)
+        } catch (voErr: any) {
+          console.error(`[OrderPlaced Subscriber] Failed to create VendorOrders:`, voErr.message)
+        }
 
         // ── INVENTORY DEDUCTION AUDIT ──────────────────────────────────────
         // For each vendor bucket, query the current inventory levels for the
@@ -659,6 +829,27 @@ export default async function orderPlacedSubscriptionCreator({
         `[OrderPlaced Subscriber] Split-order workflow failed for ${orderId}: ${splitErr.message}`
       )
     }
+
+    // ── COMMISSION SNAPSHOT & RECORDS ────────────────────────────────────
+    // Freeze the commission calculation at the moment of order placement.
+    try {
+      if (typeof splitResult !== 'undefined') {
+        const { result: commissionResult } = await recordCommissionWorkflow(container).run({
+          input: {
+            order,
+            splitResult
+          }
+        })
+        console.log(`[OrderPlaced Subscriber] Commission workflow completed for order ${orderId}`)
+      }
+    } catch (commissionErr: any) {
+      // Non-fatal: commission snapshot failure must NEVER block the order.
+      console.error(
+        `[Commission] Snapshot creation failed for order ${orderId}: ${commissionErr.message}`
+      )
+    }
+    // ── END COMMISSION SNAPSHOT ───────────────────────────────────────────
+
   } catch (error: any) {
     console.error(`[OrderPlaced Subscriber] Failed to process order:`, error)
   }

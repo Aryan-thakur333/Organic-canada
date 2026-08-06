@@ -17,10 +17,15 @@ export function getMedusaSdk() {
 
   const baseUrl = getMedusaBackendUrl() || "http://localhost:9000";
   const publishableKey = getMedusaPublishableKey();
+  if (!publishableKey) {
+    throw new Error(
+      "Storefront configuration is incomplete: publishable API key is missing."
+    );
+  }
 
   sdk = new Medusa({
     baseUrl,
-    publishableKey: publishableKey || "pk_missing_configure_env",
+    publishableKey,
     debug: import.meta.env.DEV,
     auth: {
       type: "jwt",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search as SearchIcon, ArrowLeft, X, TrendingUp, Sparkles } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -9,36 +9,57 @@ import ProductCard from '../components/ProductCard';
 import { ProductCardSkeleton } from '../components/common/Skeleton';
 import { listStoreProducts } from '../services/medusa/productService';
 import useDebounce from '../hooks/useDebounce';
+import { useRegion } from '../contexts/RegionContext';
+import { getStorefrontProductState } from '../utils/storefront-product-state';
+import { STOREFRONT_PRODUCT_CANDIDATE_LIMIT } from '../constants/storefront-products';
+import { isRequestCanceled } from '../services/apiClient';
+import QuickViewModal from '../components/QuickViewModal';
 
 const Search = () => {
   const [query, setQuery] = useState('');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [quickProduct, setQuickProduct] = useState(null);
   const debouncedQuery = useDebounce(query, 500);
   const navigate = useNavigate();
+  const { region, regionSlug, countryCode } = useRegion();
 
   const trendingSearches = ['Organic Apples', 'Fresh Milk', 'Sourdough Bread', 'Heirloom Tomatoes', 'Wild Salmon'];
 
   useEffect(() => {
     if (!debouncedQuery) {
       setProducts([]);
+      setLoading(false);
       return;
     }
 
+    const controller = new AbortController();
     const performSearch = async () => {
       setLoading(true);
       try {
-        const { products } = await listStoreProducts({ q: debouncedQuery });
-        setProducts(products);
+        const { products } = await listStoreProducts({
+          q: debouncedQuery,
+          limit: STOREFRONT_PRODUCT_CANDIDATE_LIMIT,
+          region_id: region?.id,
+          country_code: countryCode,
+          signal: controller.signal,
+        });
+        if (controller.signal.aborted) return;
+        setProducts(products.filter((product) => {
+          const state = getStorefrontProductState(product, { region });
+          return state.publicVisible && state.priceAvailable;
+        }));
       } catch (error) {
+        if (controller.signal.aborted || isRequestCanceled(error)) return;
         console.error('Search failed:', error);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
     performSearch();
-  }, [debouncedQuery]);
+    return () => controller.abort();
+  }, [countryCode, debouncedQuery, region?.id]);
 
   return (
     <div className="min-h-screen bg-bg-primary">
@@ -115,7 +136,7 @@ const Search = () => {
               ) : products.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                   {products.map((product) => (
-                    <ProductCard key={product.id} item={product} />
+                    <ProductCard key={product.id} item={product} region={region} regionSlug={regionSlug} onQuickView={setQuickProduct} />
                   ))}
                 </div>
               ) : (
@@ -134,6 +155,7 @@ const Search = () => {
 
       <Footer />
       <MobileNav />
+      <QuickViewModal product={quickProduct} onClose={() => setQuickProduct(null)} />
     </div>
   );
 };

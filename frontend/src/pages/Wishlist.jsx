@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ShoppingBag, Trash2, ArrowRight, ShoppingCart } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -8,26 +8,60 @@ import Footer from '../components/Footer';
 import MobileNav from '../components/MobileNav';
 import Button from '../components/common/Button';
 import { removeFromWishlist } from '../redux/wishlistSlice';
-import { addToCart } from '../redux/cartSlice';
 import useToast from '../hooks/useToast';
 import { resolveMedusaImageUrl, PRODUCT_IMAGE_FALLBACK } from '../utils/medusaImage';
+import { useRegion } from '../contexts/RegionContext';
+import { getStorefrontProductState } from '../utils/storefront-product-state';
+import { retrieveStoreProduct } from '../services/medusa/productService';
+import { isMedusaConfigured } from '../config/publicEnv';
+import useMedusaCart from '../hooks/useMedusaCart';
+import { isRequestCanceled } from '../services/apiClient';
 
 const Wishlist = () => {
   const { items } = useSelector(state => state.wishlist);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { region } = useRegion();
+  const { addVariant } = useMedusaCart();
+  const [regionalItems, setRegionalItems] = useState([]);
 
-  const handleAddToCart = (item) => {
-    const price = item.variants?.[0]?.prices?.[0]?.amount / 100 || 0;
-    dispatch(addToCart({
-      id: item.id,
-      title: item.title,
-      price,
-      image: resolveMedusaImageUrl(item.thumbnail),
-      quantity: 1
-    }));
-    showToast(`${item.title} added to cart`, "success");
+  useEffect(() => {
+    if (!isMedusaConfigured() || !region?.id || items.length === 0) {
+      setRegionalItems(items);
+      return undefined;
+    }
+    const controller = new AbortController();
+    Promise.all(items.map(async (item) => {
+      try {
+        return await retrieveStoreProduct(item.id, { region_id: region.id, signal: controller.signal });
+      } catch (error) {
+        if (!controller.signal.aborted && !isRequestCanceled(error)) console.error('Wishlist product refresh failed:', error);
+        return null;
+      }
+    })).then((resolved) => {
+      if (!controller.signal.aborted) setRegionalItems(resolved.filter(Boolean));
+    });
+    return () => controller.abort();
+  }, [items, region?.id]);
+
+  const visibleItems = useMemo(
+    () => regionalItems.filter((item) => getStorefrontProductState(item, { region }).publicVisible),
+    [regionalItems, region]
+  );
+
+  const handleAddToCart = async (item) => {
+    const state = getStorefrontProductState(item, { region });
+    if (!state.purchasable || !state.variant?.id) {
+      showToast("Price unavailable in this region", "error");
+      return;
+    }
+    try {
+      await addVariant({ variantId: state.variant.id, quantity: 1, currencyCode: state.currencyCode });
+      showToast(`${item.title} added to cart`, "success");
+    } catch (error) {
+      showToast(error?.message || 'Failed to add to cart', 'error');
+    }
   };
 
   return (
@@ -40,10 +74,10 @@ const Wishlist = () => {
             <h1 className="text-4xl md:text-6xl font-black text-text-primary mb-4">Saved Items.</h1>
             <p className="text-text-secondary max-w-lg">Your collection of organic favorites. Move them to your basket whenever you're ready.</p>
           </div>
-          <p className="text-sm font-bold text-accent-primary">{items.length} items saved</p>
+          <p className="text-sm font-bold text-accent-primary">{visibleItems.length} items saved</p>
         </div>
 
-        {items.length === 0 ? (
+        {visibleItems.length === 0 ? (
           <div className="py-20 text-center">
             <div className="inline-flex p-8 rounded-full bg-stone-100 dark:bg-slate-800 text-stone-400 dark:text-slate-600 mb-8">
               <Heart size={64} />
@@ -57,7 +91,11 @@ const Wishlist = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             <AnimatePresence>
-              {items.map((item, i) => (
+              {visibleItems.map((item, i) => (
+                (() => {
+                  const state = getStorefrontProductState(item, { region });
+                  const price = state.price;
+                  return (
                 <motion.div
                   key={item.id}
                   layout
@@ -85,17 +123,20 @@ const Wishlist = () => {
                     <p className="text-sm text-text-secondary mb-6 line-clamp-1">{item.description || "Premium organic product"}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-xl font-black text-accent-primary">
-                        ${(item.variants?.[0]?.prices?.[0]?.amount / 100 || 0).toFixed(2)}
+                        {price.formatted}
                       </span>
                       <button 
                         onClick={() => handleAddToCart(item)}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-100 dark:bg-slate-700 text-text-primary hover:bg-accent-primary hover:text-white transition-all font-bold text-xs"
+                        disabled={!state.purchasable}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-100 dark:bg-slate-700 text-text-primary hover:bg-accent-primary hover:text-white transition-all font-bold text-xs disabled:opacity-40"
                       >
                         <ShoppingCart size={16} /> Add
                       </button>
                     </div>
                   </div>
                 </motion.div>
+                  );
+                })()
               ))}
             </AnimatePresence>
           </div>

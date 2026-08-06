@@ -1,3 +1,5 @@
+import { resolveRegionPrice } from './resolve-region-price';
+
 function firstFiniteNumber(values) {
   for (const value of values) {
     if (value === undefined || value === null || value === '') continue;
@@ -7,18 +9,10 @@ function firstFiniteNumber(values) {
   return null;
 }
 
-function toMajorUnits(amount) {
+function toNumber(amount) {
   const number = Number(amount);
   if (!Number.isFinite(number)) return 0;
-  return number / 100;
-}
-
-function getFallbackPrice(variant) {
-  return firstFiniteNumber([
-    variant?.prices?.[0]?.amount,
-    variant?.price,
-    variant?.unit_price,
-  ]);
+  return number;
 }
 
 function getOriginalAmount(variant, calculated) {
@@ -26,27 +20,29 @@ function getOriginalAmount(variant, calculated) {
     calculated?.original_amount,
     calculated?.original_price?.amount,
     calculated?.original_price,
-    getFallbackPrice(variant),
   ]);
 }
 
 export function getVariantDisplayPrice(variant, context = {}) {
   const calculated = variant?.calculated_price;
-  const calculatedAmount = firstFiniteNumber([
-    calculated?.calculated_amount,
-    calculated?.amount,
-  ]);
-  const fallbackAmount = getFallbackPrice(variant);
-  const amount = calculatedAmount ?? fallbackAmount ?? 0;
+  const regionCurrency = context?.region?.currency_code || context?.currencyCode;
+  const resolved = resolveRegionPrice(variant, {
+    regionId: context?.region?.id || context?.regionId,
+    currencyCode: regionCurrency,
+  });
   const originalAmount = getOriginalAmount(variant, calculated);
-  const hasCalculatedPrice = calculatedAmount !== null;
+  const hasPrice = resolved.available;
 
   const price = {
-    amount: toMajorUnits(amount),
-    originalAmount: originalAmount !== null ? toMajorUnits(originalAmount) : null,
+    amount: hasPrice ? toNumber(resolved.amount) : null,
+    originalAmount: originalAmount !== null ? toNumber(originalAmount) : null,
     currencyCode:
-      calculated?.currency_code || variant?.prices?.[0]?.currency_code || "cad",
-    hasCalculatedPrice,
+      resolved.currencyCode || regionCurrency || "usd",
+    calculatedPrice: calculated || null,
+    hasPrice,
+    hasCalculatedPrice: hasPrice,
+    source: resolved.source,
+    reason: resolved.reason,
     isPriceListPrice: Boolean(
       calculated?.is_calculated_price_price_list ||
       calculated?.calculated_price?.price_list_id
@@ -56,7 +52,7 @@ export function getVariantDisplayPrice(variant, context = {}) {
   if (
     context?.type === 'b2b' &&
     import.meta.env.DEV &&
-    price.hasCalculatedPrice &&
+    price.hasPrice &&
     price.originalAmount !== null &&
     price.originalAmount === price.amount
   ) {
@@ -71,7 +67,10 @@ export function getVariantDisplayPrice(variant, context = {}) {
 }
 
 export function getProductDisplayPrice(product, context = {}) {
-  return getVariantDisplayPrice(product?.variants?.[0], context);
+  const variant =
+    product?.variants?.find((v) => v?.id === context?.variantId) ||
+    product?.variants?.[0];
+  return getVariantDisplayPrice(variant, context);
 }
 
 export function getProductPrice(product, context = {}) {

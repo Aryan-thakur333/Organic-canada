@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Download,
   Shield,
@@ -7,14 +7,22 @@ import {
   FileDown,
   Copy,
   FileText,
-  ExternalLink,
   RefreshCw,
   AlertCircle,
-  CheckCheck,
   Loader2,
 } from 'lucide-react';
 import apiClient from '../../services/apiClient';
+import { digitalDownloadsApi } from '../../services/digitalDownloadsApi';
+import { getCustomerTokenSafe } from '../../services/medusa/tokenStorage';
 import useToast from '../../hooks/useToast';
+
+const CUSTOMER_AUTH_TOKEN_KEYS = [
+  'customer_jwt_token',
+  'token',
+  'medusa_customer_token',
+  'medusa_token',
+  'medusa_jwt',
+];
 
 /**
  * DigitalDownloadsWidget
@@ -31,28 +39,82 @@ import useToast from '../../hooks/useToast';
 export default function DigitalDownloadsWidget({ orderId, item, downloadRecord: initialRecord }) {
   const { showToast } = useToast();
   const [downloadRecord, setDownloadRecord] = useState(initialRecord || null);
-  const [loading, setLoading] = useState(!initialRecord);
   const [downloading, setDownloading] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
 
   // Extract digital info from item metadata
   const metadata = item?.metadata || {};
+  const variantMetadata = item?.variant?.metadata || item?.variant_metadata || {};
+  const variantId = item?.variant_id || item?.variant?.id || metadata?.variant_id || null;
+  const sku = String(item?.variant?.sku || item?.sku || '').toLowerCase();
   const isDigital = 
     metadata?.is_digital === true || 
     metadata?.is_digital === 'true' || 
+    metadata?.product_type === 'digital' ||
+    Boolean(metadata?.digital_asset_key || metadata?.storage_key || metadata?.download_assets?.length) ||
+    variantMetadata?.is_digital === true ||
+    variantMetadata?.is_digital === 'true' ||
+    Boolean(variantMetadata?.digital_asset_key || variantMetadata?.storage_key || variantMetadata?.download_assets?.length) ||
+    sku.includes('digital') ||
+    sku.includes('ebook') ||
+    sku.includes('pdf') ||
     initialRecord?.is_digital ||
     false;
 
-  const version = downloadRecord?.version || metadata?.version || '1.0.0';
-  const remaining = downloadRecord?.remaining_downloads ?? metadata?.remaining_downloads ?? 0;
-  const expiresAt = downloadRecord?.expires_at || metadata?.expires_at || null;
-  const licenseKey = downloadRecord?.license_key || metadata?.license_key || null;
+  const version = downloadRecord?.version || metadata?.version || variantMetadata?.version || '1.0.0';
+  const hasDownloadRecord = Boolean(downloadRecord?.id);
+  const remaining = downloadRecord?.remaining_downloads ?? metadata?.remaining_downloads ?? variantMetadata?.remaining_downloads ?? (variantId ? 1 : 0);
+  const expiresAt = downloadRecord?.expires_at || metadata?.expires_at || variantMetadata?.expires_at || null;
+  const licenseKey = downloadRecord?.license_key || metadata?.license_key || variantMetadata?.license_key || null;
   const downloadCount = downloadRecord?.download_count || 0;
-  const fileName = downloadRecord?.file_name || metadata?.download_file_name || 'Digital Download';
-  const fileSize = downloadRecord?.file_size || metadata?.file_size || 0;
+  const fileName = downloadRecord?.file_name || downloadRecord?.filename || metadata?.download_file_name || metadata?.file_name || variantMetadata?.file_name || 'Digital Download';
+  const fileSize = downloadRecord?.file_size || downloadRecord?.size || metadata?.file_size || variantMetadata?.file_size || 0;
 
   const isExpired = expiresAt ? new Date(expiresAt) < new Date() : false;
-  const isExhausted = remaining <= 0;
+  const canGenerateSecureLink = Boolean(variantId);
+  const isExhausted = hasDownloadRecord && remaining <= 0;
+
+  const getActiveCustomerAuthToken = () => {
+    if (typeof window === 'undefined') return null;
+
+    const safeToken = getCustomerTokenSafe();
+    if (safeToken) return safeToken;
+
+    return CUSTOMER_AUTH_TOKEN_KEYS
+      .map((key) => window.localStorage.getItem(key))
+      .find(Boolean) || null;
+  };
+
+  const generateSecureVariantDownloadLink = async () => {
+    const token = getActiveCustomerAuthToken();
+    if (!token) {
+      const error = new Error('Please sign in again to download this file.');
+      error.code = 'AUTH_TOKEN_MISSING';
+      throw error;
+    }
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    };
+
+    return apiClient.get(`/store/downloads/generate-link/${variantId}`, {
+      headers,
+      withCredentials: true,
+      params: orderId ? { order_id: orderId } : undefined,
+    });
+  };
+
+  const routeToDownloadUrl = (url) => {
+    if (!url || typeof url !== 'string') return false;
+
+    if (typeof window === 'undefined' || !window.location) {
+      throw new Error('Download window is not available in this browser context.');
+    }
+
+    window.location.href = url;
+    return true;
+  };
 
   const formatFileSize = (bytes) => {
     if (!bytes) return '';
@@ -66,6 +128,22 @@ export default function DigitalDownloadsWidget({ orderId, item, downloadRecord: 
     return `${size.toFixed(1)} ${units[unitIdx]}`;
   };
 
+  const triggerBlobDownload = (blob, filename) => {
+    if (!(blob instanceof Blob)) {
+      throw new Error('Download link was not returned by the server.');
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const handleDownload = async () => {
     if (isExpired || isExhausted) {
       showToast('This download is no longer available', 'error');
@@ -74,55 +152,67 @@ export default function DigitalDownloadsWidget({ orderId, item, downloadRecord: 
 
     setDownloading(true);
     try {
-      let downloadUrl = '';
+      let apiResponse = null;
 
       // If we have a download record with an ID (dld_xxx), use it
       if (downloadRecord?.id) {
-        downloadUrl = `/store/downloads/${downloadRecord.id}`;
+        apiResponse = await digitalDownloadsApi.downloadByRecordId(downloadRecord.id);
+      } else if (canGenerateSecureLink) {
+        apiResponse = await generateSecureVariantDownloadLink();
       } else if (metadata?.download_assets?.length > 0) {
-        // Fallback: use asset ID with order_id
+        // Use asset ID with order_id
         const assetId = metadata.download_assets[0].id || '';
-        downloadUrl = `/store/downloads/${assetId}?order_id=${orderId}`;
+        apiResponse = await digitalDownloadsApi.downloadAsset(assetId, orderId);
       } else if (metadata?.storage_key) {
-        // Direct download from product metadata
-        downloadUrl = `/store/downloads/asset?order_id=${orderId}&file=${encodeURIComponent(metadata.storage_key)}`;
+        showToast('Direct download not available. Contact support.', 'error');
+        setDownloading(false);
+        return;
       } else {
         showToast('No download file available. Contact support.', 'error');
         setDownloading(false);
         return;
       }
 
-      // Trigger file download via fetch + blob
-      const token = localStorage.getItem('medusa_customer_token');
-      const response = await fetch(downloadUrl, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.message || `Download failed (${response.status})`);
+      if (!apiResponse) {
+        throw new Error('Download failed: no response from server');
       }
 
-      // Get filename from Content-Disposition header
-      const disposition = response.headers.get('Content-Disposition') || '';
+      const responsePayload = apiResponse?.data || apiResponse;
+      if (routeToDownloadUrl(responsePayload?.download_url)) {
+        setDownloadRecord(prev => ({
+          ...prev,
+          download_count: (prev?.download_count || 0) + 1,
+          remaining_downloads: Number.isFinite(responsePayload?.remaining_downloads)
+            ? responsePayload.remaining_downloads
+            : Math.max(0, (prev?.remaining_downloads || remaining || 1) - 1),
+        }));
+        showToast('Download started!', 'success');
+        return;
+      }
+
+      if (responsePayload?.url && routeToDownloadUrl(responsePayload.url)) {
+        setDownloadRecord(prev => ({
+          ...prev,
+          download_count: (prev?.download_count || 0) + 1,
+          remaining_downloads: Number.isFinite(responsePayload?.remaining_downloads)
+            ? responsePayload.remaining_downloads
+            : Math.max(0, (prev?.remaining_downloads || remaining || 1) - 1),
+        }));
+        showToast('Download started!', 'success');
+        return;
+      }
+
+      // Extract filename from Content-Disposition header
+      const disposition = apiResponse.headers?.['content-disposition'] || '';
       const filenameMatch = disposition.match(/filename="?(.+?)"?$/);
-      const filename = filenameMatch ? filenameMatch[1] : metadata?.file_name || 'download';
+      const filename = filenameMatch ? filenameMatch[1] : fileName || 'download';
 
       // Get remaining downloads from header
-      const remainingHeader = response.headers.get('X-Remaining-Downloads');
+      const remainingHeader = apiResponse.headers?.['x-remaining-downloads'];
       const remainingCount = remainingHeader ? parseInt(remainingHeader, 10) : null;
 
-      // Create blob and trigger download
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // Trigger blob download
+      triggerBlobDownload(responsePayload, filename);
 
       // Update local state
       setDownloadRecord(prev => ({
@@ -132,7 +222,7 @@ export default function DigitalDownloadsWidget({ orderId, item, downloadRecord: 
       }));
       showToast('Download started!', 'success');
     } catch (error) {
-      const msg = error.message || 'Download failed. Please try again.';
+      const msg = error.response?.data?.message || error.message || 'Download failed. Please try again.';
       showToast(msg, 'error');
     } finally {
       setDownloading(false);

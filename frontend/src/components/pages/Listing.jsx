@@ -13,9 +13,9 @@ import LoadingSpinner from "../common/LoadingSpinner";
 function priceAmount(p) {
   const v = p?.variants?.[0];
   if (v?.calculated_price?.calculated_amount != null) {
-    return Number(v.calculated_price.calculated_amount) / 100;
+    return Number(v.calculated_price.calculated_amount);
   }
-  return p?.variants?.[0]?.prices?.[0]?.amount != null ? p.variants[0].prices[0].amount / 100 : 0;
+  return p?.variants?.[0]?.prices?.[0]?.amount != null ? Number(p.variants[0].prices[0].amount) : 0;
 }
 
 export default function Listing() {

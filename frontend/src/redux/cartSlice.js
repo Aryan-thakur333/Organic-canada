@@ -23,6 +23,7 @@ function readCartState() {
         medusaCartId: "",
         regionId: "",
         currencyCode: "usd",
+        metadata: {},
         serverTotals: defaultServerTotals(),
       };
     }
@@ -34,6 +35,7 @@ function readCartState() {
         medusaCartId: "",
         regionId: "",
         currencyCode: "usd",
+        metadata: {},
         serverTotals: defaultServerTotals(),
       };
     }
@@ -52,6 +54,7 @@ function readCartState() {
           ? parsed.serverTotals
           : {}),
       },
+      metadata: parsed.metadata || {},
     };
   } catch {
     return {
@@ -60,6 +63,7 @@ function readCartState() {
       medusaCartId: "",
       regionId: "",
       currencyCode: "usd",
+      metadata: {},
       serverTotals: defaultServerTotals(),
     };
   }
@@ -78,6 +82,7 @@ function persistCart(state) {
         medusaCartId: state.medusaCartId,
         regionId: state.regionId,
         currencyCode: state.currencyCode,
+        metadata: state.metadata,
         serverTotals: state.serverTotals,
       })
     );
@@ -94,6 +99,7 @@ const cartSlice = createSlice({
     medusaCartId: initial.medusaCartId,
     regionId: initial.regionId,
     currencyCode: initial.currencyCode,
+    metadata: initial.metadata || {},
     serverTotals: initial.serverTotals,
   },
   reducers: {
@@ -102,6 +108,7 @@ const cartSlice = createSlice({
       if (p.medusaCartId) state.medusaCartId = String(p.medusaCartId);
       if (p.regionId != null) state.regionId = String(p.regionId || "");
       if (p.currencyCode) state.currencyCode = String(p.currencyCode);
+      if (p.metadata) state.metadata = p.metadata;
       if (Array.isArray(p.items)) state.items = p.items;
       if (p.promo) {
         state.promo = {
@@ -169,6 +176,7 @@ const cartSlice = createSlice({
       state.medusaCartId = "";
       state.regionId = "";
       state.currencyCode = "usd";
+      state.metadata = {};
       state.serverTotals = defaultServerTotals();
       persistCart(state);
     },

@@ -1,0 +1,89 @@
+export type ErpModuleOptions = {
+  enabled: boolean
+  provider: "odoo"
+  baseUrl: string
+  databaseName: string
+  username: string
+  password: string
+  timeoutMs: number
+  skuPrefix: string
+}
+
+export type ErpErrorCode =
+  | "ERP_DISABLED"
+  | "ERP_CONFIG_INVALID"
+  | "ERP_CONNECTION_FAILED"
+  | "ERP_AUTHENTICATION_FAILED"
+  | "ERP_TIMEOUT"
+  | "ERP_PRODUCT_FETCH_FAILED"
+  | "ERP_MALFORMED_RESPONSE"
+  | "ERP_DUPLICATE_SKU"
+  | "ERP_SYNC_FAILED"
+  | "ERP_PRODUCT_FILTER_INVALID"
+
+export type OdooAuthenticationResult = {
+  uid: number
+  databaseName: string
+  username: string
+}
+
+export type OdooProduct = {
+  id: number
+  name: string
+  default_code: string | false
+  list_price: number
+  standard_price: number
+  qty_available: number
+  active: boolean
+}
+
+export type ErpHealthResult = {
+  enabled: boolean
+  connected: boolean
+  provider: "odoo"
+  database: string
+  userId: number
+  latencyMs: number
+  checkedAt: string
+}
+
+export type ErpProductSyncAction =
+  | "CREATE"
+  | "UPDATE"
+  | "UNCHANGED"
+  | "SKIP"
+  | "ERROR"
+
+export type ErpProductSyncItem = {
+  sku: string | null
+  odooProductId: number
+  name: string
+  listPrice: number
+  quantity: number
+  action: ErpProductSyncAction
+  reason: string
+}
+
+export type ErpProductSyncResult = {
+  success: boolean
+  dryRun: boolean
+  summary: {
+    erpProductsRead: number
+    matchedBySku: number
+    wouldCreate: number
+    wouldUpdate: number
+    skipped: number
+    errors: number
+  }
+  items: ErpProductSyncItem[]
+}
+
+export class ErpError extends Error {
+  constructor(
+    public readonly code: ErpErrorCode,
+    message: string
+  ) {
+    super(message)
+    this.name = "ErpError"
+  }
+}

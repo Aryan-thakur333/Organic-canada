@@ -1,5 +1,7 @@
 import {
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut as firebaseSignOut,
 } from 'firebase/auth';
 
@@ -7,10 +9,6 @@ import { auth, googleProvider } from '../firebase/firebase';
 import { authService } from './medusa/authService';
 import { checkBackendHealth } from './apiClient';
 import { clearCustomerToken, getCustomerToken } from './medusa/tokenStorage';
-
-/* -------------------------------------------------------------------------- */
-/*                         RETRY UTILITY (3 attempts + jitter)                */
-/* -------------------------------------------------------------------------- */
 
 const RETRY_CONFIG = {
   maxAttempts: 3,
@@ -63,37 +61,80 @@ export async function withRetry(fn, config = RETRY_CONFIG) {
 
 export const firebaseAuthService = {
   /**
-   * Google Sign-In via Firebase → sync user with Medusa.
+   * PURE FIREBASE: Launch Google popup authentication.
    */
-  async signInWithGoogle() {
-    if (googleSignInRequest) return googleSignInRequest;
+  async signInWithGooglePopup() {
+    const credential = await signInWithPopup(auth, googleProvider);
+    const firebaseUser = credential?.user;
 
-    googleSignInRequest = (async () => {
-      try {
-      // Firebase popup login
-      const result = await signInWithPopup(auth, googleProvider);
-      const firebaseUser = result.user;
+    if (!firebaseUser) {
+      throw new Error('Google authentication returned no user.');
+    }
 
-      if (!firebaseUser?.email) {
-        throw new Error('Google account email not found');
-      }
+    const idToken = await firebaseUser.getIdToken(true);
 
-      // Sync with Medusa (bridge login or register)
-      const medusaUser = await syncWithMedusa(firebaseUser);
+    return {
+      firebaseUser,
+      idToken,
+      email: firebaseUser.email,
+      firstName: firebaseUser.displayName?.split(' ')[0] || '',
+      lastName: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
+      photoURL: firebaseUser.photoURL || null,
+    };
+  },
 
-      return {
-        firebaseUser,
-        medusaUser,
-        token: getCustomerToken(),
-      };
-      } catch (error) {
-        console.error('[FirebaseAuthService] Google Sign-In Error:', error);
-        throw new Error(error?.response?.data?.message || error?.message || 'Google authentication failed');
-      } finally {
-        googleSignInRequest = undefined;
-      }
-    })();
-    return googleSignInRequest;
+  /**
+   * PURE FIREBASE: Redirect authentication fallback.
+   */
+  async startGoogleRedirect() {
+    sessionStorage.setItem("google_auth_redirect_pending", "true");
+    return signInWithRedirect(auth, googleProvider);
+  },
+
+  /**
+   * PURE FIREBASE: Consume redirect result exactly once on mount.
+   */
+  async consumeGoogleRedirectResult() {
+    const result = await getRedirectResult(auth);
+    if (!result?.user) return null;
+
+    const idToken = await result.user.getIdToken(true);
+
+    return {
+      firebaseUser: result.user,
+      idToken,
+      email: result.user.email,
+      firstName: result.user.displayName?.split(' ')[0] || '',
+      lastName: result.user.displayName?.split(' ').slice(1).join(' ') || '',
+      photoURL: result.user.photoURL || null,
+    };
+  },
+
+  /**
+   * ERROR MAPPER: Handles Firebase-specific UI codes.
+   */
+  handleGoogleAuthError(error, setError) {
+    const code = String(error?.code || "");
+
+    if (code === "auth/popup-closed-by-user") {
+      console.info("[FirebaseAuthService] Google sign-in was cancelled by user.");
+      setError("Google sign-in was cancelled. Please try again and complete the Google window.");
+      return;
+    }
+
+    if (code === "auth/cancelled-popup-request") {
+      console.info("[FirebaseAuthService] Duplicate popup request ignored.");
+      setError("Another Google sign-in request was already open.");
+      return;
+    }
+
+    if (code === "auth/popup-blocked") {
+      console.info("[FirebaseAuthService] Popup blocked. Initiating redirect fallback.");
+      this.startGoogleRedirect();
+      return;
+    }
+
+    setError(error?.message || "Google sign-in could not be completed.");
   },
 
   /**

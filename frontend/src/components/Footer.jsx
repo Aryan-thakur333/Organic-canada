@@ -4,7 +4,7 @@ import { ROUTES } from "../utils/constants";
 
 export default function Footer() {
   const quickLinks = [
-    { label: "All products", to: "/listing" },
+    { label: "All products", to: "/shop" },
     { label: "Wishlist", to: ROUTES.WISHLIST },
     { label: "About", to: "/about" },
     { label: "Contact", to: "/contact" },

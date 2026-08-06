@@ -61,16 +61,13 @@ export function getDefaultRegionIdFromEnv() {
 }
 
 /**
- * Default country code
- * @returns {string}
+ * Optional default storefront sales channel ID.
+ * @returns {string | undefined}
  */
-export function getDefaultCountryCode() {
+export function getDefaultSalesChannelIdFromEnv() {
   const v = String(
-    import.meta.env.VITE_STORE_DEFAULT_COUNTRY_CODE ?? ""
-  ).trim().toLowerCase()
+    import.meta.env.VITE_MEDUSA_SALES_CHANNEL_ID ?? ""
+  ).trim()
 
-  if (v && v !== "undefined" && v !== "null") return v
-  
-  // Default to 'ca' since the Medusa region is Canada (ca)
-  return "ca"
+  return v || undefined
 }

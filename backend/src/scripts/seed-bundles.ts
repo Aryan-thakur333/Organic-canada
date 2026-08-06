@@ -1,6 +1,6 @@
 import { ExecArgs } from "@medusajs/framework/types"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
-import { BUNDLE_MODULE } from "../modules/bundle"
+import { BUNDLE_MODULE } from "../modules/bundle/index.js"
 
 /**
  * Seed script: seed-bundles

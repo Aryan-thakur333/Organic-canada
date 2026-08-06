@@ -16,7 +16,8 @@ import {
   Settings,
   ClipboardList,
   Store,
-  Building2
+  Building2,
+  Download
 } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import Button from '../common/Button';
@@ -68,7 +69,8 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Shop', path: isApprovedB2B ? '/b2b/products' : '/listing' },
+    { name: 'Shop', path: '/shop' },
+    ...(isApprovedB2B ? [{ name: 'Wholesale', path: '/b2b/products' }] : []),
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ];
@@ -97,17 +99,26 @@ const Navbar = () => {
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className={`text-sm font-semibold transition-colors hover:text-accent-primary ${
-                location.pathname === link.path ? 'text-accent-primary' : 'text-text-secondary'
-              }`}
-            >
-              {link.name}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const isActive = link.path === '/shop'
+              ? location.pathname === '/shop' || location.pathname.startsWith('/product/') || location.pathname.startsWith('/category/')
+              : link.path === '/b2b/products'
+              ? location.pathname.startsWith('/b2b/products')
+              : location.pathname === link.path;
+
+            return (
+              <Link
+                key={link.path}
+                to={link.path}
+                onClick={() => console.log('[ROUTE_TRACE]', { pathname: location.pathname, to: link.path, b2b: isApprovedB2B })}
+                className={`text-sm font-semibold transition-colors hover:text-accent-primary ${
+                  isActive ? 'text-accent-primary' : 'text-text-secondary'
+                }`}
+              >
+                {link.name}
+              </Link>
+            );
+          })}
         </div>
 
         {/* Actions */}
@@ -204,6 +215,9 @@ const Navbar = () => {
                       <Link to="/orders" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-3 py-2 hover:bg-stone-50 dark:hover:bg-slate-700 rounded-lg text-sm transition-colors">
                         <ClipboardList size={16} /> My Orders
                       </Link>
+                      <Link to="/my-downloads" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-3 py-2 hover:bg-stone-50 dark:hover:bg-slate-700 rounded-lg text-sm transition-colors">
+                        <Download size={16} /> My Downloads
+                      </Link>
                       {isApprovedB2B && (
                         <>
                           <Link to="/b2b/dashboard" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-3 py-2 hover:bg-stone-50 dark:hover:bg-slate-700 rounded-lg text-sm transition-colors">
@@ -255,16 +269,29 @@ const Navbar = () => {
             className="md:hidden bg-white dark:bg-slate-900 border-t border-stone-100 dark:border-slate-800 overflow-hidden"
           >
             <div className="container-custom py-6 flex flex-col gap-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-lg font-semibold text-text-primary"
-                >
-                  {link.name}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const isActive = link.path === '/shop'
+                  ? location.pathname === '/shop' || location.pathname.startsWith('/product/') || location.pathname.startsWith('/category/')
+                  : link.path === '/b2b/products'
+                  ? location.pathname.startsWith('/b2b/products')
+                  : location.pathname === link.path;
+
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={() => {
+                      console.log('[ROUTE_TRACE]', { pathname: location.pathname, to: link.path, b2b: isApprovedB2B });
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`text-lg font-semibold transition-colors ${
+                      isActive ? 'text-accent-primary' : 'text-text-primary'
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                );
+              })}
             </div>
           </motion.div>
         )}

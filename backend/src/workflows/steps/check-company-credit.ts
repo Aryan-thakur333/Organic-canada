@@ -1,5 +1,5 @@
 import { createStep, StepResponse } from "@medusajs/framework/workflows-sdk"
-import { B2B_MODULE } from "../../modules/b2b"
+import { B2B_MODULE } from "../../modules/b2b/index"
 import { MedusaError } from "@medusajs/framework/utils"
 
 // ── Types ──────────────────────────────────────────────────────────────────

@@ -16,7 +16,7 @@ import {
   Send,
   Clock,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/Footer';
@@ -37,6 +37,7 @@ const fmtPrice = (cents) => `$${(cents / 100).toFixed(2)}`;
 
 const B2BCompanyRegistration = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { showToast } = useToast();
   const { isAuthenticated, authResolved: isAuthResolved } = useSelector((state) => state.auth);
@@ -91,6 +92,11 @@ const B2BCompanyRegistration = () => {
     })();
     return () => controller.abort();
   }, [isAuthenticated, isAuthResolved, showToast]);
+
+  if (location.pathname !== '/register/b2b') {
+    console.warn('[ROUTE_TRACE] B2BCompanyRegistration mounted on wrong route:', location.pathname);
+    return <Navigate to="/shop" replace />;
+  }
 
   // ── Validation ────────────────────────────────────────────────────────
   const validate = () => {

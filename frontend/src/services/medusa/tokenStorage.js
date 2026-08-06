@@ -1,7 +1,14 @@
 export const CUSTOMER_TOKEN_KEY = 'medusa_customer_token';
 export const VENDOR_TOKEN_KEY = 'vendor_token';
 
-const LEGACY_CUSTOMER_TOKEN_KEYS = ['medusa_token', 'medusa_jwt'];
+const FALLBACK_CUSTOMER_TOKEN_KEYS = [
+  'customer_token',
+  'auth_token',
+  'customer_jwt_token',
+  'token',
+  'medusa_token',
+  'medusa_jwt',
+];
 
 /**
  * B2B Session Persistence Guard
@@ -15,14 +22,17 @@ export function getCustomerToken() {
   const current = localStorage.getItem(CUSTOMER_TOKEN_KEY);
   if (current) return current;
 
-  const legacy = LEGACY_CUSTOMER_TOKEN_KEYS
+  const fallback = FALLBACK_CUSTOMER_TOKEN_KEYS
     .map((key) => localStorage.getItem(key))
     .find(Boolean);
-  if (legacy) {
-    localStorage.setItem(CUSTOMER_TOKEN_KEY, legacy);
-    LEGACY_CUSTOMER_TOKEN_KEYS.forEach((key) => localStorage.removeItem(key));
+
+  if (fallback) {
+    localStorage.setItem(CUSTOMER_TOKEN_KEY, fallback);
+    FALLBACK_CUSTOMER_TOKEN_KEYS.forEach((key) => localStorage.removeItem(key));
+    return fallback;
   }
-  return legacy || null;
+
+  return null;
 }
 
 /**
@@ -56,12 +66,18 @@ export function getCustomerTokenSafe() {
 export function setCustomerToken(token) {
   if (!token) return;
   localStorage.setItem(CUSTOMER_TOKEN_KEY, token);
-  LEGACY_CUSTOMER_TOKEN_KEYS.forEach((key) => localStorage.removeItem(key));
+
+  FALLBACK_CUSTOMER_TOKEN_KEYS.forEach((key) => localStorage.removeItem(key));
 }
 
 export function clearCustomerToken() {
   localStorage.removeItem(CUSTOMER_TOKEN_KEY);
-  LEGACY_CUSTOMER_TOKEN_KEYS.forEach((key) => localStorage.removeItem(key));
+
+  FALLBACK_CUSTOMER_TOKEN_KEYS.forEach((key) => localStorage.removeItem(key));
+}
+
+export function hasCustomerToken() {
+  return Boolean(getCustomerToken());
 }
 
 /**
@@ -81,10 +97,14 @@ export function hasActiveSession() {
  * routing transitions without relying on ephemeral auth context.
  */
 const B2B_COMPANY_CONTEXT_KEY = 'b2b_company_context';
+const B2B_COMPANY_KEY = 'b2b_company';
+const B2B_COMPANY_ID_KEY = 'b2b_company_id';
 
 export function getB2BCompanyContext() {
   try {
-    const context = sessionStorage.getItem(B2B_COMPANY_CONTEXT_KEY);
+    const context =
+      localStorage.getItem(B2B_COMPANY_KEY) ||
+      sessionStorage.getItem(B2B_COMPANY_CONTEXT_KEY);
     if (!context) return null;
     return JSON.parse(context);
   } catch (error) {
@@ -97,9 +117,15 @@ export function setB2BCompanyContext(context) {
   try {
     if (!context) {
       sessionStorage.removeItem(B2B_COMPANY_CONTEXT_KEY);
+      localStorage.removeItem(B2B_COMPANY_KEY);
+      localStorage.removeItem(B2B_COMPANY_ID_KEY);
       return;
     }
     sessionStorage.setItem(B2B_COMPANY_CONTEXT_KEY, JSON.stringify(context));
+    localStorage.setItem(B2B_COMPANY_KEY, JSON.stringify(context));
+    if (context.id) {
+      localStorage.setItem(B2B_COMPANY_ID_KEY, context.id);
+    }
   } catch (error) {
     console.error('[TokenStorage] Error saving B2B company context:', error);
   }
@@ -107,4 +133,6 @@ export function setB2BCompanyContext(context) {
 
 export function clearB2BCompanyContext() {
   sessionStorage.removeItem(B2B_COMPANY_CONTEXT_KEY);
+  localStorage.removeItem(B2B_COMPANY_KEY);
+  localStorage.removeItem(B2B_COMPANY_ID_KEY);
 }

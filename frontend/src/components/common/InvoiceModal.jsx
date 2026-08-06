@@ -8,6 +8,12 @@ const InvoiceModal = ({ order, onClose }) => {
 
   if (!order) return null;
 
+  // Extract platform fee from line items
+  const platformFeeItem = order.items?.find(item => item.title === "Platform Fee" || item.metadata?.is_platform_fee);
+  const activeItems = order.items?.filter(item => item.id !== platformFeeItem?.id) || [];
+  const platformFeeAmount = platformFeeItem ? (platformFeeItem.unit_price * platformFeeItem.quantity) : 0;
+
+
   const handlePrint = () => {
     const printContent = printRef.current?.innerHTML;
     const originalContent = document.body.innerHTML;
@@ -119,7 +125,7 @@ const InvoiceModal = ({ order, onClose }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-50 dark:divide-slate-800/50">
-              {order.items?.map((item) => (
+              {activeItems.map((item) => (
                 <tr key={item.id} className="text-text-primary">
                   <td className="py-4">
                     <p className="font-bold">{item.title}</p>
@@ -130,8 +136,8 @@ const InvoiceModal = ({ order, onClose }) => {
                     )}
                   </td>
                   <td className="py-4 text-center font-semibold">{item.quantity}</td>
-                  <td className="py-4 text-right font-semibold">${(item.unit_price / 100).toFixed(2)}</td>
-                  <td className="py-4 text-right font-black">${((item.unit_price * item.quantity) / 100).toFixed(2)}</td>
+                  <td className="py-4 text-right font-semibold">${(Number(item.unit_price) || 0).toFixed(2)}</td>
+                  <td className="py-4 text-right font-black">${((Number(item.unit_price) || 0) * item.quantity).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
@@ -153,21 +159,27 @@ const InvoiceModal = ({ order, onClose }) => {
             <div className="w-full md:w-80 flex flex-col gap-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-text-secondary">Subtotal</span>
-                <span className="font-bold text-text-primary">${((order.subtotal || 0) / 100).toFixed(2)}</span>
+                <span className="font-bold text-text-primary">${(Number(order.subtotal) || 0).toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-text-secondary">Estimated Tax (5%)</span>
-                <span className="font-bold text-text-primary">${((order.tax_total || 0) / 100).toFixed(2)}</span>
+                <span className="font-bold text-text-primary">${(Number(order.tax_total) || 0).toFixed(2)}</span>
               </div>
               {order.discount_total > 0 && (
                 <div className="flex justify-between text-accent-primary font-bold">
                   <span>Discount {getPromoCode() ? `(${getPromoCode()})` : ''}</span>
-                  <span>-${((order.discount_total || 0) / 100).toFixed(2)}</span>
+                  <span>-${(Number(order.discount_total) || 0).toFixed(2)}</span>
+                </div>
+              )}
+              {platformFeeAmount > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-text-secondary">Platform Fee</span>
+                  <span className="font-bold text-text-primary">${(Number(platformFeeAmount) || 0).toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between border-t border-stone-100 dark:border-slate-800 pt-3 mt-1">
                 <span className="text-base font-black text-text-primary">Total Paid</span>
-                <span className="text-xl font-black text-accent-primary">${((order.total || 0) / 100).toFixed(2)}</span>
+                <span className="text-xl font-black text-accent-primary">${(Number(order.total) || 0).toFixed(2)}</span>
               </div>
             </div>
           </div>

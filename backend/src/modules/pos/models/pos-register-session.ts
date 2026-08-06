@@ -1,0 +1,2 @@
+import { model } from "@medusajs/framework/utils"
+export const PosRegisterSession = model.define("pos_register_session", { id: model.id().primaryKey(), register_id: model.text(), operator_id: model.text(), opened_at: model.dateTime(), closed_at: model.dateTime().nullable(), opening_cash_minor: model.number(), expected_cash_minor: model.number().default(0), counted_cash_minor: model.number().nullable(), cash_difference_minor: model.number().nullable(), status: model.text().default("OPEN"), metadata: model.json().nullable() })

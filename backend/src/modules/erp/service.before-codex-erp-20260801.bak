@@ -1,0 +1,55 @@
+import { OdooClient } from "./clients/odoo-client"
+
+import type {
+  ErpHealthResult,
+  ErpModuleOptions,
+} from "./types"
+
+export default class ErpModuleService {
+  private readonly client: OdooClient
+
+  constructor(
+    _container: Record<string, unknown>,
+    private readonly options: ErpModuleOptions
+  ) {
+    if (!options.enabled) {
+      throw new Error("ERP integration is disabled")
+    }
+
+    const dbName = options.databaseName || options.database
+    if (
+      !options.baseUrl ||
+      !dbName ||
+      !options.username ||
+      !options.password
+    ) {
+      throw new Error(
+        "ERP module configuration is incomplete"
+      )
+    }
+
+    this.client = new OdooClient(options)
+  }
+
+  async healthCheck(): Promise<ErpHealthResult> {
+    const startedAt = Date.now()
+    const auth = await this.client.authenticate()
+
+    return {
+      enabled: true,
+      connected: true,
+      provider: "odoo",
+      database: auth.databaseName,
+      userId: auth.uid,
+      latencyMs: Date.now() - startedAt,
+      checkedAt: new Date().toISOString(),
+    }
+  }
+
+  async getProducts(input?: {
+    sku?: string
+    limit?: number
+  }) {
+    return this.client.getProducts(input)
+  }
+}

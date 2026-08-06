@@ -9,6 +9,7 @@ import { completeCart } from '../services/medusa/checkoutService';
 import Navbar from '../components/layout/Navbar';
 import Button from '../components/common/Button';
 import Footer from '../components/Footer';
+import { formatMoney } from '../lib/medusa/money';
 
 const OrderSuccess = () => {
   const location = useLocation();
@@ -17,6 +18,7 @@ const OrderSuccess = () => {
   const medusaCartId = useSelector((state) => state.cart.medusaCartId);
   
   const [order, setOrder] = useState(location.state?.order || null);
+  const orderCurrency = String(order?.currency_code || "usd").toLowerCase();
   const [isConfirming, setIsConfirming] = useState(false);
   const [hasDigitalItems, setHasDigitalItems] = useState(false);
 
@@ -117,8 +119,14 @@ const OrderSuccess = () => {
                 </div>
                 <div className="flex justify-between items-center pt-2">
                   <span className="text-sm font-bold text-text-secondary uppercase">Total Paid</span>
-                  <span className="text-xl font-black text-text-primary">${(order.total / 100).toFixed(2)}</span>
+                  <span className="text-xl font-black text-text-primary">{formatMoney(Number(order.total) || 0, orderCurrency)}</span>
                 </div>
+                {(order.items || []).filter(item => item.metadata?.is_bundle).map(item => (
+                  <div key={item.id} className="text-left rounded-xl bg-emerald-50 dark:bg-emerald-950/20 p-3">
+                    <p className="text-xs font-black text-emerald-700">{item.title} bundle includes</p>
+                    {(item.metadata.bundle_components || []).map(component => <p key={component.variant_id} className="text-xs text-text-secondary">{component.title} × {component.quantity}</p>)}
+                  </div>
+                ))}
               </div>
             </motion.div>
 

@@ -5,6 +5,10 @@ export const vendorApi = {
   register: (payload) => apiClient.post("/vendor/register", payload),
   login: (payload) => apiClient.post("/vendor/login", payload),
   getProfile: () => apiClient.get("/vendor/me"),
+  getMe: async () => {
+    const res = await apiClient.get("/vendor/me");
+    return res?.vendor || null;
+  },
 
   // Products
   getProducts: () => apiClient.get("/vendor/products"),
@@ -37,14 +41,20 @@ export const vendorApi = {
     }),
   getTracking: (orderId) => apiClient.get(`/vendor/orders/fulfill/${orderId}`),
 
-  // Order Accept/Reject/Fulfill Actions
   orderAction: (orderId, action, reason = "") =>
     apiClient.post(`/vendor/orders/action/${orderId}`, { action, reason }),
+  getOrder: (id) => apiClient.get(`/vendor/orders/${id}`),
   acceptOrder: (orderId) => apiClient.post(`/vendor/orders/${orderId}/accept`),
-  packOrder: (orderId) => apiClient.post(`/vendor/orders/${orderId}/pack`),
+  rejectOrder: (orderId, reason) => apiClient.post(`/vendor/orders/${orderId}/reject`, { reason }),
+  allocateOrder: (orderId) => apiClient.post(`/vendor/orders/${orderId}/allocate`),
+  prepareOrder: (orderId) => apiClient.post(`/vendor/orders/${orderId}/prepare`),
+  fulfillOrder: (orderId, locationId) => apiClient.post(`/vendor/orders/${orderId}/fulfill`, { location_id: locationId }),
   shipOrder: (orderId, payload) => apiClient.post(`/vendor/orders/${orderId}/ship`, payload),
   deliverOrder: (orderId) => apiClient.post(`/vendor/orders/${orderId}/deliver`),
   getOrderAction: (orderId) => apiClient.get(`/vendor/orders/action/${orderId}`),
+
+  // Stock Locations
+  getStockLocations: () => apiClient.get("/vendor/stock-locations"),
 
   // Inventory Audit
   getInventoryAudit: (params = {}) => apiClient.get("/vendor/inventory/audit", { params }),
@@ -53,4 +63,19 @@ export const vendorApi = {
   adminListVendors: () => apiClient.get("/admin/vendors"),
   adminApproveVendor: (id) => apiClient.post(`/admin/vendors/${id}/approve`),
   adminRejectVendor: (id) => apiClient.post(`/admin/vendors/${id}/reject`),
+
+  // Personalization Templates & Fields
+  getPersonalizationTemplates: () => apiClient.get("/vendor/personalization-templates"),
+  createPersonalizationTemplate: (payload) => apiClient.post("/vendor/personalization-templates", payload),
+  getPersonalizationTemplate: (id) => apiClient.get(`/vendor/personalization-templates/${id}`),
+  updatePersonalizationTemplate: (id, payload) => apiClient.put(`/vendor/personalization-templates/${id}`, payload),
+  deletePersonalizationTemplate: (id) => apiClient.delete(`/vendor/personalization-templates/${id}`),
+  publishPersonalizationTemplate: (id) => apiClient.post(`/vendor/personalization-templates/${id}/publish`),
+  createPersonalizationField: (templateId, payload) => apiClient.post(`/vendor/personalization-templates/${templateId}/fields`, payload),
+  updatePersonalizationField: (templateId, fieldId, payload) => apiClient.put(`/vendor/personalization-templates/${templateId}/fields/${fieldId}`, payload),
+  deletePersonalizationField: (templateId, fieldId) => apiClient.delete(`/vendor/personalization-templates/${templateId}/fields/${fieldId}`),
+
+  // Order Item Personalization Actions
+  getOrderItemPersonalization: (orderId, itemId) => apiClient.get(`/vendor/orders/${orderId}/items/${itemId}/personalization`),
+  updateOrderItemPersonalizationStatus: (orderId, itemId, action, notes = "") => apiClient.put(`/vendor/orders/${orderId}/items/${itemId}/personalization`, { action, notes }),
 };

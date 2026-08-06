@@ -46,7 +46,6 @@ export default async function repairPaymentProviders({ container }: ExecArgs) {
       input: {
         selector: { id: region.id },
         update: {
-          // @ts-ignore Remote payment-provider IDs are accepted by the workflow.
           payment_providers: finalProviderIds,
         },
       },

@@ -1,0 +1,205 @@
+import { OdooClient } from "./clients/odoo-client"
+
+import type {
+  ErpProductSyncResult,
+  ErpHealthResult,
+  ErpModuleOptions,
+  OdooProduct,
+} from "./types"
+import { ErpError } from "./types"
+
+export default class ErpModuleService {
+  private readonly client?: OdooClient
+
+  constructor(
+    _container: Record<string, unknown>,
+    private readonly options: ErpModuleOptions
+  ) {
+    if (options.enabled && this.hasRequiredOptions()) {
+      this.client = new OdooClient(options)
+    }
+  }
+
+  private hasRequiredOptions(): boolean {
+    if (
+      !this.options.baseUrl ||
+      !this.options.databaseName ||
+      !this.options.username ||
+      !this.options.password
+    ) {
+      return false
+    }
+
+    return true
+  }
+
+  private getClient(): OdooClient {
+    if (!this.options.enabled) {
+      throw new ErpError(
+        "ERP_DISABLED",
+        "ERP integration is disabled"
+      )
+    }
+
+    if (!this.client) {
+      throw new ErpError(
+        "ERP_CONFIGURATION_INVALID",
+        "ERP module configuration is incomplete"
+      )
+    }
+
+    return this.client
+  }
+
+  async healthCheck(): Promise<ErpHealthResult> {
+    const startedAt = Date.now()
+    const auth = await this.getClient().healthCheck()
+
+    return {
+      enabled: true,
+      connected: true,
+      provider: "odoo",
+      database: auth.databaseName,
+      userId: auth.uid,
+      latencyMs: Date.now() - startedAt,
+      checkedAt: new Date().toISOString(),
+    }
+  }
+
+  async getProducts(input?: {
+    sku?: string
+    limit?: number
+  }): Promise<OdooProduct[]> {
+    return this.getClient().getProducts(input)
+  }
+
+  async dryRunProductSync(input: {
+    findMedusaVariantsBySku(
+      skus: string[]
+    ): Promise<Array<{
+      id: string
+      sku?: string | null
+      product?: { id?: string; title?: string } | null
+    }>>
+    limit?: number
+  }): Promise<ErpProductSyncResult> {
+    console.info("[ERP_PRODUCT_SYNC_START] dryRun=true")
+
+    const erpProducts = await this.getProducts({
+      limit: input.limit ?? 20,
+    })
+
+    const activeSkuCounts = new Map<string, number>()
+    for (const product of erpProducts) {
+      const sku =
+        typeof product.default_code === "string"
+          ? product.default_code.trim()
+          : ""
+
+      if (sku) {
+        activeSkuCounts.set(
+          sku,
+          (activeSkuCounts.get(sku) ?? 0) + 1
+        )
+      }
+    }
+
+    const uniqueSkus = Array.from(activeSkuCounts.keys())
+    const medusaVariants =
+      await input.findMedusaVariantsBySku(uniqueSkus)
+
+    const medusaSkuCounts = new Map<string, number>()
+    for (const variant of medusaVariants) {
+      const sku = variant.sku?.trim()
+      if (sku) {
+        medusaSkuCounts.set(
+          sku,
+          (medusaSkuCounts.get(sku) ?? 0) + 1
+        )
+      }
+    }
+
+    const summary = {
+      erpProductsRead: erpProducts.length,
+      matchedBySku: 0,
+      wouldCreate: 0,
+      wouldUpdate: 0,
+      skipped: 0,
+      errors: 0,
+    }
+
+    const items = erpProducts.map((product) => {
+      const sku =
+        typeof product.default_code === "string"
+          ? product.default_code.trim()
+          : ""
+
+      if (!sku) {
+        summary.skipped += 1
+        return {
+          sku: null,
+          odooProductId: product.id,
+          action: "SKIP" as const,
+          reason: "MISSING_ERP_SKU",
+        }
+      }
+
+      if ((activeSkuCounts.get(sku) ?? 0) > 1) {
+        summary.errors += 1
+        console.warn(
+          `[ERP_DUPLICATE_SKU] provider=odoo sku=${sku}`
+        )
+        return {
+          sku,
+          odooProductId: product.id,
+          action: "ERROR" as const,
+          reason: "DUPLICATE_ERP_SKU",
+        }
+      }
+
+      const medusaMatchCount =
+        medusaSkuCounts.get(sku) ?? 0
+
+      if (medusaMatchCount > 1) {
+        summary.errors += 1
+        console.warn(
+          `[ERP_DUPLICATE_SKU] provider=medusa sku=${sku}`
+        )
+        return {
+          sku,
+          odooProductId: product.id,
+          action: "ERROR" as const,
+          reason: "DUPLICATE_MEDUSA_SKU",
+        }
+      }
+
+      if (medusaMatchCount === 1) {
+        summary.matchedBySku += 1
+        summary.wouldUpdate += 1
+        return {
+          sku,
+          odooProductId: product.id,
+          action: "UPDATE" as const,
+          reason: "MATCHED_BY_SKU",
+        }
+      }
+
+      summary.wouldCreate += 1
+      return {
+        sku,
+        odooProductId: product.id,
+        action: "CREATE" as const,
+        reason: "SKU_NOT_FOUND_IN_MEDUSA",
+      }
+    })
+
+    console.info("[ERP_PRODUCT_SYNC_COMPLETE] dryRun=true")
+
+    return {
+      success: true,
+      dryRun: true,
+      summary,
+      items,
+    }
+  }
+}

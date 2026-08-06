@@ -1,0 +1,36 @@
+export type ErpModuleOptions = {
+  enabled: boolean
+  provider: "odoo"
+  baseUrl: string
+  databaseName?: string
+  database?: string
+  username: string
+  password: string
+  timeoutMs: number
+}
+
+export type OdooAuthenticationResult = {
+  uid: number
+  databaseName: string
+  username: string
+}
+
+export type OdooProduct = {
+  id: number
+  name: string
+  default_code: string | false
+  list_price: number
+  standard_price: number
+  qty_available: number
+  active: boolean
+}
+
+export type ErpHealthResult = {
+  enabled: boolean
+  connected: boolean
+  provider: "odoo"
+  database: string
+  userId: number
+  latencyMs: number
+  checkedAt: string
+}

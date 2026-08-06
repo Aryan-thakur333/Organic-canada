@@ -1,6 +1,6 @@
 import type { ExecArgs } from "@medusajs/framework/types"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
-import { B2B_MODULE } from "../modules/b2b"
+import { B2B_MODULE } from "../modules/b2b/index.js"
 
 const B2B_GROUP_NAMES = ["B2b parteners", "B2B Partners", "B2B Customers", "B2B customer", "Wholesale Customers"]
 const PRICE_LIST_NAMES = ["B2B customer", "B2B Customers", "Wholesale", "B2B Price List", "B2B Pricing", "Wholesale Pricing"]

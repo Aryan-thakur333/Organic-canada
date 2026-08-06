@@ -23,6 +23,7 @@ import Footer from '../components/Footer';
 import Button from '../components/common/Button';
 import AdminVendorsView from '../components/admin/AdminVendorsView';
 import AdminCouponsView from '../components/admin/AdminCouponsView';
+import AdminPersonalizationsView from '../components/admin/AdminPersonalizationsView';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ const AdminDashboard = () => {
   const tabs = [
     { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
     { id: 'vendors', label: 'Vendors', icon: <Store size={20} /> },
+    { id: 'personalizations', label: 'Personalizations', icon: <Tag size={20} /> },
     { id: 'b2b-quotes', label: 'B2B Quotes', icon: <Building2 size={20} /> },
     { id: 'orders', label: 'Orders', icon: <ShoppingBag size={20} /> },
     { id: 'products', label: 'Products', icon: <Package size={20} /> },
@@ -90,6 +92,8 @@ const AdminDashboard = () => {
             <AdminVendorsView />
           ) : activeTab === 'coupons' ? (
             <AdminCouponsView />
+          ) : activeTab === 'personalizations' ? (
+            <AdminPersonalizationsView />
           ) : activeTab === 'overview' ? (
             <>
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">

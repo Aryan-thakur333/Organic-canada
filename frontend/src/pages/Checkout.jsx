@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronRight, 
@@ -36,14 +36,23 @@ import {
   initiatePaymentSessionForProvider,
   completeCart,
   listPaymentProvidersForRegion,
+  ensurePaymentCollection,
   pickStripePaymentProviderId,
   extractStripeClientSecret,
-  assignCustomerToCart
+  ensureCustomerAttachedToCart,
+  prepareCheckoutCartForUpdate,
+  recreateCheckoutCart
 } from '../services/medusa/checkoutService';
 import { authService } from '../services/medusa/authService';
 import { retrieveCart } from '../services/medusa/cartService';
+import { getCartStorageKey } from '../services/medusa/cartService';
 import { clearCart } from '../redux/cartSlice';
 import { addOrder } from '../redux/orderSlice';
+import { useRegion } from '../contexts/RegionContext';
+import { commerceFeatures } from '../config/commerceFeatures';
+import { subscriptionService } from '../services/medusa/subscriptionService';
+import { getCheckoutErrorMessage, getCheckoutRegionCountries, normalizeCheckoutPhone, resolveCheckoutCountry, validateCheckoutShippingAddress } from '../lib/medusa/checkout-region';
+import { groupCheckoutSummaryItems } from '../lib/medusa/bundle-display';
 
 const DIGITAL_STEPS = [
   { id: 'payment', title: 'Payment', icon: <CreditCard size={20} /> },
@@ -65,29 +74,79 @@ const Checkout = () => {
     phone: '',
     address: '',
     city: '',
+    province: '',
     postal_code: '',
+    country_code: '',
   });
+  const [checkoutCart, setCheckoutCart] = useState(null);
   const [shippingOptions, setShippingOptions] = useState([]);
   const [selectedShippingId, setSelectedShippingId] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('stripe'); // stripe, paypal, cod
   const [availableProviders, setAvailableProviders] = useState([]);
   const [clientSecret, setClientSecret] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [finalizationError, setFinalizationError] = useState('');
+  const [bundleRebuildRequired, setBundleRebuildRequired] = useState(false);
   const [b2bMethod, setB2bMethod] = useState(false);
+  
+  const initializationRef = useRef({ cartId: null, running: false, completed: false });
+  const completeInFlightRef = useRef(false);
+  const completedOrderRef = useRef(null);
+  const finalizationPaymentRef = useRef(null);
+  const [hasFinalizationPayment, setHasFinalizationPayment] = useState(false);
 
   const { company: b2bCompany, isLoading: b2bLoading, creditCheck: b2bCreditCheck, refetch: refetchB2BCompany } = useB2BCompany();
 
-  const { items: rawItems, medusaCartId, currencyCode, serverTotals } = useSelector(state => state.cart);
+  const { items: rawItems, medusaCartId, currencyCode, serverTotals, metadata } = useSelector(state => state.cart);
   const { formatPrice, grandTotal: hookGrandTotal, tax: hookTax, subtotal: hookSubtotal, shipping, couponDiscount } = useCart();
   const { ensureCart, refreshFromServer } = useMedusaCart();
   const { showToast } = useToast();
+  const { region, regionSlug, currencyCode: selectedCurrencyCode } = useRegion();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const activeItems = useMemo(() => Array.isArray(rawItems) ? rawItems : [], [rawItems]);
+  // Platform fee is now stored natively in metadata and acts as an internal deduction for B2C
+  const activeItems = useMemo(() => Array.isArray(rawItems) ? rawItems.filter(i => i.title !== "Platform Fee" && !i.metadata?.is_platform_fee) : [], [rawItems]);
+  const checkoutSummaryItems = useMemo(() => groupCheckoutSummaryItems(activeItems), [activeItems]);
+  const subscriptionItems = useMemo(() => activeItems.filter((item) => item.metadata?.is_subscription === true), [activeItems]);
+  const isSubscriptionCart = commerceFeatures.subscriptions && subscriptionItems.length > 0;
+  const hasMixedSubscriptionCart = isSubscriptionCart && subscriptionItems.length !== activeItems.length;
+  const platformFeeAmount = metadata?.platform_fee_total || 0;
+
   const displayGrandTotal = hookGrandTotal || 0;
   const isApprovedB2B = b2bCompany?.status === 'approved' || b2bCompany?.status === 'active';
-  const b2bCreditResult = b2bMethod && isApprovedB2B
+  
+  const cartType = metadata?.cart_type || 'b2c';
+  const showB2BPricing = 
+    (cartType === 'b2b' || cartType === 'b2b_quote') && 
+    isApprovedB2B && 
+    metadata?.company_id === b2bCompany?.id;
+
+  const validateCheckoutCartCurrency = useCallback((cart) => {
+    const expectedCurrency = String(selectedCurrencyCode || region?.currency_code || '').toLowerCase();
+    const cartCurrency = String(cart?.currency_code || '').toLowerCase();
+    if (region?.id && cart?.region_id && cart.region_id !== region.id) {
+      throw new Error("Your cart belongs to a different region. Please return to your basket.");
+    }
+    if (expectedCurrency && cartCurrency && cartCurrency !== expectedCurrency) {
+      throw new Error(`Your cart currency (${cartCurrency.toUpperCase()}) does not match ${expectedCurrency.toUpperCase()}.`);
+    }
+    return cart;
+  }, [region, selectedCurrencyCode]);
+
+  const regionCountries = useMemo(() => getCheckoutRegionCountries(checkoutCart), [checkoutCart]);
+  const updateCheckoutCart = useCallback((cart) => {
+    const validated = validateCheckoutCartCurrency(cart);
+    setCheckoutCart(validated);
+    return validated;
+  }, [validateCheckoutCartCurrency]);
+
+  useEffect(() => {
+    if (!checkoutCart) return;
+    setFormData((current) => ({ ...current, country_code: resolveCheckoutCountry(regionCountries, current.country_code) }));
+  }, [checkoutCart, regionCountries]);
+
+  const b2bCreditResult = b2bMethod && showB2BPricing
     ? b2bCreditCheck(displayGrandTotal)
     : { isApproved: true, warning: null };
 
@@ -123,11 +182,58 @@ const Checkout = () => {
   const initialStep = isDigitalOnlyCart ? 0 : 0;
 
   useEffect(() => {
-    if (medusaCartId) {
-      console.log("[Checkout] Refreshing cart on mount:", medusaCartId);
-      refreshFromServer(medusaCartId).catch(err => console.error("[Checkout] Initial refresh failed:", err));
+    async function initializeCheckout() {
+      const mode = metadata?.cart_type || 'b2c';
+      const cartId =
+        localStorage.getItem(getCartStorageKey(mode, region?.id || "")) ||
+        (region?.id && medusaCartId ? medusaCartId : null);
+
+      if (!cartId) {
+        navigate('/cart', { replace: true });
+        return;
+      }
+
+      if (
+        initializationRef.current.running ||
+        (initializationRef.current.completed && initializationRef.current.cartId === cartId)
+      ) {
+        return;
+      }
+
+      initializationRef.current.running = true;
+      initializationRef.current.cartId = cartId;
+
+      try {
+        let { cart: currentCart } = await retrieveCart(cartId);
+        updateCheckoutCart(currentCart);
+
+        if (mode === 'b2c' && currentCart?.metadata?.cart_type !== 'b2c') {
+          console.warn("[Checkout] Cart type mismatch, creating new B2C cart");
+          let customerId = null;
+          try {
+            const profileData = await authService.getCurrentCustomer();
+            customerId = profileData?.customer;
+          } catch (e) {
+            console.warn("[Checkout] Cart type mismatch check: guest customer resolved.");
+          }
+          
+          currentCart = await recreateCheckoutCart(currentCart, customerId);
+        }
+
+        await refreshFromServer(currentCart.id);
+        const { cart: refreshedCart } = await retrieveCart(currentCart.id);
+        updateCheckoutCart(refreshedCart);
+        initializationRef.current.completed = true;
+      } catch (err) {
+        console.error("[Checkout] Initial setup failed:", err);
+        navigate('/cart', { replace: true });
+      } finally {
+        initializationRef.current.running = false;
+      }
     }
-  }, [medusaCartId, refreshFromServer]);
+
+    initializeCheckout();
+  }, [navigate, refreshFromServer, metadata?.cart_type, region?.id, medusaCartId, updateCheckoutCart]);
 
   useEffect(() => {
     if (activeItems.length === 0) {
@@ -140,19 +246,31 @@ const Checkout = () => {
   };
 
   const handleSetupCheckout = async (email_override) => {
-    // Common setup: attach customer, fetch providers, init payment
-    const cartId = medusaCartId || (await ensureCart());
+    const ensuredCart = medusaCartId ? null : await ensureCart();
+    let cartId = medusaCartId || ensuredCart?.id;
+    if (!cartId) throw new Error("Cart not ready.");
     
-    let customerId = null;
+    // Phase 5: Prepare cart (stale payment reset)
+    let cartToUpdate;
+    try {
+      const retrieved = await retrieveCart(cartId);
+      cartToUpdate = validateCheckoutCartCurrency(retrieved.cart);
+      cartToUpdate = await prepareCheckoutCartForUpdate(cartToUpdate);
+      cartId = cartToUpdate.id; // It might be a new cart ID after recreation
+    } catch(err) {
+      throw new Error("Could not prepare cart for update. Please refresh.");
+    }
+
+    let customerData = null;
     try {
       const profileData = await authService.getCurrentCustomer();
-      customerId = profileData?.customer?.id;
+      customerData = profileData?.customer;
     } catch (e) {
       console.warn("[Checkout] No authenticated customer found; proceeding as guest.");
     }
 
-    if (customerId) {
-      await assignCustomerToCart(cartId, customerId);
+    if (customerData) {
+      await ensureCustomerAttachedToCart({ cart: cartToUpdate, customer: customerData });
     }
 
     // For digital-only carts, set minimal details
@@ -168,7 +286,8 @@ const Checkout = () => {
 
     await refreshFromServer(cartId);
     
-    const { cart } = await retrieveCart(cartId);
+    const { cart: retrievedCart } = await retrieveCart(cartId);
+    const cart = validateCheckoutCartCurrency(retrievedCart);
     const providers = await listPaymentProvidersForRegion(cart.region_id, cart.id);
     const providerIds = providers.map(p => typeof p === 'string' ? p : p.id);
     setAvailableProviders(providerIds);
@@ -203,44 +322,70 @@ const Checkout = () => {
         }
       } else {
         // Physical or Mixed: validate full shipping
-        if (!formData.email || !formData.address || !formData.city) {
-          showToast("Please fill in all shipping details", "error");
-          return;
-        }
         setIsProcessing(true);
         try {
-          const cartId = medusaCartId || (await ensureCart());
+          const ensuredCart = medusaCartId ? null : await ensureCart();
+          let cartId = medusaCartId || ensuredCart?.id;
+          if (!cartId) throw new Error("Cart not ready.");
           
-          let customerId = null;
+          let cartToUpdate;
+          try {
+            const retrieved = await retrieveCart(cartId);
+            cartToUpdate = validateCheckoutCartCurrency(retrieved.cart);
+            cartToUpdate = await prepareCheckoutCartForUpdate(cartToUpdate);
+            cartId = cartToUpdate.id;
+            const prepared = await retrieveCart(cartId);
+            cartToUpdate = validateCheckoutCartCurrency(prepared.cart);
+            updateCheckoutCart(cartToUpdate);
+          } catch(err) {
+            throw new Error("Could not prepare cart for update. Please refresh.");
+          }
+
+          const addressValidation = validateCheckoutShippingAddress(formData, getCheckoutRegionCountries(cartToUpdate));
+          if (!addressValidation.valid) {
+            const validationError = new Error(addressValidation.message);
+            validationError.code = addressValidation.code;
+            throw validationError;
+          }
+          
+          let customerData = null;
           try {
             const profileData = await authService.getCurrentCustomer();
-            customerId = profileData?.customer?.id;
+            customerData = profileData?.customer;
           } catch (e) {
             console.warn("[Checkout] No authenticated customer found; proceeding as guest.");
           }
 
-          if (customerId) {
-            await assignCustomerToCart(cartId, customerId);
+          if (customerData) {
+            await ensureCustomerAttachedToCart({ cart: cartToUpdate, customer: customerData });
           }
 
-          await setCartGuestDetails(cartId, {
+          const addressUpdate = await setCartGuestDetails(cartId, {
             email: formData.email,
             firstName: formData.first_name,
             lastName: formData.last_name,
-            phone: formData.phone,
-            addressText: `${formData.address}, ${formData.city}, ${formData.postal_code}`
+            phone: normalizeCheckoutPhone(formData.phone),
+            address1: formData.address,
+            city: formData.city,
+            province: formData.province,
+            postalCode: formData.postal_code,
+            countryCode: addressValidation.country_code,
           });
+          const addressUpdatedCart = addressUpdate?.cart || addressUpdate?.data?.cart;
+          if (!addressUpdatedCart?.id) throw new Error("Shipping address update was not confirmed by the cart service.");
+          updateCheckoutCart(addressUpdatedCart);
 
           const options = await listShippingOptionsForCart(cartId);
           setShippingOptions(options);
-          if (options.length > 0) {
-            setSelectedShippingId(options[0].id);
-            await selectShippingOption(cartId, options[0].id);
-          }
+          if (!options.length) throw new Error("No shipping option is available for this address.");
+          setSelectedShippingId(options[0].id);
+          const shippingResult = await selectShippingOption(cartId, options[0].id);
+          await ensurePaymentCollection(shippingResult?.cart || shippingResult?.data?.cart || { id: cartId });
           
           await refreshFromServer(cartId);
           
-          const { cart } = await retrieveCart(cartId);
+          const { cart: retrievedCart } = await retrieveCart(cartId);
+          const cart = updateCheckoutCart(retrievedCart);
           const providers = await listPaymentProvidersForRegion(cart.region_id, cart.id);
           const providerIds = providers.map(p => typeof p === 'string' ? p : p.id);
           setAvailableProviders(providerIds);
@@ -255,23 +400,59 @@ const Checkout = () => {
 
           setCurrentStep(1);
         } catch (error) {
-          showToast(error.message || "Failed to save shipping details", "error");
+          const regionName = region?.name || (regionSlug === 'usa' ? 'USA' : regionSlug === 'canada' ? 'Canada' : 'selected');
+          showToast(getCheckoutErrorMessage(error, regionName), "error");
         } finally {
           setIsProcessing(false);
         }
       }
     } else if (currentStep === 1) {
+      if (isSubscriptionCart) {
+        if (hasMixedSubscriptionCart) {
+          showToast("Subscription checkout cannot be mixed with one-time items.", "error");
+          return;
+        }
+        const intervals = [...new Set(subscriptionItems.map((item) => String(item.metadata?.subscription_interval || '').toUpperCase()))];
+        const counts = [...new Set(subscriptionItems.map((item) => Number(item.metadata?.subscription_interval_count || 1)))];
+        if (intervals.length !== 1 || counts.length !== 1 || !intervals[0]) {
+          showToast("All subscription items must use the same delivery interval.", "error");
+          return;
+        }
+        setIsProcessing(true);
+        try {
+          const storageKey = `subscription_idempotency_${medusaCartId}`;
+          let idempotencyKey = sessionStorage.getItem(storageKey);
+          if (!idempotencyKey) {
+            idempotencyKey = `storefront:${crypto.randomUUID()}`;
+            sessionStorage.setItem(storageKey, idempotencyKey);
+          }
+          const result = await subscriptionService.create({
+            cart_id: medusaCartId,
+            interval: intervals[0],
+            interval_count: counts[0],
+            idempotency_key: idempotencyKey,
+          });
+          if (!result?.checkout_url) throw new Error("Subscription checkout URL was not returned.");
+          window.location.assign(result.checkout_url);
+        } catch (error) {
+          showToast(error?.response?.data?.message || error?.message || "Unable to start subscription checkout.", "error");
+        } finally {
+          setIsProcessing(false);
+        }
+        return;
+      }
       if (paymentMethod === 'stripe') {
         setIsProcessing(true);
         try {
-          console.log("[Checkout] Initializing Stripe session for cart:", medusaCartId);
-          const { cart } = await retrieveCart(medusaCartId);
+          const { cart: retrievedCart } = await retrieveCart(medusaCartId);
+          const cart = validateCheckoutCartCurrency(retrievedCart);
           const providers = await listPaymentProvidersForRegion(cart.region_id, cart.id);
           const stripePid = pickStripePaymentProviderId(providers);
           if (!stripePid) throw new Error("Stripe not available");
           
           await initiatePaymentSessionForProvider(cart, stripePid);
-          const { cart: updatedCart } = await retrieveCart(medusaCartId);
+          const { cart: updatedCartRaw } = await retrieveCart(medusaCartId);
+          const updatedCart = validateCheckoutCartCurrency(updatedCartRaw);
           const secret = extractStripeClientSecret(updatedCart);
           
           if (!secret) {
@@ -288,12 +469,11 @@ const Checkout = () => {
       } else if (paymentMethod === 'paypal') {
         setIsProcessing(true);
         try {
-          console.log("[Checkout] Initializing PayPal session for cart:", medusaCartId);
-          const { cart } = await retrieveCart(medusaCartId);
+          const { cart: retrievedCart } = await retrieveCart(medusaCartId);
+          const cart = validateCheckoutCartCurrency(retrievedCart);
           const paypalProviderId = availableProviders.find((id) => id === 'paypal' || id.includes('paypal'));
           if (!paypalProviderId) throw new Error("PayPal not available");
           await initiatePaymentSessionForProvider(cart, paypalProviderId);
-          console.log("[Checkout] PayPal session initiated");
           
           setCurrentStep(2);
         } catch (error) {
@@ -309,13 +489,52 @@ const Checkout = () => {
   };
 
   const handlePaidSuccess = async (paymentData) => {
+    if (completedOrderRef.current) {
+      console.log("[Checkout] Order already completed:", completedOrderRef.current.id);
+      return completedOrderRef.current;
+    }
+
+    if (completeInFlightRef.current) {
+      console.log("[Checkout] Completion already in flight, ignoring duplicate call");
+      return;
+    }
+
+    completeInFlightRef.current = true;
     setIsProcessing(true);
     try {
-      console.log(`[Checkout] Starting order completion for method: ${paymentData?.method || 'unknown'}`);
+      const retainedPayment = finalizationPaymentRef.current;
+      const normalizedPayment = retainedPayment || (paymentMethod === 'cod' ? { method: 'cod' } : (() => {
+        if (!paymentData) return { method: 'stripe', provider_id: 'pp_stripe_stripe' };
+        return {
+          method: paymentData.method || paymentData.payment_method || 'stripe',
+          provider_id: paymentData.provider_id || 'pp_stripe_stripe',
+          payment_intent_id: paymentData.payment_intent_id || paymentData.id || null,
+          payment_status: paymentData.payment_status || paymentData.status || null,
+        };
+      })());
+      finalizationPaymentRef.current = normalizedPayment;
+      setHasFinalizationPayment(true);
+      setFinalizationError('');
+      setBundleRebuildRequired(false);
+
+      console.log(`[Checkout] Starting order completion for method: ${normalizedPayment.method}`);
+
+      if (normalizedPayment.method === 'stripe' || normalizedPayment.method === 'paypal') {
+        sessionStorage.setItem(
+          `paid_cart_${medusaCartId}`,
+          JSON.stringify({
+            cart_id: medusaCartId,
+            payment_intent_id: normalizedPayment.payment_intent_id,
+            provider_id: normalizedPayment.provider_id,
+            status: "succeeded",
+          })
+        );
+      }
       
-      if (paymentMethod === 'cod') {
+      if (paymentMethod === 'cod' && !retainedPayment) {
         console.log("[Checkout][COD] Retrieving cart before session init:", medusaCartId);
-        const { cart } = await retrieveCart(medusaCartId);
+        const { cart: retrievedCart } = await retrieveCart(medusaCartId);
+        const cart = validateCheckoutCartCurrency(retrievedCart);
 
         console.log("[Checkout][COD] Initializing system payment session with provider: pp_system_default");
         const sessionResult = await initiatePaymentSessionForProvider(cart, 'pp_system_default');
@@ -326,56 +545,92 @@ const Checkout = () => {
       const result = await completeCart(medusaCartId);
       console.log("[Checkout] Backend Complete Cart Result:", result);
 
-      if (result.type === 'order') {
+      const order = result?.order || result?.data?.order || (result?.type === 'order' ? result.data : null) || result;
+
+      if (order && order.id) {
         console.log("[Checkout] Order created:", {
-          customerId: result.order?.customer_id,
+          customerId: order.customer_id,
           cartId: medusaCartId,
-          orderId: result.order?.id,
-          salesChannelId: result.order?.sales_channel_id,
+          orderId: order.id,
+          salesChannelId: order.sales_channel_id,
         });
 
-        if (!result.order?.customer_id && result.order?.id) {
+        if (!order.customer_id && order.id) {
           const existing = JSON.parse(localStorage.getItem('organic_guest_order_ids') || '[]');
           localStorage.setItem(
             'organic_guest_order_ids',
-            JSON.stringify([...new Set([...existing, result.order.id])].slice(-20))
+            JSON.stringify([...new Set([...existing, order.id])].slice(-20))
           );
         }
 
+        completedOrderRef.current = order;
+        finalizationPaymentRef.current = null;
+        setHasFinalizationPayment(false);
+        setFinalizationError('');
+        
         dispatch(clearCart());
-        dispatch(addOrder(result.order));
+        dispatch(addOrder(order));
+        
+        const completedMode = metadata?.cart_type || 'b2c';
+        if (region?.id) {
+          localStorage.removeItem(getCartStorageKey(completedMode, region.id));
+        }
+        localStorage.removeItem('cart_id');
+        localStorage.removeItem('b2b_cart_id');
+        localStorage.removeItem('b2b_quote_cart_id');
+        sessionStorage.removeItem(`paid_cart_${medusaCartId}`);
+
         showToast("Order placed successfully!", "success");
 
-        // ── Eliminate Post-Checkout Session Eviction ───────────────────
-        // Force a clean session validation re-handshake with withCredentials
-        // to securely link the existing corporate customer context back to
-        // the frontend page lifecycle. Do NOT invoke any method that clears
-        // credentials or deletes bearer headers.
         console.log("[Checkout] Performing post-checkout session re-validation...");
-        
-        // Small delay to allow backend to settle after order creation
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Re-validate B2B company session with explicit withCredentials
-        // This ensures the corporate customer context is properly linked
-        // without clearing any existing authentication state
         try {
           await refetchB2BCompany();
           console.log("[Checkout] Post-checkout B2B session re-validation successful");
         } catch (revalidationError) {
-          // If re-validation fails, log but don't block navigation
-          // The user can manually retry from the order success page
           console.warn("[Checkout] Post-checkout session re-validation failed:", revalidationError);
         }
 
         navigate('/order-success');
-      } else {
-        console.error("[Checkout] Order completion failed or returned cart:", result);
-        throw new Error("Order completion failed or requires further payment action.");
+        return result.order;
       }
     } catch (error) {
       console.error("[Checkout] Failed to finalize order:", error);
-      showToast("Failed to finalize order", "error");
+      const code = error?.response?.data?.code;
+      const message = error?.response?.data?.message || error?.message || 'Order finalization is still pending.';
+      setFinalizationError(message);
+      if (code === 'BUNDLE_CART_REBUILD_REQUIRED') {
+        setBundleRebuildRequired(true);
+        showToast("Your cart changed after payment setup. Rebuild the cart before continuing.", "error");
+      } else {
+        showToast("Payment setup is complete. Retry order finalization.", "error");
+      }
+    } finally {
+      completeInFlightRef.current = false;
+      setIsProcessing(false);
+    }
+  };
+
+  const handleRebuildBundleCart = async () => {
+    if (isProcessing || !medusaCartId) return;
+    setIsProcessing(true);
+    try {
+      const { cart: oldCart } = await retrieveCart(medusaCartId);
+      const rebuiltCart = await recreateCheckoutCart(oldCart);
+      await refreshFromServer(rebuiltCart.id);
+      const { cart: refreshedCart } = await retrieveCart(rebuiltCart.id);
+      updateCheckoutCart(refreshedCart);
+      sessionStorage.removeItem(`paid_cart_${medusaCartId}`);
+      finalizationPaymentRef.current = null;
+      setHasFinalizationPayment(false);
+      setFinalizationError('');
+      setBundleRebuildRequired(false);
+      setClientSecret('');
+      setCurrentStep(0);
+      showToast("Bundle cart rebuilt with current pricing. Set up payment for the new cart.", "success");
+    } catch (error) {
+      showToast(error?.response?.data?.message || error?.message || "Could not rebuild the bundle cart.", "error");
     } finally {
       setIsProcessing(false);
     }
@@ -471,7 +726,17 @@ const Checkout = () => {
                       <Input label="Street Address" name="address" value={formData.address} onChange={handleChange} placeholder="123 Farm Lane" />
                       <div className="grid sm:grid-cols-2 gap-5">
                         <Input label="City" name="city" value={formData.city} onChange={handleChange} placeholder="Eco City" />
+                        <Input label="State / Province" name="province" value={formData.province} onChange={handleChange} placeholder="State or province" />
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-5">
                         <Input label="Postal Code" name="postal_code" value={formData.postal_code} onChange={handleChange} placeholder="12345" />
+                        <label className="flex flex-col gap-2 text-sm font-bold text-gray-700">
+                          Shipping Country
+                          <select name="country_code" value={formData.country_code} onChange={handleChange} disabled={regionCountries.length === 0} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 outline-none focus:border-accent-primary disabled:cursor-not-allowed disabled:bg-gray-100">
+                            <option value="">{regionCountries.length ? 'Select shipping country' : 'Shipping countries are not configured'}</option>
+                            {regionCountries.map((country) => <option key={country.iso_2} value={country.iso_2}>{country.display_name}</option>)}
+                          </select>
+                        </label>
                       </div>
                       {isMixedCart && (
                         <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-start gap-3">
@@ -512,15 +777,15 @@ const Checkout = () => {
                     }`}>
                       <input type="radio" name="payment" checked={paymentMethod === 'stripe'} onChange={() => { setPaymentMethod('stripe'); setB2bMethod(false); }} className="accent-accent-primary w-5 h-5" />
                       <div className="flex-1">
-                        <p className="font-bold text-gray-900">Credit / Debit Card</p>
-                        <p className="text-xs text-gray-500">Secure payment powered by Stripe</p>
+                        <p className="font-bold text-gray-900">{isSubscriptionCart ? 'Recurring card payment' : 'Credit / Debit Card'}</p>
+                        <p className="text-xs text-gray-500">{isSubscriptionCart ? 'Secure recurring billing powered by Stripe' : 'Secure payment powered by Stripe'}</p>
                       </div>
                       <CreditCard size={24} className={paymentMethod === 'stripe' ? 'text-accent-primary' : 'text-stone-300'} />
                     </label>
                     )}
 
                     {/* 2. PayPal */}
-                    {availableProviders.some((id) => id === 'paypal' || id.includes('paypal')) && (
+                    {!isSubscriptionCart && availableProviders.some((id) => id === 'paypal' || id.includes('paypal')) && (
                     <label className={`flex items-center gap-4 p-6 rounded-3xl border-2 transition-all cursor-pointer ${
                       paymentMethod === 'paypal' ? 'border-accent-primary bg-accent-primary/5' : 'border-gray-200 hover:border-gray-300'
                     }`}>
@@ -534,7 +799,7 @@ const Checkout = () => {
                     )}
 
                     {/* 3. Cash on Delivery — hidden for digital-only carts */}
-                    {!isDigitalOnlyCart && availableProviders.some((id) => id === 'pp_system_default' || id === 'manual' || id.includes('system')) && (
+                    {!isSubscriptionCart && !isDigitalOnlyCart && availableProviders.some((id) => id === 'pp_system_default' || id === 'manual' || id.includes('system')) && (
                     <label className={`flex items-center gap-4 p-6 rounded-3xl border-2 transition-all cursor-pointer ${
                       paymentMethod === 'cod' ? 'border-accent-primary bg-accent-primary/5' : 'border-gray-200 hover:border-gray-300'
                     }`}>
@@ -548,7 +813,7 @@ const Checkout = () => {
                     )}
 
                     {/* 4. B2B Corporate Credit (shown only if user has an active company) */}
-                    {!b2bLoading && isApprovedB2B && (
+                    {!b2bLoading && showB2BPricing && (
                       <label className={`flex items-center gap-4 p-6 rounded-3xl border-2 transition-all cursor-pointer ${
                         b2bMethod ? 'border-accent-primary bg-accent-primary/5' : 'border-gray-200 hover:border-gray-300'
                       }`}>
@@ -557,7 +822,7 @@ const Checkout = () => {
                           <p className="font-bold text-gray-900">Corporate Credit Account</p>
                           <p className="text-xs text-gray-500">
                             {b2bCompany.company_name} — 
-                            Credit: {(b2bCompany.credit_limit / 100).toLocaleString('en-US', { style: 'currency', currency: 'EUR' })}
+                            Credit: {(b2bCompany.credit_limit / 100).toLocaleString(undefined, { style: 'currency', currency: (currencyCode || selectedCurrencyCode || 'usd').toUpperCase() })}
                           </p>
                         </div>
                         <Building2 size={24} className={b2bMethod ? 'text-accent-primary' : 'text-stone-300'} />
@@ -583,6 +848,23 @@ const Checkout = () => {
                     <ArrowLeft size={14} /> Back to Method
                   </button>
                   <h2 className="text-2xl font-black mb-2 text-gray-900">Final Confirmation</h2>
+                  {bundleRebuildRequired ? (
+                    <div className="rounded-2xl border border-red-300 bg-red-50 p-5 text-red-950" role="alert">
+                      <p className="font-bold">Your cart changed after payment setup. Rebuild the cart before continuing.</p>
+                      <p className="mt-1 text-sm">{finalizationError}</p>
+                      <Button size="sm" className="mt-4" onClick={handleRebuildBundleCart} isLoading={isProcessing}>
+                        Rebuild Bundle Cart
+                      </Button>
+                    </div>
+                  ) : finalizationError && hasFinalizationPayment && (
+                    <div className="rounded-2xl border border-amber-300 bg-amber-50 p-5 text-amber-950" role="alert">
+                      <p className="font-bold">Payment is complete. Your order still needs finalization.</p>
+                      <p className="mt-1 text-sm">{finalizationError}</p>
+                      <Button size="sm" className="mt-4" onClick={() => handlePaidSuccess(finalizationPaymentRef.current)} isLoading={isProcessing}>
+                        Retry Finalize Order
+                      </Button>
+                    </div>
+                  )}
                   
                   {paymentMethod === 'stripe' ? (
                     clientSecret ? (
@@ -603,9 +885,29 @@ const Checkout = () => {
                         <AlertCircle className="mx-auto mb-4 text-red-500" size={40} />
                         <h3 className="text-lg font-black text-red-600 mb-2">Payment Session Failed</h3>
                         <p className="text-sm text-red-500/80 mb-6">We couldn't initialize the secure payment session. This usually happens if Stripe is not correctly configured in the backend.</p>
-                        <Button size="sm" variant="outline" onClick={() => setCurrentStep(1)}>
-                          Try Again or Change Method
-                        </Button>
+                        {sessionStorage.getItem(`paid_cart_${medusaCartId}`) ? (
+                          <div className="flex flex-col gap-3">
+                            <p className="text-xs font-bold text-red-600 uppercase">Payment succeeded, but order finalization needs to be retried.</p>
+                            <Button 
+                              size="sm" 
+                              onClick={() => {
+                                const stored = JSON.parse(sessionStorage.getItem(`paid_cart_${medusaCartId}`));
+                                handlePaidSuccess({ 
+                                  method: 'stripe', 
+                                  payment_intent_id: stored.payment_intent_id,
+                                  provider_id: stored.provider_id
+                                });
+                              }}
+                              isLoading={isProcessing}
+                            >
+                              Retry Finalize Order
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button size="sm" variant="outline" onClick={() => setCurrentStep(1)}>
+                            Try Again or Change Method
+                          </Button>
+                        )}
                       </div>
                     )
                   ) : paymentMethod === 'paypal' ? (
@@ -625,7 +927,7 @@ const Checkout = () => {
                             <p className="text-sm text-red-600">{b2bCreditResult.warning}</p>
                             <div className="mt-3 flex gap-6 text-sm text-red-600">
                               <span>Credit Limit: <strong className="text-red-700">
-                                {(b2bCompany?.credit_limit / 100).toLocaleString('en-US', { style: 'currency', currency: 'EUR' })}
+                                {(b2bCompany?.credit_limit / 100).toLocaleString(undefined, { style: 'currency', currency: (currencyCode || selectedCurrencyCode || 'usd').toUpperCase() })}
                               </strong></span>
                               <span>Order Total: <strong className="text-red-700">
                                 {formatPrice(displayGrandTotal)}
@@ -645,7 +947,7 @@ const Checkout = () => {
                             </p>
                             <p className="text-sm text-emerald-600">
                               Credit Remaining: <strong>
-                                {b2bCreditResult.remainingCredit.toLocaleString('en-US', { style: 'currency', currency: 'EUR' })}
+                                {b2bCreditResult.remainingCredit.toLocaleString(undefined, { style: 'currency', currency: (currencyCode || selectedCurrencyCode || 'usd').toUpperCase() })}
                               </strong>
                             </p>
                           </div>
@@ -685,25 +987,38 @@ const Checkout = () => {
             <div className="bg-white p-8 rounded-[2.5rem] shadow-premium border border-gray-200">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-black text-gray-900">Your Order</h3>
-                {isApprovedB2B && <B2BPriceBadge compact />}
+                {showB2BPricing && <B2BPriceBadge compact />}
               </div>
-              {isApprovedB2B && (
+              {showB2BPricing && (
                 <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-bold text-emerald-700">
                   B2B Wholesale Pricing Applied for {b2bCompany.company_name}
                 </div>
               )}
               <div className="flex flex-col gap-4 mb-6 max-h-60 overflow-y-auto pr-2 scrollbar-hide">
-                {activeItems.map(item => (
-                  <div key={item.id} className="flex justify-between items-center gap-4">
+                {checkoutSummaryItems.map(summary => summary.kind === 'bundle' ? (
+                  <div key={summary.id} className="flex justify-between items-start gap-4">
+                    <div>
+                      <p className="text-sm font-bold text-gray-900">{summary.title}</p>
+                      <p className="text-xs text-gray-500">Bundle × {summary.quantity}</p>
+                      <ul className="mt-1 space-y-0.5 text-xs text-gray-500">
+                        {summary.components.map((component, index) => (
+                          <li key={`${component.title}-${index}`}>{component.title} × {component.quantity}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <span className="text-sm font-black text-gray-900">{formatPrice(summary.total)}</span>
+                  </div>
+                ) : (
+                  <div key={summary.item.id} className="flex justify-between items-center gap-4">
                     <div className="flex items-center gap-3">
-                      {item.image && <img src={item.image} className="w-12 h-12 rounded-xl object-cover" alt={item.title} />}
+                      {summary.item.image && <img src={summary.item.image} className="w-12 h-12 rounded-xl object-cover" alt={summary.item.title} />}
                       <div>
-                        <p className="text-sm font-bold line-clamp-1 text-gray-900">{item.title || "Product"}</p>
-                        <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
-                        {isApprovedB2B && <B2BPriceBadge compact />}
+                        <p className="text-sm font-bold line-clamp-1 text-gray-900">{summary.item.title || "Product"}</p>
+                        <p className="text-xs text-gray-500">Qty: {summary.item.quantity}</p>
+                        {showB2BPricing && <B2BPriceBadge compact />}
                       </div>
                     </div>
-                    <span className="text-sm font-black text-gray-900">{formatPrice(item.price * item.quantity)}</span>
+                    <span className="text-sm font-black text-gray-900">{formatPrice(summary.item.price * summary.item.quantity)}</span>
                   </div>
                 ))}
                 {activeItems.length === 0 && <p className="text-sm text-text-secondary italic">No items found</p>}
@@ -730,6 +1045,7 @@ const Checkout = () => {
                     <span className="text-accent-primary font-bold">-{formatPrice(couponDiscount)}</span>
                   </div>
                 )}
+
                 <div className="flex justify-between items-center pt-3 mt-3 border-t border-gray-200">
                   <span className="text-lg font-black text-gray-900">Total</span>
                   <span className="text-2xl font-black text-accent-primary">{formatPrice(displayGrandTotal)}</span>

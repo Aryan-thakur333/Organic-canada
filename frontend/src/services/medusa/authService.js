@@ -250,7 +250,18 @@ export const authService = {
       }
     }
     clearCustomerTokens();
-    console.log('[AuthService] Local tokens cleared from localStorage.');
+    
+    const keysToRemove = [
+      'cart_id', 
+      'b2b_cart_id', 
+      'b2b_quote_cart_id', 
+      'b2b_company', 
+      'b2b_company_id',
+      'eatsie_cart_v3' // Redux persisted cart slice
+    ];
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+    
+    console.log('[AuthService] Local tokens and cart IDs cleared from localStorage.');
     // Clear session cookies
     document.cookie.split(';').forEach((c) => {
       document.cookie = c
@@ -286,7 +297,10 @@ export const authService = {
       return Promise.reject(new DOMException('Request aborted', 'AbortError'));
     }
 
-    pendingCustomerRequest = apiClient.get('/store/customers/me', { signal })
+    // The request is shared by every startup consumer. Do not bind it to the
+    // first caller's signal: React Strict Mode can abort that caller during
+    // cleanup and otherwise cancel session restoration for the remounted app.
+    pendingCustomerRequest = apiClient.get('/store/customers/me')
       .then((response) => {
         setCachedCustomerResponse(response);
         return response;

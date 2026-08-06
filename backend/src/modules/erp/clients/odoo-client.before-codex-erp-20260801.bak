@@ -1,0 +1,179 @@
+import type {
+  ErpModuleOptions,
+  OdooAuthenticationResult,
+  OdooProduct,
+} from "../types"
+
+type JsonRpcResponse<T> = {
+  jsonrpc: "2.0"
+  id: number
+  result?: T
+  error?: {
+    code: number
+    message: string
+    data?: {
+      name?: string
+      message?: string
+      debug?: string
+    }
+  }
+}
+
+export class OdooClient {
+  constructor(
+    private readonly options: ErpModuleOptions
+  ) {}
+
+  private async request<T>(
+    service: string,
+    method: string,
+    args: unknown[]
+  ): Promise<T> {
+    const controller = new AbortController()
+
+    const timeoutId = setTimeout(
+      () => controller.abort(),
+      this.options.timeoutMs
+    )
+
+    try {
+      const response = await fetch(
+        `${this.options.baseUrl}/jsonrpc`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            method: "call",
+            params: {
+              service,
+              method,
+              args,
+            },
+            id: Date.now(),
+          }),
+          signal: controller.signal,
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error(
+          `Odoo HTTP ${response.status}: ${response.statusText}`
+        )
+      }
+
+      const payload =
+        (await response.json()) as JsonRpcResponse<T>
+
+      if (payload.error) {
+        throw new Error(
+          payload.error.data?.message ||
+          payload.error.message ||
+          "Unknown Odoo error"
+        )
+      }
+
+      if (payload.result === undefined) {
+        throw new Error("Odoo response has no result")
+      }
+
+      return payload.result
+    } finally {
+      clearTimeout(timeoutId)
+    }
+  }
+
+  private get dbName(): string {
+    return this.options.databaseName || this.options.database || ""
+  }
+
+  async authenticate(): Promise<OdooAuthenticationResult> {
+    const uid = await this.request<number | false>(
+      "common",
+      "authenticate",
+      [
+        this.dbName,
+        this.options.username,
+        this.options.password,
+        {},
+      ]
+    )
+
+    if (!uid) {
+      throw new Error(
+        "Odoo authentication failed"
+      )
+    }
+
+    return {
+      uid,
+      databaseName: this.dbName,
+      username: this.options.username,
+    }
+  }
+
+  async executeKeyword<T>(
+    model: string,
+    method: string,
+    positionalArguments: unknown[],
+    keywordArguments: Record<string, unknown> = {}
+  ): Promise<T> {
+    const auth = await this.authenticate()
+
+    return this.request<T>(
+      "object",
+      "execute_kw",
+      [
+        this.dbName,
+        auth.uid,
+        this.options.password,
+        model,
+        method,
+        positionalArguments,
+        keywordArguments,
+      ]
+    )
+  }
+
+  async getProducts(input?: {
+    sku?: string
+    limit?: number
+  }): Promise<OdooProduct[]> {
+    const domain: unknown[] = []
+
+    if (input?.sku) {
+      domain.push([
+        "default_code",
+        "=",
+        input.sku,
+      ])
+    }
+
+    const products =
+      await this.executeKeyword<OdooProduct[]>(
+        "product.product",
+        "search_read",
+        [domain],
+        {
+          fields: [
+            "id",
+            "name",
+            "default_code",
+            "list_price",
+            "standard_price",
+            "qty_available",
+            "active",
+          ],
+          limit: input?.limit ?? 20,
+          order: "id asc",
+        }
+      )
+
+    return products.map((product) => ({
+      ...product,
+      name: product.name.trim(),
+    }))
+  }
+}

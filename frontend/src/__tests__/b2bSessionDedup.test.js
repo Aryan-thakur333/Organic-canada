@@ -62,6 +62,9 @@ vi.mock("../services/medusa/tokenStorage", () => ({
   getCustomerToken: vi.fn(() => "mock-customer-jwt-token"),
   setCustomerToken: vi.fn(),
   clearCustomerToken: vi.fn(),
+  getB2BCompanyContext: vi.fn(() => null),
+  setB2BCompanyContext: vi.fn(),
+  clearB2BCompanyContext: vi.fn(),
   VENDOR_TOKEN_KEY: "vendor_token",
 }));
 
@@ -170,7 +173,7 @@ describe("B2B session hydration + AuthSync dedup", () => {
 
   // ── Test 5: Signal forwarding ──────────────────────────────────────
 
-  it("forwards abort signal from hydrateB2BSession to authService.getCurrentCustomer and apiClient", async () => {
+  it("does not bind the shared customer-session request to a caller abort signal", async () => {
     const { default: apiClient } = await import("../services/apiClient");
     const { b2bApi } = await import("../services/b2bApi");
 
@@ -188,13 +191,13 @@ describe("B2B session hydration + AuthSync dedup", () => {
 
     const getMock = vi.mocked(apiClient.get);
 
-    // The /store/customers/me call happens synchronously within the IIFE
+    // The shared request happens synchronously within the IIFE, but its
+    // transport must outlive any one caller's abort signal.
     const customerMeCall = getMock.mock.calls.find(
       ([url]) => url === "/store/customers/me"
     );
     expect(customerMeCall).toBeDefined();
-    expect(customerMeCall[1]).toHaveProperty("signal");
-    expect(customerMeCall[1].signal).toBe(controller.signal);
+    expect(customerMeCall[1] || {}).not.toHaveProperty("signal");
 
     // Await the session to let /store/b2b/company be called
     const session = await sessionPromise;

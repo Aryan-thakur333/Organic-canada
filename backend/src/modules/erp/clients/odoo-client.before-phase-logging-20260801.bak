@@ -1,0 +1,247 @@
+import type {
+  ErpErrorCode,
+  ErpModuleOptions,
+  OdooAuthenticationResult,
+  OdooProduct,
+} from "../types"
+import { ErpError } from "../types"
+
+type JsonRpcResponse<T> = {
+  jsonrpc: "2.0"
+  id: number
+  result?: T
+  error?: {
+    code: number
+    message: string
+    data?: {
+      name?: string
+      message?: string
+      debug?: string
+    }
+  }
+}
+
+export class OdooClient {
+  constructor(
+    private readonly options: ErpModuleOptions
+  ) {}
+
+  private get endpoint(): string {
+    return `${this.options.baseUrl.replace(/\/$/, "")}/jsonrpc`
+  }
+
+  private async request<T>(
+    service: string,
+    method: string,
+    args: unknown[],
+    errorCode: ErpErrorCode
+  ): Promise<T> {
+    const controller = new AbortController()
+
+    const timeoutId = setTimeout(
+      () => controller.abort(),
+      this.options.timeoutMs
+    )
+
+    try {
+      const response = await fetch(
+        this.endpoint,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            method: "call",
+            params: {
+              service,
+              method,
+              args,
+            },
+            id: Date.now(),
+          }),
+          signal: controller.signal,
+        }
+      )
+
+      if (!response.ok) {
+        throw new ErpError(
+          "ERP_CONNECTION_FAILED",
+          `Odoo HTTP request failed with status ${response.status}`
+        )
+      }
+
+      const payload = (await response
+        .json()
+        .catch(() => {
+          throw new ErpError(
+            "ERP_MALFORMED_RESPONSE",
+            "Odoo returned a malformed JSON response"
+          )
+        })) as JsonRpcResponse<T>
+
+      if (payload.error) {
+        throw new ErpError(
+          errorCode,
+          payload.error.data?.message ||
+          payload.error.message ||
+          "Unknown Odoo error"
+        )
+      }
+
+      if (payload.result === undefined) {
+        throw new ErpError(
+          "ERP_MALFORMED_RESPONSE",
+          "Odoo response has no result"
+        )
+      }
+
+      return payload.result
+    } catch (error) {
+      if (error instanceof ErpError) {
+        throw error
+      }
+
+      if (
+        error instanceof Error &&
+        error.name === "AbortError"
+      ) {
+        throw new ErpError(
+          "ERP_TIMEOUT",
+          "ERP request timed out"
+        )
+      }
+
+      throw new ErpError(
+        "ERP_CONNECTION_FAILED",
+        "Could not connect to Odoo"
+      )
+    } finally {
+      clearTimeout(timeoutId)
+    }
+  }
+
+  private get dbName(): string {
+    return this.options.databaseName
+  }
+
+  async authenticate(): Promise<OdooAuthenticationResult> {
+    const uid = await this.request<number | false>(
+      "common",
+      "authenticate",
+      [
+        this.dbName,
+        this.options.username,
+        this.options.password,
+        {},
+      ],
+      "ERP_AUTHENTICATION_FAILED"
+    )
+
+    if (!uid) {
+      throw new ErpError(
+        "ERP_AUTHENTICATION_FAILED",
+        "Odoo authentication failed"
+      )
+    }
+
+    return {
+      uid,
+      databaseName: this.dbName,
+      username: this.options.username,
+    }
+  }
+
+  async executeKeyword<T>(
+    model: string,
+    method: string,
+    positionalArguments: unknown[],
+    keywordArguments: Record<string, unknown> = {}
+  ): Promise<T> {
+    const auth = await this.authenticate()
+
+    return this.request<T>(
+      "object",
+      "execute_kw",
+      [
+        this.dbName,
+        auth.uid,
+        this.options.password,
+        model,
+        method,
+        positionalArguments,
+        keywordArguments,
+      ],
+      "ERP_PRODUCT_FETCH_FAILED"
+    )
+  }
+
+  async getProducts(input?: {
+    sku?: string
+    limit?: number
+  }): Promise<OdooProduct[]> {
+    const domain: unknown[] = [
+      ["active", "=", true],
+    ]
+
+    if (input?.sku) {
+      domain.push([
+        "default_code",
+        "=",
+        input.sku.trim(),
+      ])
+    }
+
+    const products =
+      await this.executeKeyword<OdooProduct[]>(
+        "product.product",
+        "search_read",
+        [domain],
+        {
+          fields: [
+            "id",
+            "name",
+            "default_code",
+            "list_price",
+            "standard_price",
+            "qty_available",
+            "active",
+          ],
+          limit: input?.limit ?? 20,
+          order: "id asc",
+        }
+      )
+
+    if (!Array.isArray(products)) {
+      throw new ErpError(
+        "ERP_MALFORMED_RESPONSE",
+        "Odoo product response was not a list"
+      )
+    }
+
+    return products.map((product) => ({
+      ...product,
+      name: String(product.name || "").trim(),
+      default_code:
+        typeof product.default_code === "string"
+          ? product.default_code.trim()
+          : false,
+    }))
+  }
+
+  async getProductBySku(
+    sku: string
+  ): Promise<OdooProduct | null> {
+    const products = await this.getProducts({
+      sku,
+      limit: 2,
+    })
+
+    return products[0] ?? null
+  }
+
+  async healthCheck(): Promise<OdooAuthenticationResult> {
+    return this.authenticate()
+  }
+}

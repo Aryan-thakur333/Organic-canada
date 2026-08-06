@@ -1,10 +1,13 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { authService } from '../../services/medusa/authService';
+import { b2bApi } from '../../services/b2bApi';
 import { loginSuccess, authResolved } from '../../redux/authSlice';
 import { setUserProfile } from '../../redux/userSlice';
 import { clearCustomerToken, getCustomerToken } from '../../services/medusa/tokenStorage';
 import { mapCustomerToProfile } from '../../utils/customerProfile';
+import { firebaseAuthService, syncWithMedusa } from '../../services/firebaseAuthService';
+import { useRef } from 'react';
 
 function isCanceled(error) {
   return Boolean(
@@ -27,6 +30,50 @@ const AuthSync = () => {
   const { isAuthenticated, authResolved: isResolved } = useSelector(
     (state) => state.auth
   );
+  
+  const redirectHandledRef = useRef(false);
+
+  useEffect(() => {
+    if (redirectHandledRef.current) return;
+    redirectHandledRef.current = true;
+
+    let cancelled = false;
+
+    async function handleRedirectResult() {
+      const pending = sessionStorage.getItem("google_auth_redirect_pending") === "true";
+      if (!pending) return;
+
+      try {
+        const result = await firebaseAuthService.consumeGoogleRedirectResult();
+        sessionStorage.removeItem("google_auth_redirect_pending");
+
+        if (!result || cancelled) return;
+
+        console.info("[AuthSync] Processing Google redirect result...");
+        
+        // Medusa Sync
+        const medusaUser = await syncWithMedusa(result.firebaseUser);
+        
+        // Clear legacy B2B state strictly before logging in B2C Google users
+        ['b2b_company', 'b2b_company_id', 'b2b_customer', 'b2b_status', 'b2b_auth_mode', 'b2b_registration_draft', 'selected_account_type'].forEach(key => localStorage.removeItem(key));
+
+        const token = getCustomerToken();
+        if (token && medusaUser && !cancelled) {
+          dispatch(loginSuccess({ token, user: medusaUser }));
+          dispatch(setUserProfile(mapCustomerToProfile(medusaUser)));
+        }
+      } catch (error) {
+        sessionStorage.removeItem("google_auth_redirect_pending");
+        console.error("[GOOGLE_REDIRECT_ERROR]", error);
+      }
+    }
+
+    handleRedirectResult();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dispatch]);
 
   useEffect(() => {
     if (isAuthenticated || isResolved) return undefined;
@@ -49,6 +96,17 @@ const AuthSync = () => {
         if (customer) {
           dispatch(loginSuccess({ token: tokenAtStart, user: customer }));
           dispatch(setUserProfile(mapCustomerToProfile(customer)));
+          try {
+            await b2bApi.getCompany({ signal: controller.signal, forceRefresh: true });
+          } catch (companyError) {
+            if (
+              !isCanceled(companyError) &&
+              companyError?.response?.status !== 404 &&
+              companyError?.response?.status !== 403
+            ) {
+              console.warn('[AuthSync] B2B company restore skipped:', companyError?.message || companyError);
+            }
+          }
         }
       } catch (error) {
         const tokenStillMatches = getCustomerToken() === tokenAtStart;

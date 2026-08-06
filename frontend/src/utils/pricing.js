@@ -1,3 +1,4 @@
+import { formatCurrency, getLocaleForCurrency } from '../lib/medusa/money';
 import { getProductDisplayPrice, getProductPrice, getVariantDisplayPrice } from './productPricing';
 
 export function getDisplayPrice(productOrVariant, context = {}) {
@@ -5,9 +6,10 @@ export function getDisplayPrice(productOrVariant, context = {}) {
     return {
       amount: 0,
       originalAmount: null,
-      currencyCode: 'cad',
+      currencyCode: 'USD',
+      hasPrice: false,
       hasCalculatedPrice: false,
-      formatted: '$0.00',
+      formatted: 'Price unavailable in this region',
       originalFormatted: null,
     };
   }
@@ -18,19 +20,22 @@ export function getDisplayPrice(productOrVariant, context = {}) {
     : getVariantDisplayPrice(productOrVariant, context);
 
   const currencyCode = String(price.currencyCode || 'cad').toUpperCase();
-  const formatter = new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: currencyCode,
-  });
+  const amount = Number(price.amount);
+  const originalAmount = Number(price.originalAmount);
+  const hasPrice = price.hasPrice !== false && Number.isFinite(amount);
+  const locale = context.locale || getLocaleForCurrency(currencyCode);
 
   return {
     ...price,
-    amount: Number.isFinite(price.amount) ? price.amount : 0,
-    originalAmount: Number.isFinite(price.originalAmount) ? price.originalAmount : null,
+    amount: hasPrice ? amount : null,
+    originalAmount: Number.isFinite(originalAmount) ? originalAmount : null,
     currencyCode,
-    formatted: formatter.format(Number.isFinite(price.amount) ? price.amount : 0),
-    originalFormatted: Number.isFinite(price.originalAmount)
-      ? formatter.format(price.originalAmount)
+    hasPrice,
+    formatted: hasPrice
+      ? formatCurrency(amount, currencyCode, locale)
+      : 'Price unavailable in this region',
+    originalFormatted: Number.isFinite(originalAmount)
+      ? formatCurrency(originalAmount, currencyCode, locale)
       : null,
   };
 }

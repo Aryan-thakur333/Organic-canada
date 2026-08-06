@@ -3,33 +3,40 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileText,
   Plus,
-  Building2,
   Clock,
   AlertCircle,
   CheckCircle2,
   XCircle,
   Send,
-  Eye,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  Loader2,
   Scale,
   RefreshCw,
-  Calendar,
   Package,
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { hydrateFromMedusa } from '../redux/cartSlice';
-import { buildCartHydrationPayload } from '../services/medusa/cartService';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/Footer';
 import MobileNav from '../components/MobileNav';
 import Button from '../components/common/Button';
 import { b2bApi } from '../services/b2bApi';
 import { extractB2BQuotes } from '../utils/b2bProductsResponse';
+import {
+  QUOTE_STATUS_OPTIONS,
+  formatMinorCurrency,
+  getQuoteItemCount,
+  getQuoteOriginalTotalMinor,
+  getQuoteStatusLabel,
+  getQuoteTotalMinor,
+  getQuoteTotalUnits,
+  normalizeQuote,
+  quoteMatchesStatusGroup,
+  shouldShowAdjustedTotal,
+  toNumber,
+} from '../utils/b2bQuoteNormalize';
+import useB2BCompany from '../hooks/useB2BCompany';
 import useToast from '../hooks/useToast';
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -39,7 +46,7 @@ const PAGE_SIZE = 10;
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 /** Format cents → $X.XX */
-const fmtPrice = (cents) => `$${(cents / 100).toFixed(2)}`;
+const fmtPrice = (cents, currencyCode = 'cad') => formatMinorCurrency(cents, currencyCode);
 
 /** Format ISO date → friendly string */
 const fmtDate = (iso) => {
@@ -57,11 +64,17 @@ const getStatusStyle = (status) => {
     case 'draft':
       return 'bg-stone-100 text-stone-600 dark:bg-slate-700 dark:text-stone-300 border border-stone-200 dark:border-slate-600';
     case 'pending':
+    case 'pending_merchant':
     case 'pending_review':
       return 'bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800/25';
+    case 'pending_customer':
     case 'approved':
       return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/25';
+    case 'accepted':
+      return 'bg-teal-100 text-teal-700 dark:bg-teal-950/30 dark:text-teal-400 border border-teal-200 dark:border-teal-800/25';
     case 'rejected':
+    case 'customer_rejected':
+    case 'merchant_rejected':
       return 'bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400 border border-red-200 dark:border-red-800/25';
     case 'expired':
       return 'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800/25';
@@ -79,11 +92,16 @@ const StatusIcon = ({ status }) => {
     case 'draft':
       return <FileText size={16} className="text-stone-500" />;
     case 'pending':
+    case 'pending_merchant':
     case 'pending_review':
       return <Clock size={16} className="text-blue-500" />;
+    case 'pending_customer':
     case 'approved':
+    case 'accepted':
       return <CheckCircle2 size={16} className="text-emerald-500" />;
     case 'rejected':
+    case 'customer_rejected':
+    case 'merchant_rejected':
       return <XCircle size={16} className="text-red-500" />;
     case 'expired':
       return <XCircle size={16} className="text-amber-500" />;
@@ -95,21 +113,14 @@ const StatusIcon = ({ status }) => {
   }
 };
 
-const STATUS_OPTIONS = [
-  { value: '', label: 'All Statuses' },
-  { value: 'pending_review', label: 'Pending Review' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'rejected', label: 'Rejected' },
-  { value: 'expired', label: 'Expired' },
-  { value: 'converted_to_order', label: 'Converted' },
-];
+const STATUS_OPTIONS = QUOTE_STATUS_OPTIONS;
 
 // ── Component ──────────────────────────────────────────────────────────────
 
 const B2BQuoteHistory = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const { showToast } = useToast();
+  const { company } = useB2BCompany();
 
   // ── State ─────────────────────────────────────────────────────────────
   const [quotes, setQuotes] = useState([]);
@@ -121,6 +132,9 @@ const B2BQuoteHistory = () => {
   const [offset, setOffset] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
   const [actionLoading, setActionLoading] = useState(null);
+  const [acceptModalQuote, setAcceptModalQuote] = useState(null);
+  const [rejectModalQuote, setRejectModalQuote] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
   const limit = PAGE_SIZE;
 
   // ── Derived pagination ────────────────────────────────────────────────
@@ -138,13 +152,15 @@ const B2BQuoteHistory = () => {
     try {
       setLoading(true);
       setError(null);
-      const params = { limit, offset };
-      if (statusFilter) params.status = statusFilter;
+      const params = { limit: statusFilter ? 100 : limit, offset: statusFilter ? 0 : offset };
       const res = await b2bApi.getQuotes({ ...params, signal });
       if (signal?.aborted || requestSeqRef.current !== requestId) return;
 
-      let list = extractB2BQuotes(res);
-      let total = res?.count || 0;
+      let list = extractB2BQuotes(res).map((quote) => normalizeQuote(quote, { currentCompany: company }));
+      if (statusFilter) {
+        list = list.filter((quote) => quoteMatchesStatusGroup(quote, statusFilter));
+      }
+      let total = statusFilter ? list.length : (res?.count || list.length);
       
       // If we have an id from route params, make sure it is in the list
       if (id && !list.some(q => q.id === id)) {
@@ -152,7 +168,7 @@ const B2BQuoteHistory = () => {
           const singleQuoteRes = await b2bApi.getQuote(id, { signal });
           if (signal?.aborted || requestSeqRef.current !== requestId) return;
           if (singleQuoteRes?.quote) {
-            list = [singleQuoteRes.quote, ...list];
+            list = [normalizeQuote(singleQuoteRes.quote, { currentCompany: company }), ...list];
             total += 1;
           }
         } catch (e) {
@@ -176,7 +192,7 @@ const B2BQuoteHistory = () => {
         setLoading(false);
       }
     }
-  }, [statusFilter, offset, limit, id, refreshKey]);
+  }, [statusFilter, offset, limit, id, refreshKey, company]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -209,21 +225,38 @@ const B2BQuoteHistory = () => {
   const atLastPage = currentPage >= totalPages;
 
   const acceptQuote = async (quote) => {
+    if (actionLoading) return;
     setActionLoading(quote.id);
     try {
-      const result = await b2bApi.acceptQuote(quote.id);
-      dispatch(hydrateFromMedusa(buildCartHydrationPayload(result.cart)));
-      showToast('Quote accepted. Complete checkout to place your wholesale order.', 'success');
-      navigate('/checkout');
+      await b2bApi.acceptQuote(quote.id, {
+        offer_version: quote.offer_version,
+        settlement_mode: 'online',
+      });
+      showToast('Quote accepted. Order created.', 'success');
+      setAcceptModalQuote(null);
+      handleRefresh();
+      navigate(`/b2b/quotes/${quote.id}/checkout`);
     } catch (error) {
       showToast(error?.message || 'Unable to accept quote', 'error');
     } finally { setActionLoading(null); }
   };
 
-  // ── Derived ────────────────────────────────────────────────────────────
-  const activeQuotes = quotes.filter((q) => q.status === 'draft' || q.status === 'pending' || q.status === 'pending_review');
-  const resolvedQuotes = quotes.filter((q) => q.status === 'approved' || q.status === 'rejected' || q.status === 'accepted' || q.status === 'converted' || q.status === 'converted_to_cart' || q.status === 'converted_to_order' || q.status === 'expired');
+  const rejectQuote = async () => {
+    if (!rejectModalQuote || actionLoading) return;
+    setActionLoading(rejectModalQuote.id);
+    try {
+      await b2bApi.rejectQuote(rejectModalQuote.id, { reason: rejectReason });
+      showToast('Quote rejected.', 'success');
+      setRejectModalQuote(null);
+      setRejectReason('');
+      handleRefresh();
+    } catch (error) {
+      showToast(error?.message || 'Unable to reject quote', 'error');
+    } finally { setActionLoading(null); }
+  };
 
+  // ── Derived ────────────────────────────────────────────────────────────
+  const activeQuotes = quotes.filter((q) => q.status === 'draft' || q.status === 'pending' || q.status === 'pending_merchant' || q.status === 'pending_review' || q.status === 'pending_customer');
   return (
     <div className="min-h-screen bg-bg-primary">
       <Navbar />
@@ -369,22 +402,21 @@ const B2BQuoteHistory = () => {
                           <span
                             className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${getStatusStyle(quote.status)}`}
                           >
-                            {quote.status}
+                            {quote.status_label || getQuoteStatusLabel(quote.status)}
                           </span>
                         </div>
                         <p className="text-xs text-text-secondary">
-                          {fmtDate(quote.created_at)} · {quote.items?.length || 0} item(s) · {fmtPrice(quote.subtotal)}
+                          {fmtDate(quote.created_at)} · {getQuoteItemCount(quote)} item(s) · {getQuoteTotalUnits(quote)} unit(s) · {fmtPrice(getQuoteTotalMinor(quote), quote.currency_code)}
                         </p>
                       </div>
 
-                      {/* Negotiated total (if approved with override) */}
-                      {quote.negotiated_total != null && quote.negotiated_total !== quote.subtotal && (
+                      {shouldShowAdjustedTotal(quote) && (
                         <div className="text-right hidden sm:block">
                           <p className="text-[10px] text-text-secondary font-black uppercase tracking-wider">
-                            Negotiated
+                            Adjusted
                           </p>
                           <p className="text-sm font-black text-accent-primary">
-                            {fmtPrice(quote.negotiated_total)}
+                            {fmtPrice(getQuoteTotalMinor(quote), quote.currency_code)}
                           </p>
                         </div>
                       )}
@@ -420,13 +452,13 @@ const B2BQuoteHistory = () => {
                                 <p className="text-[10px] text-text-secondary font-black uppercase tracking-widest mb-1">
                                   Company Name
                                 </p>
-                                <p className="font-bold text-text-primary">{quote.company_name || quote.company?.company_name || '—'}</p>
+                                <p className="font-bold text-text-primary">{quote.company_display_name || '—'}</p>
                               </div>
                               <div>
                                 <p className="text-[10px] text-text-secondary font-black uppercase tracking-widest mb-1">
                                   Customer Email
                                 </p>
-                                <p className="font-bold text-text-primary">{quote.customer_email || '—'}</p>
+                                <p className="font-bold text-text-primary">{quote.customer_display_email || '—'}</p>
                               </div>
                               <div>
                                 <p className="text-[10px] text-text-secondary font-black uppercase tracking-widest mb-1">
@@ -442,17 +474,36 @@ const B2BQuoteHistory = () => {
                               </div>
                               <div>
                                 <p className="text-[10px] text-text-secondary font-black uppercase tracking-widest mb-1">
-                                  Subtotal
+                                  Total
                                 </p>
-                                <p className="font-bold text-text-primary">{fmtPrice(quote.subtotal)}</p>
+                                <p className="font-bold text-text-primary">{fmtPrice(getQuoteTotalMinor(quote), quote.currency_code)}</p>
                               </div>
+                            </div>
+
+                            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-2xl text-xs">
+                              <p className="font-bold text-blue-700 dark:text-blue-300">
+                                {quote.status === 'pending_customer'
+                                  ? 'Merchant has sent a negotiated offer. Please accept or reject.'
+                                  : quote.status === 'pending_merchant' || quote.status === 'pending_review'
+                                    ? 'Your quote is under review. We will notify you when the offer is ready.'
+                                    : quote.status === 'accepted'
+                                      ? 'Quote accepted.'
+                                      : quote.status === 'customer_rejected'
+                                        ? 'You rejected this quote.'
+                                        : quote.status === 'merchant_rejected'
+                                          ? 'Merchant rejected this quote.'
+                                          : getQuoteStatusLabel(quote.status)}
+                              </p>
+                              {quote.status === 'merchant_rejected' && quote.rejection_reason && (
+                                <p className="mt-1 text-blue-700 dark:text-blue-300">{quote.rejection_reason}</p>
+                              )}
                             </div>
 
                             {/* Line items */}
                             {quote.items?.length > 0 && (
                               <div className="mt-4 space-y-2">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-text-secondary">
-                                  Line Items ({quote.items.length})
+                                  Line Items ({getQuoteItemCount(quote)})
                                 </p>
                                 {quote.items.map((item, idx) => (
                                   <div
@@ -473,13 +524,22 @@ const B2BQuoteHistory = () => {
                                       </div>
                                     </div>
                                     <div className="flex items-center gap-4 shrink-0">
-                                      <span className="text-text-secondary font-medium">×{item.quantity}</span>
-                                      <span className="font-bold text-text-primary w-16 text-right">
-                                        {fmtPrice(item.unit_price)}
-                                      </span>
-                                      <span className="font-black text-text-primary w-16 text-right">
-                                        {fmtPrice((item.unit_price || 0) * (item.quantity || 0))}
-                                      </span>
+                                      {(() => {
+                                        const quantity = toNumber(item.quantity, 0);
+                                        const unitPrice = toNumber(item.negotiated_unit_price ?? item.unit_price ?? item.requested_unit_price, 0);
+                                        const lineTotal = toNumber(item.line_total ?? item.total, unitPrice * quantity);
+                                        return (
+                                          <>
+                                            <span className="text-text-secondary font-medium">x{quantity}</span>
+                                            <span className="font-bold text-text-primary w-20 text-right">
+                                              {fmtPrice(unitPrice, quote.currency_code)}
+                                            </span>
+                                            <span className="font-black text-text-primary w-20 text-right">
+                                              {fmtPrice(lineTotal, quote.currency_code)}
+                                            </span>
+                                          </>
+                                        );
+                                      })()}
                                     </div>
                                   </div>
                                 ))}
@@ -499,30 +559,41 @@ const B2BQuoteHistory = () => {
                             )}
 
                             {/* Negotiation info */}
-                            {quote.negotiated_total != null && (
+                            {shouldShowAdjustedTotal(quote) && (
                               <div className="mt-4 flex items-center gap-4 p-4 bg-emerald-50 dark:bg-emerald-950/20 rounded-2xl text-xs">
                                 <Scale size={18} className="text-emerald-500 shrink-0" />
                                 <div>
                                   <p className="font-bold text-emerald-700 dark:text-emerald-300">
-                                    Negotiated Price: {fmtPrice(quote.negotiated_total)}
+                                    Offer Total: {fmtPrice(getQuoteTotalMinor(quote), quote.currency_code)}
                                   </p>
-                                  {quote.negotiated_total !== quote.subtotal && (
-                                    <p className="text-emerald-600 dark:text-emerald-400 font-medium">
-                                      {(quote.subtotal - quote.negotiated_total) > 0
-                                        ? `You saved ${fmtPrice(quote.subtotal - quote.negotiated_total)}`
-                                        : `Adjusted from ${fmtPrice(quote.subtotal)}`}
-                                    </p>
-                                  )}
+                                  <p className="text-emerald-600 dark:text-emerald-400 font-medium">
+                                    {getQuoteOriginalTotalMinor(quote) > getQuoteTotalMinor(quote)
+                                      ? `You saved ${fmtPrice(getQuoteOriginalTotalMinor(quote) - getQuoteTotalMinor(quote), quote.currency_code)}`
+                                      : `Adjusted from ${fmtPrice(getQuoteOriginalTotalMinor(quote), quote.currency_code)}`}
+                                  </p>
                                 </div>
                               </div>
                             )}
-                            {quote.status === 'approved' && (
+                            {quote.status === 'pending_customer' && (
                               <div className="mt-4 flex flex-wrap gap-3">
-                                <Button disabled={actionLoading === quote.id} onClick={() => acceptQuote(quote)}>
-                                  {actionLoading === quote.id ? 'Creating checkout…' : 'Accept Quote & Checkout'}
+                                <Button disabled={actionLoading === quote.id} onClick={() => setAcceptModalQuote(quote)}>
+                                  {actionLoading === quote.id ? 'Accepting...' : 'Accept Quote'}
                                 </Button>
-                                <Button variant="secondary" disabled={actionLoading === quote.id} onClick={async () => { await b2bApi.rejectQuote(quote.id); handleRefresh(); }}>
-                                  Decline Quote
+                                <Button variant="secondary" disabled={actionLoading === quote.id} onClick={() => setRejectModalQuote(quote)}>
+                                  Reject Quote
+                                </Button>
+                              </div>
+                            )}
+                            {quote.status === 'accepted' && (
+                              <div className="mt-4 flex flex-wrap gap-3">
+                                <Button onClick={() => navigate(`/b2b/quotes/${quote.id}/checkout`)}>
+                                  Pay Quote
+                                </Button>
+                                <Button variant="secondary" onClick={() => navigate(`/b2b/quotes/${quote.id}`)}>
+                                  View Details
+                                </Button>
+                                <Button variant="secondary" onClick={() => navigate('/orders')}>
+                                  View Order
                                 </Button>
                               </div>
                             )}
@@ -610,6 +681,82 @@ const B2BQuoteHistory = () => {
           </>
         )}
       </main>
+
+      <AnimatePresence>
+        {acceptModalQuote && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="w-full max-w-md rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-premium border border-stone-100 dark:border-slate-700"
+              initial={{ scale: 0.96, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.96, y: 10 }}
+            >
+              <h2 className="text-xl font-black text-text-primary mb-2">Accept this quote?</h2>
+              <p className="text-sm text-text-secondary mb-6">
+                Accept this quote and create an order for {fmtPrice(getQuoteTotalMinor(acceptModalQuote), acceptModalQuote.currency_code)}?
+              </p>
+              <div className="flex justify-end gap-3">
+                <Button variant="secondary" disabled={actionLoading === acceptModalQuote.id} onClick={() => setAcceptModalQuote(null)}>
+                  Cancel
+                </Button>
+                <Button disabled={actionLoading === acceptModalQuote.id} onClick={() => acceptQuote(acceptModalQuote)}>
+                  {actionLoading === acceptModalQuote.id ? 'Accepting...' : 'Accept Quote'}
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {rejectModalQuote && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="w-full max-w-md rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-premium border border-stone-100 dark:border-slate-700"
+              initial={{ scale: 0.96, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.96, y: 10 }}
+            >
+              <h2 className="text-xl font-black text-text-primary mb-2">Reject this quote?</h2>
+              <p className="text-sm text-text-secondary mb-4">
+                You can add an optional reason for the merchant.
+              </p>
+              <textarea
+                value={rejectReason}
+                onChange={(event) => setRejectReason(event.target.value)}
+                rows={4}
+                className="w-full rounded-2xl border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-950 p-3 text-sm text-text-primary outline-none focus:border-accent-primary"
+                placeholder="Optional reason"
+              />
+              <div className="flex justify-end gap-3 mt-6">
+                <Button
+                  variant="secondary"
+                  disabled={actionLoading === rejectModalQuote.id}
+                  onClick={() => {
+                    setRejectModalQuote(null);
+                    setRejectReason('');
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button disabled={actionLoading === rejectModalQuote.id} onClick={rejectQuote}>
+                  {actionLoading === rejectModalQuote.id ? 'Rejecting...' : 'Reject Quote'}
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Footer />
       <MobileNav />

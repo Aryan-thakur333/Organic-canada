@@ -10,7 +10,7 @@ import Skeleton from '../components/common/Skeleton';
 import useToast from '../hooks/useToast';
 import InvoiceModal from '../components/common/InvoiceModal';
 import DigitalDownloadsWidget from '../components/digital/DigitalDownloadsWidget';
-import { fetchCustomerOrders } from '../services/apiClient';
+import apiClient, { fetchCustomerOrders } from '../services/apiClient';
 
 const fulfillmentTrackingNumber = (fulfillment) =>
   fulfillment?.metadata?.tracking_number ||
@@ -22,11 +22,60 @@ const fulfillmentTrackingNumber = (fulfillment) =>
 // Detect if a line item is a digital product
 const isDigitalItem = (item) => {
   const meta = item?.metadata || {};
+  const variantMeta = item?.variant?.metadata || item?.variant_metadata || {};
+  const sku = String(item?.variant?.sku || item?.sku || '').toLowerCase();
   return (
     meta?.is_digital === true ||
     meta?.is_digital === 'true' ||
-    meta?.product_type === 'digital'
+    meta?.product_type === 'digital' ||
+    Boolean(meta?.digital_asset_key || meta?.storage_key || meta?.download_assets?.length) ||
+    variantMeta?.is_digital === true ||
+    variantMeta?.is_digital === 'true' ||
+    Boolean(variantMeta?.digital_asset_key || variantMeta?.storage_key || variantMeta?.download_assets?.length) ||
+    sku.includes('digital') ||
+    sku.includes('ebook') ||
+    sku.includes('pdf')
   );
+};
+
+const getVariantId = (item) => item?.variant_id || item?.variant?.id || item?.metadata?.variant_id || null;
+
+const getDownloadLookupKeys = (item) => [
+  item?.id,
+  item?.line_item_id,
+  item?.product_id,
+  getVariantId(item),
+  item?.metadata?.digital_asset_key,
+  item?.variant?.metadata?.digital_asset_key,
+].filter(Boolean);
+
+const indexDownloads = (downloads = []) => {
+  const map = {};
+  const add = (key, download) => {
+    if (!key) return;
+    if (!map[key]) map[key] = [];
+    map[key].push(download);
+  };
+
+  for (const download of downloads) {
+    add(download.id, download);
+    add(download.item_id, download);
+    add(download.line_item_id, download);
+    add(download.product_id, download);
+    add(download.variant_id, download);
+    add(download.digital_asset_key, download);
+    add(download.asset_id, download);
+  }
+
+  return map;
+};
+
+const findDownloadForItem = (downloadsMap, item) => {
+  for (const key of getDownloadLookupKeys(item)) {
+    const match = downloadsMap[key]?.[0];
+    if (match) return match;
+  }
+  return null;
 };
 
 const Orders = () => {
@@ -63,19 +112,13 @@ const Orders = () => {
 
       if (hasDigitalItems) {
         try {
-          const res = await fetch('/store/orders/downloads');
-          if (res.ok) {
-            const json = await res.json();
-            const map = {};
-            for (const dl of (json.downloads || [])) {
-              if (!map[dl.product_id]) map[dl.product_id] = [];
-              map[dl.product_id].push(dl);
-            }
-            setDownloadsMap(map);
-          }
+          const json = await apiClient.get('/store/customers/me/downloads');
+          setDownloadsMap(indexDownloads(json?.downloads || []));
         } catch (e) {
           // Non-critical
         }
+      } else {
+        setDownloadsMap({});
       }
     } catch (error) {
       console.error("[Orders] Fetch Error:", error.response?.status, error.response?.data || error.message);
@@ -161,8 +204,9 @@ const Orders = () => {
           <div className="flex flex-col gap-6">
             <AnimatePresence>
               {orders.map((order, i) => {
+                const activeItems = (order.items || []).filter(item => item.title !== "Platform Fee" && !item.metadata?.is_platform_fee);
                 const orderHasDigital = hasDigitalInOrder(order);
-                const isFullyDigital = orderHasDigital && (order.items || []).every(isDigitalItem);
+                const isFullyDigital = orderHasDigital && activeItems.every(isDigitalItem);
                 return (
                   <motion.div
                     key={order.id}
@@ -211,7 +255,7 @@ const Orders = () => {
                           </div>
                           <div className="flex items-center gap-4 text-xs font-bold text-text-secondary">
                             <span className="flex items-center gap-1"><Clock size={12} /> {new Date(order.created_at).toLocaleDateString()}</span>
-                            <span>{(order.items || []).length} Items</span>
+                            <span>{activeItems.length} Items</span>
                             {orderHasDigital && <span className="text-blue-500">Includes Digital Products</span>}
                           </div>
                         </div>
@@ -220,7 +264,7 @@ const Orders = () => {
                       <div className="flex items-center gap-8 justify-between md:justify-end flex-1">
                         <div className="text-right flex flex-col items-end">
                           <p className="text-xs font-bold text-text-secondary uppercase mb-1 tracking-widest">Total Amount</p>
-                          <p className="text-2xl font-black text-accent-primary mb-2">${(order.total / 100).toFixed(2)}</p>
+                          <p className="text-2xl font-black text-accent-primary mb-2">${(Number(order.total) || 0).toFixed(2)}</p>
                           <button 
                             onClick={(e) => { e.stopPropagation(); setSelectedInvoice(order); }}
                             className="text-[10px] font-black uppercase tracking-widest text-accent-primary hover:text-accent-secondary hover:underline transition-colors"
@@ -249,9 +293,9 @@ const Orders = () => {
                         >
                           <div className="px-6 md:px-8 pb-6 pt-2 border-t border-stone-100 dark:border-slate-700">
                             <div className="flex flex-col gap-4">
-                              {(order.items || []).map(item => {
+                              {activeItems.map(item => {
                                 const digital = isDigitalItem(item);
-                                const itemDownloads = downloadsMap[item.product_id] || [];
+                                const itemDownload = findDownloadForItem(downloadsMap, item);
                                 return (
                                   <div key={item.id}>
                                     <div className="flex items-center gap-4 p-4 rounded-2xl bg-stone-50/50 dark:bg-slate-900/30">
@@ -263,11 +307,11 @@ const Orders = () => {
                                       <div className="flex-1 min-w-0">
                                         <p className="text-sm font-bold text-text-primary truncate">{item.title}</p>
                                         <p className="text-xs text-text-secondary">
-                                          Qty: {item.quantity} × ${(item.unit_price / 100).toFixed(2)}
+                                          Qty: {item.quantity} × ${(Number(item.unit_price) || 0).toFixed(2)}
                                         </p>
                                       </div>
                                       <span className="text-sm font-black text-text-primary shrink-0">
-                                        ${((item.unit_price * item.quantity) / 100).toFixed(2)}
+                                        ${((Number(item.unit_price) || 0) * item.quantity).toFixed(2)}
                                       </span>
                                       {digital && (
                                         <span className="px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-900/20 
@@ -281,7 +325,7 @@ const Orders = () => {
                                       <DigitalDownloadsWidget
                                         orderId={order.id}
                                         item={item}
-                                        downloadRecord={itemDownloads.find(d => d.product_id === item.product_id) || null}
+                                        downloadRecord={itemDownload}
                                       />
                                     )}
                                   </div>
@@ -296,7 +340,7 @@ const Orders = () => {
                     {/* Quick Item Preview (collapsed state) */}
                     {expandedOrder !== order.id && (
                       <div className="bg-stone-50/50 dark:bg-slate-900/30 px-8 py-4 flex gap-3 overflow-x-auto border-t border-stone-100 dark:border-slate-700">
-                        {(order.items || []).slice(0, 8).map(item => (
+                        {activeItems.slice(0, 8).map(item => (
                           <div 
                             key={item.id} 
                             className={`w-12 h-12 rounded-xl overflow-hidden bg-white dark:bg-slate-800 border shrink-0 relative ${
@@ -319,9 +363,9 @@ const Orders = () => {
                             )}
                           </div>
                         ))}
-                        {(order.items || []).length > 8 && (
+                        {activeItems.length > 8 && (
                           <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-slate-800 border border-stone-100 dark:border-slate-700 shrink-0 flex items-center justify-center text-[10px] font-black text-text-secondary">
-                            +{order.items.length - 8}
+                            +{activeItems.length - 8}
                           </div>
                         )}
                       </div>

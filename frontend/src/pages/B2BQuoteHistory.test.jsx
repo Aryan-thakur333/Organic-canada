@@ -146,7 +146,7 @@ function makeSampleResponse({ overrides = {}, quoteOverrides = [] } = {}) {
     },
     {
       id: "quote_002",
-      status: "approved",
+      status: "accepted",
       created_at: "2026-06-10T08:00:00Z",
       items: [
         { title: "Organic Wheat", quantity: 100, unit_price: 150 },
@@ -198,10 +198,10 @@ describe("B2BQuoteHistory — signal-based fetch pattern", () => {
 
     // Status badges are visible in collapsed rows
     await waitFor(() => {
-      expect(screen.getByText("pending_review")).toBeInTheDocument();
+      expect(screen.getAllByText("Pending Review").length).toBeGreaterThanOrEqual(2);
     });
 
-    expect(screen.getByText("approved")).toBeInTheDocument();
+    expect(screen.getAllByText("Accepted").length).toBeGreaterThanOrEqual(2);
     // Count text from the header
     expect(screen.getByText(/2 total/)).toBeInTheDocument();
   });
@@ -321,7 +321,7 @@ describe("B2BQuoteHistory — signal-based fetch pattern", () => {
 
     // After retry, a quote status should appear
     await waitFor(() => {
-      expect(screen.getByText("pending_review")).toBeInTheDocument();
+      expect(screen.getAllByText("Pending Review").length).toBeGreaterThanOrEqual(2);
     });
 
     expect(mockGetQuotes).toHaveBeenCalledTimes(2);
@@ -348,7 +348,7 @@ describe("B2BQuoteHistory — signal-based fetch pattern", () => {
     mockGetQuote.mockResolvedValue({
       quote: {
         id: "quote_999",
-        status: "approved",
+        status: "accepted",
         created_at: "2026-07-01T00:00:00Z",
         items: [],
         subtotal: 5000,
@@ -400,14 +400,19 @@ describe("B2BQuoteHistory — signal-based fetch pattern", () => {
       expect(mockGetQuotes).toHaveBeenCalledTimes(1);
     });
 
-    await userEvent.click(screen.getByText("Approved"));
+    await userEvent.click(screen.getByRole("button", { name: "Accepted" }));
 
     await waitFor(() => {
       expect(mockGetQuotes).toHaveBeenCalledTimes(2);
     });
 
-    // Check the second call passed the filter
+    // Grouped quote filters are applied locally after fetching a wider page.
     const secondCallParams = mockGetQuotes.mock.calls[1][0];
-    expect(secondCallParams.status).toBe("approved");
+    expect(secondCallParams).toEqual(expect.objectContaining({
+      limit: 100,
+      offset: 0,
+      signal: expect.any(Object),
+    }));
+    expect(secondCallParams.status).toBeUndefined();
   });
 });
