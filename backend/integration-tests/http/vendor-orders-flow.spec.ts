@@ -1,6 +1,7 @@
 import { medusaIntegrationTestRunner } from "@medusajs/test-utils"
 import { Modules } from "@medusajs/framework/utils"
 import { createAndLoginAdmin, registerAndApproveVendor } from "../helpers/integration-auth"
+import { ensureVendorStockLocation } from "../helpers/vendor-location"
 import { splitOrderWorkflow } from "../../src/workflows/split-order-workflow"
 import { createVendorOrdersFromOrderWorkflow } from "../../src/workflows/create-vendor-orders-from-order"
 
@@ -39,8 +40,11 @@ medusaIntegrationTestRunner({
       const activeContainer = getContainer()
       adminAuth = await createAndLoginAdmin(activeContainer, api)
 
-      vendor = await registerAndApproveVendor(activeContainer, api, "OrderTestVendor", adminAuth.headers)
-      vendorB = await registerAndApproveVendor(activeContainer, api, "OrderTestVendorB", adminAuth.headers)
+      vendor = await registerAndApproveVendor(api, "OrderTestVendor", adminAuth.headers)
+      vendorB = await registerAndApproveVendor(api, "OrderTestVendorB", adminAuth.headers)
+
+      await ensureVendorStockLocation({ container: activeContainer, vendorId: vendor.id, storeName: "OrderTestVendor" })
+      await ensureVendorStockLocation({ container: activeContainer, vendorId: vendorB.id, storeName: "OrderTestVendorB" })
 
       // Create products for both vendors
       const prodRes = await api.post("/vendor/products", {
@@ -123,6 +127,7 @@ medusaIntegrationTestRunner({
         }
       })
       vendorOrderId = createdVO.result[0].id
+      console.log(`[SETUP] order-ready vendorOrderId=${vendorOrderId}`)
     })
 
     // ═════════════════════════════════════════════════════════════════════
@@ -195,6 +200,9 @@ medusaIntegrationTestRunner({
     //  TEST: Vendor order actions (accept/reject/fulfill)
     // ═════════════════════════════════════════════════════════════════════
 
+    // NOTE: The endpoints POST /vendor/orders/action/:id and GET /vendor/orders/action/:id
+    // expect the parent Order.id (not vendorOrderId). The controllers verify vendor
+    // access to the order by checking if any item in the order is owned by the vendor.
     describe("POST /vendor/orders/action/:id — Order actions", () => {
       test("returns 404 for non-existent order", async () => {
         const res = await api.post("/vendor/orders/action/fake-order-id", {

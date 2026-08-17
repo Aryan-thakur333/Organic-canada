@@ -37,8 +37,8 @@ medusaIntegrationTestRunner({
       const activeContainer = getContainer()
       adminAuth = await createAndLoginAdmin(activeContainer, api)
 
-      vendorA = await registerAndApproveVendor(activeContainer, api, "SplitVendorA", adminAuth.headers)
-      vendorB = await registerAndApproveVendor(activeContainer, api, "SplitVendorB", adminAuth.headers)
+      vendorA = await registerAndApproveVendor(api, "SplitVendorA", adminAuth.headers)
+      vendorB = await registerAndApproveVendor(api, "SplitVendorB", adminAuth.headers)
 
       // Create products for both vendors
       const prodResA = await api.post("/vendor/products", {

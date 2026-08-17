@@ -3,6 +3,7 @@ import { Modules } from "@medusajs/framework/utils"
 import { MARKETPLACE_MODULE } from "../../src/modules/marketplace"
 import { createUserAccountWorkflow } from "@medusajs/medusa/core-flows"
 import { createAndLoginAdmin, registerAndApproveVendor } from "../helpers/integration-auth"
+import { ensureVendorStockLocation } from "../helpers/vendor-location"
 
 jest.setTimeout(120 * 1000)
 
@@ -40,8 +41,11 @@ medusaIntegrationTestRunner({
         ;(adminHeaders as any).headers.Authorization = adminAuth.headers.Authorization
 
         // 2. Create Vendors
-        vendorA = await registerAndApproveVendor(container, api, "LifecycleVendorA", adminAuth.headers)
-        vendorB = await registerAndApproveVendor(container, api, "LifecycleVendorB", adminAuth.headers)
+        vendorA = await registerAndApproveVendor(api, "LifecycleVendorA", adminAuth.headers)
+        vendorB = await registerAndApproveVendor(api, "LifecycleVendorB", adminAuth.headers)
+
+        await ensureVendorStockLocation({ container, vendorId: vendorA.id, storeName: "LifecycleVendorA" })
+        await ensureVendorStockLocation({ container, vendorId: vendorB.id, storeName: "LifecycleVendorB" })
 
         // 3. Create products
         const prodRes = await api.post(
@@ -103,6 +107,7 @@ medusaIntegrationTestRunner({
           vendor_net_amount: 9900,
         })
         vendorOrderItemId = createdItem.id
+        console.log(`[SETUP] order-ready vendorOrderId=${vendorOrderId}`)
 
       } catch (error: any) {
         console.error("[VENDOR_LIFECYCLE_SETUP_FAILED]", {

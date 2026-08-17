@@ -37,8 +37,8 @@ medusaIntegrationTestRunner({
       const container = getContainer()
       adminAuth = await createAndLoginAdmin(container, api)
 
-      vendorA = await registerAndApproveVendor(container, api, "VendorA", adminAuth.headers)
-      vendorB = await registerAndApproveVendor(container, api, "VendorB", adminAuth.headers)
+      vendorA = await registerAndApproveVendor(api, "VendorA", adminAuth.headers)
+      vendorB = await registerAndApproveVendor(api, "VendorB", adminAuth.headers)
     })
 
     // ═════════════════════════════════════════════════════════════════════

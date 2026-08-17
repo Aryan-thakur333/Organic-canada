@@ -1,5 +1,6 @@
 import { medusaIntegrationTestRunner } from "@medusajs/test-utils"
 import { createAndLoginAdmin, registerAndApproveVendor } from "../helpers/integration-auth"
+import { ensureVendorStockLocation } from "../helpers/vendor-location"
 
 jest.setTimeout(120 * 1000)
 
@@ -35,8 +36,11 @@ medusaIntegrationTestRunner({
       const container = getContainer()
       adminAuth = await createAndLoginAdmin(container, api)
 
-      vendorA = await registerAndApproveVendor(container, api, "InventoryVendorA", adminAuth.headers)
-      vendorB = await registerAndApproveVendor(container, api, "InventoryVendorB", adminAuth.headers)
+      vendorA = await registerAndApproveVendor(api, "InventoryVendorA", adminAuth.headers)
+      vendorB = await registerAndApproveVendor(api, "InventoryVendorB", adminAuth.headers)
+
+      await ensureVendorStockLocation({ container, vendorId: vendorA.id, storeName: "InventoryVendorA" })
+      await ensureVendorStockLocation({ container, vendorId: vendorB.id, storeName: "InventoryVendorB" })
 
       // Create products so vendors have inventory
       await api.post("/vendor/products", {

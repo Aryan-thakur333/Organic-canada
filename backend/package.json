@@ -71,6 +71,7 @@
     "admin:stable:local:clean": "node scripts/start-stable.js --local --rebuild --clean",
     "kill:9000": "powershell -ExecutionPolicy Bypass -File scripts/kill-port-9000.ps1",
     "test:integration:http": "cross-env TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --forceExit",
+    "test:integration:json": "cross-env TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --runInBand --json --outputFile=integration-results.json",
     "test:integration:debug": "cross-env TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --detectOpenHandles",
     "test:integration:modules": "cross-env TEST_TYPE=integration:modules NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --forceExit",
     "test:unit": "cross-env TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --forceExit",
